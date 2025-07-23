@@ -1,0 +1,86 @@
+{
+    "$schema": "/etc/xdg/swaync/configSchema.json",
+    "positionX": "left",
+    "positionY": "bottom",
+    "fit-to-screen": true,
+    "layer": "overlay",
+    "control-center-layer": "top",
+    "layer-shell": true,
+    "cssPriority": "user",
+    "control-center-margin-top": 3,
+    "control-center-margin-bottom": 3,
+    "control-center-margin-right": 0,
+    "control-center-margin-left": 5,
+    "notification-window-width": 350,
+    "control-center-width": 200,
+    "control-center-height": 900,
+    "hide-on-action": false,
+    "script-fail-notify": true,
+    "widgets": [
+        "title",
+        "dnd",
+        "buttons-grid",
+        "volume",
+        "backlight",
+        "notifications"
+    ],
+    "widget-config": {
+        "title": {
+            "clear-all-button": true,
+            "button-text": "Clear"
+        },
+        "dnd": {
+            "label": ""
+        },
+        "volume": {
+            "label": ""
+        },
+        "backlight": {
+            "label": ""
+        },
+        "buttons-grid": {
+            "actions": [
+                {
+                    "label": "󰡬",
+                    "command": "bash $HOME/user_scripts/swaync/hyprsunset_slider.sh"
+                },
+                {
+                    "label": "",
+                    "command": "kitty -- bash $HOME/user_scripts/network_manager/nmcli_wifi.sh"
+                },
+                {
+                    "label": "󰂯",
+                    "command": "blueman-manager"
+                },
+                {
+                    "label": "",
+                    "command": "pavucontrol"
+                },
+                {
+                    "label": "",
+                    "command": "bash $HOME/user_scripts/waypaper/swww_change_wallpaper.sh"
+                },
+                {
+                    "label": "󰓅",
+                    "command": "kitty -- bash $HOME/user_scripts/performance/services_and_process_terminator.sh"
+                },
+                {
+                    "label": "",
+                    "command": "notify-send 'Placeholder Button' 'Configure the script path in config.json'"
+                },
+                {
+                    "label": "󰌌",
+                    "command": "notify-send 'Placeholder Button' 'Configure the script path in config.json'"
+                },
+                {
+                    "label": "",
+                    "command": "notify-send 'Placeholder Button' 'Configure the script path in config.json'"
+                },
+                {
+                    "label": "",
+                    "command": "notify-send 'Placeholder Button' 'Configure the script path in config.json'"
+                }
+            ]
+        }
+    }
+}

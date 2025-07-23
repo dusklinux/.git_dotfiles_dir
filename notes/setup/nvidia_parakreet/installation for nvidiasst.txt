@@ -1,0 +1,89 @@
+Install Python and Pip (if not present):
+
+sudo pacman -U <package-file.pkg.tar.zst> #You need to install them in a specific order if there are dependencies among them.
+
+--------------------
+
+Install PyTorch from Local Files
+cd /mnt/ramdisk/offline_asr_setup/python_packages
+
+Install PyTorch and its components using pip. The --no-index flag tells pip not to look online, and --find-links tells it where to find the packages.
+
+(The . means "look in the current directory"). Ensure all downloaded PyTorch related .whl files are in this directory.
+
+--no-index is specifically designed to prevent external lookups so don't use that if there might be additional dependiencies that aren't present locally. to use the hybrid mehtond of utilizing local and downlaoding the onces that aren't present use without --no-index
+
+pip install torch torchvision torchaudio --no-index --find-links=.
+
+----------------------
+
+Install NeMo Toolkit from Local Files:
+Similarly, install NeMo: 
+
+This will install NeMo and its dependencies from the files you downloaded. Make sure all dependency .whl files for nemo_toolkit["asr"] are present in this directory. pip download should have grabbed them.
+
+cd /mnt/my_external_drive/offline_asr_setup/python_packages
+pip install nemo_toolkit["asr"] --no-index --find-links=.
+
+======================
+CPU ONLY
+
+ARCH_PKG_DIR="/mnt/ramdisk/offline_asr_setup/arch_packages"
+
+PYTORCH_CPU_WHEELS_DIR="/mnt/ramdisk/offline_asr_setup/python_packages/pytorch_cpu/"
+
+NEMO_WHEELS_DIR=/mnt/ramdisk/offline_asr_setup/python_packages/nvidia_NeMo/
+
+MODEL_DIR=/mnt/ramdisk/offline_asr_setup/nemo_models/
+
+PROJECT_DIR="/mnt/ramdisk/stt"
+-----------
+Step 1: Prepare Your Project Directory
+
+First, create a directory where you'll set up your virtual environment and store your transcription scripts.
+
+mkdir -p $PROJECT_DIR
+cd $PROJECT_DIR
+
+--------------
+Step 2: Create and Activate a Python Virtual Environment
+
+It's highly recommended to use a virtual environment to isolate project-specific dependencies.
+
+python -m venv .venv
+source .venv/bin/activate
+
+python -m venv .venv: This command creates a virtual environment named .venv inside your current project directory ($PROJECT_DIR). Using .venv is a common convention. This environment will have its own Python interpreter and pip instance, isolated from your system's global Python packages.
+
+source .venv/bin/activate: This command activates the virtual environment. Your terminal prompt should change to indicate that the virtual environment is active (e.g., (.venv) user@host:...$). Now, any Python packages you install will be placed in this environment.
+
+----------------
+
+Step 3: Install Python Packages from Local Files
+
+This is the core of the offline installation. We will use pip install with flags to point to your local wheel files and prevent any internet access.
+
+Install PyTorch (CPU Version)
+
+pip install --no-index --find-links=$PYTORCH_CPU_WHEELS_DIR torch torchvision torchaudio
+
+Install NeMo Toolkit and its Dependencies
+
+pip install --no-index --find-links=$NEMO_WHEELS_DIR nemo_toolkit[asr]
+
+-------------------
+if any of the commands fail because of a dependency erors and after all dependenciiees have been met, make sure to purge cache and run the install commands again.
+
+pip cache purge
+
+if you get an error with sentencepiece, it's because it's not installed, install it from the AUR
+
+paru -S sentencepiece
+--------------------
+
+test if they were all sucessfully installed, SHOULD PRINT FALSE for cuda because this is cpu only
+
+python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}'); import nemo.utils; print('NeMo utils imported successfully')"
+
+
+

@@ -1,0 +1,7 @@
+  this command automaticlaly generates teh config file based on the color themeing. 
+
+    DARK THEME
+cat ~/.cache/wal/colors-rofi-dark.rasi ~/.config/rofi/template/rofi_template.rasi > ~/.config/rofi/config.rasi
+
+    LIGHT THEME
+cat ~/.cache/wal/colors-rofi-light.rasi ~/.config/rofi/template/rofi_template.rasi > ~/.config/rofi/config.rasi

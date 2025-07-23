@@ -1,0 +1,99 @@
+/*
+ * FINAL, CORRECTED TEMPLATE.
+ * The 'modi' line has been fixed to correctly define the clipboard script.
+ */
+
+configuration {
+    /* MODI: This is the corrected line. It links the name 'clipboard' to the script file. */
+    modi:               "drun,run,clipboard:~/user_scripts/rofi/rofi_cliphist.sh";
+
+    show-icons:         true;
+    icon-theme:         "Papirus-Dark";
+    
+    display-drun:       "  Apps";
+    display-run:        "  Run";
+    display-clipboard:  "  Clipboard";
+
+    kb-cancel:          "Escape";
+    font:               "JetBrainsMono Nerd Font 11";
+}
+
+/* 
+ * The colors-rofi-dark.rasi file from pywal will be inserted *above* this line.
+ */
+
+window {
+    background-color:   @background;
+    border:             2px;
+    border-radius:      12px;
+    border-color:       @color4;
+    padding:            20px;
+    location:           center;
+    anchor:             center;
+    width:              40%;
+}
+
+mainbox {
+    children:           [ inputbar, listview ];
+    spacing:            15px;
+}
+
+inputbar {
+    children:           [ prompt, entry ];
+    spacing:            10px;
+    padding:            12px;
+    border-radius:      8px;
+    background-color:   @alternate-normal-background;
+    text-color:         @foreground;
+}
+
+prompt {
+    enabled:            true;
+    background-color:   inherit;
+    text-color:         @foreground;
+}
+
+entry {
+    placeholder:        "Search...";
+    background-color:   inherit;
+    text-color:         inherit;
+}
+
+listview {
+    columns:            1;
+    lines:              8;
+    cycle:              true;
+    scrollbar:          false;
+    spacing:            10px;
+}
+
+element {
+    padding:            10px 12px;
+    border-radius:      8px;
+    cursor:             pointer;
+}
+
+element-icon {
+    size:               1.5em;
+    vertical-align:     0.5;
+    margin:             0 15px 0 0;
+}
+
+element-text {
+    vertical-align:     0.5;
+}
+
+element.normal.normal {
+    background-color:   @normal-background;
+    text-color:         @normal-foreground;
+}
+
+element.selected.normal {
+    background-color:   @selected-normal-background;
+    text-color:         @selected-normal-foreground;
+}
+
+element.alternate.normal {
+    background-color:   @alternate-normal-background;
+    text-color:         @normal-foreground;
+}

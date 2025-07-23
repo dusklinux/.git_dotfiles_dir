@@ -1,0 +1,27 @@
+Environment Management
+uv venv <name>		#Creates a virtual environment with a specific name IN THE CURRENT DIRECTORY! (e.g., uv venv my_project_env).	
+uv venv <name> --python <version>		#Creates a virtual environment with a specific Python version (e.g., uv venv --python 3.11).
+source .venv/bin/activate		#Activates the virtual environment on a Linux shell. This is a standard shell command, not a uv command, but essential for working within the environment.
+deactivate		#Deactivates the currently active virtual environment.
+uv venv		#Creates a new virtual environment IN THE .venv DIRECTORY!. current directory but it's hidden by defualt cuz starts with a period
+rm -rf /path/to/the/virtualenvironment_directory/ 	#deletes teh virtual environmet.
+
+Package Installation & Management	
+uv pip install <package_name>		#Installs a package into the active virtual environment.
+uv pip install <package_one> <package_two>		#Installs multiple packages simultaneously.
+uv pip install -r requirements.txt		#Installs all packages listed in a requirements.txt file. This is the primary command you will use for projects from GitHub.
+uv pip uninstall <package_name>		#Removes a package from the environment.
+uv pip sync requirements.txt		#Synchronizes the environment to exactly match the requirements.txt file, adding missing packages and removing extraneous ones.
+uv pip list		#Lists all installed packages and their versions in the current environment.
+uv pip freeze > requirements.txt		#Generates a requirements.txt file from the packages currently installed in the environment.
+
+local install uv pip install --no-index --find-links /path/to/the/directory/with/wheels
+uv pip install torch torchvision torchaudio --no-index --find-links /mnt/wd/pip_offline/pytorch_cpu/
+
+Ad-Hoc Command Execution	
+uvx <command>		#Executes a command in an ephemeral, temporary environment. Example: uvx cowsay "Mastering Arch"
+uvx -p 3.11 <command>		#Executes a command in an ephemeral environment using a specific Python version.
+System & Cache Management	
+uv cache clean		#Clears uv's global package cache. Use this if you suspect the cache is corrupted or wish to reclaim disk space.
+uv cache prune		#Removes only unused entries from the cache, which is a safer way to perform cleanup.
+uv --version		#Displays the installed version of uv.

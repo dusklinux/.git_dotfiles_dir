@@ -1,0 +1,79 @@
+	install miniconda3 
+paru -S miniconda3
+
+	to activate the conda command 
+source /opt/miniconda3/etc/profile.d/conda.sh
+
+	make yourself the group owner of the installation path of conda to allow you to update it and all the rest
+
+sudo chown -R fayiz:fayiz /opt/miniconda3
+
+
+	to fix the openssl 3.0 legacy provider entry point error, can be added to the bash config file for peristance.
+	
+export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=1 && conda --version
+
+
+	update miniconda to the latest version 
+conda update -n base -c defaults conda
+
+
+
+	add community repo conda-forge
+
+nvim ~/.condarc
+
+	paste this in the black document
+
+channels:
+  - conda-forge
+  - defaults
+channel_priority: strict
+
+	verify it's applicability
+	
+conda config --show channels
+conda config --show channel_priority
+	
+	If your shell is Bash or a Bourne variant, enable conda for the current user with
+
+echo "[ -f /opt/miniconda3/etc/profile.d/conda.sh ] && source /opt/miniconda3/etc/profile.d/conda.sh" >> ~/.bashrc
+
+	or, for all users, enable conda with
+
+sudo ln -s /opt/miniconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh
+
+
+Environment Orchestration
+These commands govern the creation and manipulation of the conda environments themselves.
+
+conda create --name <env-name> python=<version>	#Creates a new environment with a specified name and Python version.
+conda create --clone <source-env> --name <new-env-name>	 #Clones an existing environment, creating an exact replica under a new name.
+conda activate <env-name>	#Activates a specified environment. Your shell prompt will change, prepending the active environment's name.
+conda deactivate	#Deactivates the current environment, returning you to the base environment or system shell.
+conda info --envs or conda env list	 #Lists all available conda environments on your system.
+conda remove --name <env-name> --all	#Removes an entire environment and all of its contents.
+
+
+Package & Channel Administration
+These commands are executed to manage packages and the channels from which they are sourced.
+
+conda search <package-name>	 #Searches for a package across all configured channels.
+conda install <package-name>	#Installs a package into the currently active environment.
+conda install -c <channel-name> <package-name>	#Installs a package from a specific channel. conda-forge is a common choice.
+conda list	#Lists all packages installed in the currently active environment.
+conda update <package-name>	#Updates a specific package to the latest compatible version.
+conda update --all	#Updates all packages in the current environment to their latest compatible versions.
+conda uninstall <package-name>	#Uninstalls a package from the current environment.
+conda remove <package-name>	#Removes a package and its unused dependencies from the active environment.
+conda config --add channels <channel-name>	#Adds a new channel to the top of your configuration priority list.
+conda config --show channels	#Displays the current channel configuration.
+conda config --set channel_priority strict	#Configures conda to strictly prioritize channels, preventing difficult-to-diagnose conflicts. This is a best practice.
+
+
+Environment Portability
+These commands facilitate the replication and sharing of environments.
+
+conda env export > environment.yml	#Exports the current environment's package list (including versions and channels) to a YAML file. This is the canonical way to share a conda environment.
+conda env create -f environment.yml	 #Creates a new environment from the specifications in an environment.yml file.
+conda env export --from-history > environment.yml	#Exports only the packages you explicitly installed, creating a more portable, OS-agnostic environment.yml file suitable for cross-platform collaboration. This is often the preferable export method.

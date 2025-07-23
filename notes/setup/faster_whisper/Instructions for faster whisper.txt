@@ -1,0 +1,55 @@
+Python 3.9 or greater
+if there is ever a python version constraint, use uv to install the specified python version for the environment (not applicable for this project)
+
+
+first make sure you're in the contained_apps/uv directory. if you don't have that already created, make sure to create one with this
+
+mkdir -p ~/contained_apps/uv/
+
+  then go into it with . 
+
+cd ~/contained_apps/uv/
+
+	CREATE A PYTHON ENVIRONMENT FIRST TO ISOLATE IT
+
+uv venv fasterwhisper_cpu 
+
+  activate it. 
+
+source fasterwhisper_cpu/bin/activate
+
+  go into the vertual envionment directory.
+
+cd fasterwhisper_cpu
+
+	install faster-whisper
+
+uv pip install faster-whisper
+
+	after the installation is done use the exisiting config.py refer to in run the script,the script has two user defined variables set up top, make sure to satisfy those variables by adjusting the absolute path to the required components, virtual environmetn path and the python script,  to download a model you can change the model if you so want by specifying it, rn the default is small.en ,(the script is configured to look for an audio file in the RAM disk mic directory) make sure there's an audio wav file that already exists in /mnt/ramdisk/mic/1_mic.wav, the audio file is automatically created when the script is run. 
+
+python /path/to/the/config.py
+-----------------------X--------------------
+
+	FROM OUTSIDE THE PYTHON ENVIRONMENT (AUTOMATED)
+to automate the process of the entire thing a script has been made to record, to initiate the python environment to transcribe the text and to copy the text to clipboard in a well formatted way just make sure to edit the user defined parameters in the scripts at the top
+
+./faster_whisper_sst.sh
+
+
+
+
+
+
+--------------------------------
+  not relevent to this. but good to know. 
+
+  this command is to be run first to find out your pc's audio source
+pactl list short sources
+
+recording audio with ffpepeg
+ffmpeg -f pulse -i 'alsa_input.pci-0000_00_1f.3-platform-skl_hda_dsp_generic.HiFi_Mic1_source' /mnt/ramdisk/mic/1_mic.wav
+			
+
+for transcribing stt whisper
+./whisper.cpp/build/bin/whisper-cli -m /home/fayiz/whisper.cpp/ggml_model/ggml-base.en.bin -f /mnt/ramdisk/mic/1_mic.wav

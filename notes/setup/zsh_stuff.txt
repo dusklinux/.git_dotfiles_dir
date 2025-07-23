@@ -1,0 +1,18 @@
+
+echo $SHELL
+
+swtich to zsh
+chsh -s $(which zsh)
+
+
+sudo pacman -S zsh-syntax-highlighting zsh-autosuggestions fzf starship
+
+to configure starship (written in rust and lightweight)
+~/.config/starship.toml
+
+	to show you all the options that are enabled and disabled.
+set -o
+	To list all options avaialbed for turning on
+setopt TAB 
+	to list all options avialble for turning off
+nosetopt TAB

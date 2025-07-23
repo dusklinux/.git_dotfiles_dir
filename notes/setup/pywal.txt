@@ -1,0 +1,20 @@
+  PYWAL16
+
+  installaion. 
+https://github.com/eylles/pywal16/wiki/Installation
+
+  with pipx
+  #install pipx from your package manager
+  #example for debian based distros
+
+sudo pacman -S python-pipx
+
+  #install with pipx
+
+pipx install pywal16
+
+  an environment varioables needs to be added for the path to the exicutable, which is store in /usr/local/bin, i've added it already in the env-hyprland file for uwsm. 
+  
+  export PATH="$HOME/.local/bin:$PATH"
+
+

@@ -1,0 +1,6 @@
+# BEGIN_KITTY_THEME
+# Catppuccin-Latte
+include current-theme.conf
+# END_KITTY_THEME
+#don't prompt for conformation when child process is active, just close the darn thing. 
+confirm_os_window_close 0

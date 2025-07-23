@@ -1,0 +1,13 @@
+change powerkey behaviour
+
+	open this file, it's part of systemd
+	
+sudo nvim /etc/systemd/logind.conf
+
+	uncomment this and change it to suspend "#HandlePowerKey=poweroff"
+
+HandlePowerKey=suspend
+
+	restart the service for immidate effect or just restart the pc
+	
+sudo systemctl restart systemd-logind.service

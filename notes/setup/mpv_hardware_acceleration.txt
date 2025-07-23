@@ -1,0 +1,40 @@
+already installed on your pc but just in case
+sudo pacman -S --needed mpv intel-media-driver libva-utils
+
+
+	add this the text to this file 
+
+nvim ~/.config/mpv/mpv.conf
+
+# ~/.config/mpv/mpv.conf
+
+# Specify the hardware decoding API. 'vaapi' is the native Linux API.
+hwdec=vaapi
+
+# Set the video output driver. 'gpu' is modern and required for hwdec.
+vo=gpu
+
+# CRITICAL: Specify the GPU context for Wayland.
+# This ensures seamless integration with Hyprland and is the most likely fix.
+gpu-context=wayland
+
+
+
+
+------------------------
+  PAUSE PLAY WITH SHORTCUTS KEYBINDS
+--------------------------
+  first install this package mpv-mpris
+
+sudo pacman -S mpv-mpris (already listed in arch install pacakes)
+
+  then run mpv once and close it. 
+  then create a scripts directory in the mpv directory
+
+mkdir -p ~/.config/mpv/scripts
+
+  then run this to create a symbolic link
+
+ln -s /usr/lib/mpv/scripts/mpris.so ~/.config/mpv/scripts/
+
+  test it out with playerctl play /playerctl pause or just with your existing keybind for mpris (playerctl contorl)
