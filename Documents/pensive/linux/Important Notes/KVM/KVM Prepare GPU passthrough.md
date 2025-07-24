@@ -17,12 +17,5 @@ Then regenerate initramfs so VFIO loads early:
 sudo mkinitcpio -P
 ```
 
-Also enable IOMMU in the kernel by editing your boot loader entry 
-
-```bash
-sudo nvim /etc/default/grub
-```
-
-add intel_iommu=on iommu=pt to GRUB_CMDLINE_LINUX) and regenerate grub and then reboot. 
 
 Confirm vfio-pci is now driving your GPU (lspci -nnk should show Kernel driver in use: vfio-pci for the NVIDIA card)

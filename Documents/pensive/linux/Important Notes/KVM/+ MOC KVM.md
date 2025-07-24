@@ -5,6 +5,8 @@ https://sysguides.com/install-kvm-on-linux#0-01-overview-of-key-kvm-components
 
 [[KVM Loading kernal Module]]
 
+[[Grub Kernal Parameters]]
+
 turn on vt-x and vt-d in bios. and check if iommu is loaded
 
 [[Verify  VT x and kernal modules and IOMMU]]
@@ -16,7 +18,16 @@ turn on vt-x and vt-d in bios. and check if iommu is loaded
 
 [[KVM Services]]
 
+[[Optimize the Host with TuneD]]
+
+
+[[Optional KVM Network Bridge for webhosting]]
+
+[[Give the User System-Wide Permission]]
+
 [[KVM Group Add]]
+
+[[Set ACL on the Image Directory]]
 
 
 

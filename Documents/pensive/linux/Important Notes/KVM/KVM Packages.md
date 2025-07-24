@@ -18,6 +18,7 @@
 | `guestfs-tools`  | Tools for accessing and modifying guest disk images                                                                                                |
 | `iptables-nft`   |                                                                                                                                                    |
 | `libosinfo`      |                                                                                                                                                    |
+| `spice-vdagent`  | Spice agent for Linux guests (for better windows integration )                                                                                     |
 |                  |                                                                                                                                                    |
 
 
