@@ -1,7 +1,7 @@
 
 # 🚀 Mastering `fzf`: The Command-Line Fuzzy Finder
 
-`fzf` is a general-purpose, command-line fuzzy finder that is exceptionally fast and intuitive. For a system administrator or power user on Arch Linux, it's an indispensable tool for searching files, commands, processes, and more, directly from the terminal. This guide breaks down its usage from basic previews to powerful integrations with tools like [[NeoVim]].
+`fzf` is a general-purpose, command-line fuzzy finder that is exceptionally fast and intuitive. For a system administrator or power user on Arch Linux, it's an indispensable tool for searching files, commands, processes, and more, directly from the terminal. This guide breaks down its usage from basic previews to powerful integrations with tools like [[NeoVim Commands]].
 
 ---
 
@@ -60,7 +60,7 @@ Use `**` followed by the `TAB` key to trigger `fzf` for path or process completi
 
 ## 4. Integrating `fzf` with NeoVim
 
-One of the most powerful use cases for `fzf` is quickly finding and opening files in a text editor like [[NeoVim]]. Here are several methods, from simple to robust, each with its own trade-offs.
+One of the most powerful use cases for `fzf` is quickly finding and opening files in a text editor like [[NeoVim Commands]]. Here are several methods, from simple to robust, each with its own trade-offs.
 
 ### ➤ Method 1: The Simple Approach
 
@@ -107,5 +107,5 @@ fzf -m --preview="bat --color=always {}" --bind "enter:become(nvim {+})"
 `fzf` is a foundational utility that enhances many other command-line tools.
 
 -   **[[YAZI]]**: The blazing-fast terminal file manager [[YAZI]] integrates `fzf` for its "jump" functionality. Pressing `Z` in Yazi will launch an `fzf` session to quickly find and navigate to any file or directory.
--   **[[NeoVim]]**: Beyond launching the editor from the shell, `fzf` can be integrated *inside* [[NeoVim]] using plugins like `fzf.vim` or `telescope.nvim`. This allows for fuzzy searching buffers, git commits, help tags, and much more without ever leaving the editor.
+-   **[[NeoVim Commands]]**: Beyond launching the editor from the shell, `fzf` can be integrated *inside* [[NeoVim Commands]] using plugins like `fzf.vim` or `telescope.nvim`. This allows for fuzzy searching buffers, git commits, help tags, and much more without ever leaving the editor.
 

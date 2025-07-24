@@ -322,7 +322,7 @@ cp -r /mnt/media/Documents/do_not_delete_linux/themes/Decay-Green ~/.local/share
     - [ ] Install `ollama`. [[+ MOC Ollama]]
     - [ ] Install `faster-whisper`. [[Faster Whisper]]
 	- [ ] Install `kokoro` [[Kokoro Rust]]
-	- [ ] Waydroid:- Android container. lightweight. [[+ MOC Waydroid]]
+	- [ ] Install `Waydroid` :- Android container. lightweight. [[+ MOC Waydroid]]
 
 ---
 
@@ -416,6 +416,14 @@ mkdir -p ~/.config/mpv/scripts
 
 ```bash
 ln -s /usr/lib/mpv/scripts/mpris.so ~/.config/mpv/scripts/
+```
+
+---
+
+- [ ] Neovim NVChad 
+
+```bash
+git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
 ```
 
 ---

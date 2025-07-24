@@ -120,6 +120,52 @@ pacman -Ql <package_name>
 > pacman -Ql networkmanager | grep .service
 > ```
 
+
+---
+
+# Pacman File‑Database Commands
+
+> [!info] **Purpose:**
+> Pacman’s file-database commands let you query which package owns a given file or unit, without installing it first.
+
+
+> [!tip]+ **Before searching**: Always refresh the file database to get up‑to‑date info.
+
+```bash
+sudo pacman -Fy
+```
+
+* **Action:**
+
+  * Downloads or refreshes the **file database** for all enabled sync repositories.
+* **Why:**
+
+  * Lets pacman map files (binaries, config files, systemd units) to their source packages.
+
+
+> [!warning] **No sudo needed**: This reads your local database; root isn’t required.
+
+```bash
+pacman -F virtqemud.service
+```
+
+* **Action:**
+
+  * Searches the **local file database** for packages that provide the named file (e.g., `virtqemud.service`).
+* **Use‑case:**
+
+  1. You see an error about a missing service unit.
+  2. Run `pacman -F <unit>` to find which package contains it.
+
+> [!tip] **Example Workflow**
+>
+> ```
+> sudo pacman -Fy
+> pacman -F virtqemud.service  # → shows qemu-virtio package
+> sudo pacman -S qemu-virtio
+> ```
+
+
 ---
 
 ### 6. Managing the Pacman Cache
