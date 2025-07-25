@@ -3,14 +3,19 @@
 ### Looking Glass: 
 > Looking Glass is an open source application that allows the use of a KVM (Kernel-based Virtual Machine) configured for VGA PCI Pass-through without an attached physical monitor, keyboard or mouse. This is the final step required to move away from dual booting with other operating systems for legacy programs that require high performance graphics.
 
-OVMF - open virtual machine framework 
+OVMF - [[Open Virtual Machine Framework]] 
 
-VFIO - 
-virt-manager virt-viewer qemu vde2 ebtables iptables-nft n
-ftables dnsmasq bridge-utils ovmf swtpm
+VFIO -  [[VFIO aka Virtual Function IO]]
 
-IOMMU 
-> INPUT OUTPUT MEMORY MANAGEMENT UNIT
+PCH - Platform Controller Hub[[PCH]]
+
+ACS - Access Control Services[[ACS]]
+
+VGA - [[VGA]]
+
+NIC - [[NIC]]
+
+IOMMU - [[IOMMU]] 
 
 qemu
 KVM/QEMU/Libvirt/OVMF

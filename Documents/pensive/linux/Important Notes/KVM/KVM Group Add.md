@@ -1,5 +1,5 @@
 ```bash
-sudo usermod -aG libvirt,kvm $USER
+sudo usermod -aG kvm $USER
 ```
 
 You may need to log out and back in for group changes to take effect.

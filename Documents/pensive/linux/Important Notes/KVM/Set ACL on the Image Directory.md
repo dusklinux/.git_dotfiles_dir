@@ -19,7 +19,7 @@ sudo setfacl -R -b /var/lib/libvirt/images
 Grant regular user permission to the directory recursively.
 
 ```bash
-sudo setfacl -R -m u:$USER:rwX /var/lib/libvirt/images
+sudo setfacl -R -m u:$(id -un):rwX /var/lib/libvirt/images
 ```
 
 The capital 'X' above indicates that 'execute' should only be applied to child folders and not child files.
@@ -27,7 +27,7 @@ The capital 'X' above indicates that 'execute' should only be applied to child f
 All existing directories and files (if any) in /var/lib/libvirt/images/ now have permissions. However, any new directories and files created within this directory will not have any special permissions. To get around this, we need to enable 'default' special permissions. The 'default acls' can only be applied to directories and not to files.
 
 ```bash
-sudo setfacl -m d:u:$USER:rwx /var/lib/libvirt/images
+sudo setfacl -m d:u:$(id -un):rwx /var/lib/libvirt/images
 ```
 
 Now review your new ACL permissions on the directory.

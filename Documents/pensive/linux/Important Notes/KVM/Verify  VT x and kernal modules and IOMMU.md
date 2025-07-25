@@ -2,7 +2,7 @@ Before beginning, enable virtualization and IOMMU in your BIOS/UEFI (Intel VT-x 
 
 ```bash
 lscpu | grep Virtualization   # should show "VT-x" for Intel CPU:contentReference[oaicite:0]{index=0} 
-dmesg | grep -e DMAR -e IOMMU # on reboot should indicate IOMMU enabled
+sudo dmesg | grep -e DMAR -e IOMMU # on reboot should indicate IOMMU enabled
 ```
 
 kernal modules 
@@ -10,6 +10,6 @@ kernal modules
 zgrep CONFIG_KVM /proc/config.gz
 ```
 
-look for `CONFIG_KVM=` should either be set to y or m
+look for `CONFIG_KVM=` and `CONFIG_KVM_VFIO=` should either be set to y or m
 `Yes (always installed)`
 `Loadable module (can install and uninstall as needed)`

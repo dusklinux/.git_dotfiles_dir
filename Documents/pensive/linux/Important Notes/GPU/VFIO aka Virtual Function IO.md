@@ -1,0 +1,5 @@
+VFIO, or Virtual Function I/O, is a Linux kernel subsystem that provides a framework for exposing direct device access to userspace applications and virtual machines, enabling them to interact with hardware devices at a low level. VFIO is particularly useful in virtualization environments, where it allows virtual machines to use physical devices, such as graphics cards and network interfaces, with near-native performance.
+
+The main purpose of VFIO is to provide secure and efficient access to hardware devices for userspace processes and virtual machines, while maintaining isolation between them. This is achieved through features such as IOMMU (Input/Output Memory Management Unit) and device assignment, which enable fine-grained control over the resources allocated to each virtual machine or process.
+
+VFIO is commonly used in conjunction with QEMU (Quick Emulator) and KVM (Kernel-based Virtual Machine) to enable hardware-accelerated virtualization on Linux systems. By using VFIO, virtual machines can take advantage of hardware features and achieve performance levels similar to those of native applications running directly on the host system.

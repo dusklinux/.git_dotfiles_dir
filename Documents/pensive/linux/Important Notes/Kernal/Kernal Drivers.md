@@ -66,6 +66,12 @@ This command unloads a module. It will also attempt to unload any dependencies t
 sudo modprobe -r nvidia
 ```
 
+> [!note] you can also use these, they do the same thing
+> To unload—remove—a module, use any of:
+> rmmod module_name
+> modprobe -r module_name
+> modprobe --remove module_name
+
 > [!WARNING] Cannot Unload a Module in Use
 > You cannot unload a module if it's currently being used by a process (like a running display server) or another loaded module. `modprobe -r` will fail with an error in this case. You must stop the processes using the module before it can be removed.
 

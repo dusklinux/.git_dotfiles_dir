@@ -8,7 +8,7 @@ lspci -nn | grep NVIDIA
 > [!warning] use your gpu's vender: device ID , dont use the one in example command
 
 ```bash
-options vfio-pci ids=10de:2481,10de:228b
+options vfio-pci ids=10de:25a0,10de:2291
 ```
 
 Then regenerate initramfs so VFIO loads early:

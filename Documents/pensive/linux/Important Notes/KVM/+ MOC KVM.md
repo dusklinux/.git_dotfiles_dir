@@ -1,42 +1,33 @@
-https://sysguides.com/install-kvm-on-linux#0-01-overview-of-key-kvm-components
-
-
-[[KVM Packages]]
-
-[[KVM Loading kernal Module]]
-
-[[Grub Kernal Parameters]]
+- [ ] [[Source Tutorial Link]]
 
 turn on vt-x and vt-d in bios. and check if iommu is loaded
 
-[[Verify  VT x and kernal modules and IOMMU]]
+- [ ] [[Grub Kernal Parameters]]
 
+- [ ] [[Verify  VT x and kernal modules and IOMMU]]
 
-[[check libvert modular daemon availability]]
+- [ ] [[KVM Packages]]
 
-[[libvert Modular daemon enable]]
+- [ ] [[KVM Loading kernal Module]]
 
-[[KVM Services]]
+- [ ] [[check libvert modular daemon availability]]
 
-[[Optimize the Host with TuneD]]
+- [ ] [[libvert Modular daemon enable]]
 
+- [ ]  *DON'T ENABLE THESE IF YOUVE ENABLED THE MODULAR DAEMON ABOVE* [[KVM Services]]
 
-[[Optional KVM Network Bridge for webhosting]]
+- [ ] [[Optimize the Host with TuneD]]
 
-[[Give the User System-Wide Permission]]
+- [ ] [[activating Network and setting it to autostart]]
 
-[[KVM Group Add]]
+- [ ] [[Optional KVM Network Bridge for webhosting]]
 
-[[Set ACL on the Image Directory]]
+- [ ] [[Give the User System-Wide Permission]]
 
+- [ ] [[KVM Group Add]]
 
+- [ ] [[Set ACL on the Image Directory]]
 
+- [ ] [[KVM Prepare dGPU passthrough]]
 
-[[KVM Prepare GPU passthrough]]
-
-
-
-
-
-
-[[All Libvert Daemons]]
+- [ ] [[All Libvert Daemons]]

@@ -9,7 +9,7 @@ This optional step is for modifying an existing user account, typically to grant
 Use the `usermod` command to add a user to one or more groups. Replace `your_username` with the actual username.
 
 ```bash
-usermod -aG group1,group2,group3 your_username
+usermod -aG group your_username
 ```
 
 **Command Breakdown**
