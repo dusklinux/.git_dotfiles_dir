@@ -1,0 +1,250 @@
+/* Import your pywal colors */
+@import url("../../.cache/wal/colors-swaync.css");
+
+/* --- Base --- */
+@define-color text @foreground;
+@define-color background-alt alpha(@color1, .4);
+@define-color selected @color6;
+@define-color hover alpha(@selected, .4);
+@define-color urgent @color2;
+
+* {
+  color: @text;
+  all: unset;
+  font-family: "JetBrains Mono Nerd Font", "Fira Sans";
+  font-size: 14px;
+  transition: 200ms;
+}
+
+.blank-window {  
+  background: transparent;  
+}
+  
+/* --- CONTROL CENTER --- */
+.control-center {
+  background: alpha(@background, .98);
+  border-radius: 24px;
+  border: 1px solid @selected;
+  box-shadow: 0 0 10px 0 rgba(0,0,0,.6);
+  margin: 18px;
+  padding: 12px;
+}
+
+.control-center .notification-row .notification-background,
+.control-center .notification-row .notification-background .notification.critical {
+  background-color: @background;
+  border-radius: 16px;
+  margin: 4px 0px;
+  padding: 2px;
+  border: 1px solid @selected;
+}
+
+.control-center .notification-row .notification-background .notification.critical {
+  color: @urgent;
+}
+
+.control-center .notification-row .notification-background .notification .notification-content {
+  margin: 4px;
+  padding: 4px;
+}
+
+.control-center .notification-row .notification-background .notification > *:last-child > * {
+  min-height: 0.5em;
+}
+
+.control-center .notification-row .notification-background .notification > *:last-child > * .notification-action {
+  background: alpha(@selected, .6);
+  color: @text;
+  border-radius: 12px;
+  margin: 6px;
+}
+
+.control-center .notification-row .notification-background .notification > *:last-child > * .notification-action:hover {
+  background: @selected;
+}
+
+.control-center .notification-row .notification-background .close-button {
+  background: transparent;
+  border-radius: 6px;
+  color: @text;
+  margin: 0px;
+  padding: 4px;
+}
+
+.control-center .notification-row .notification-background .close-button:hover {
+  background-color: @selected;
+}
+
+progressbar, progress, trough {
+  border-radius: 12px;
+}
+
+progressbar {
+  background-color: rgba(255,255,255,.1);
+}
+
+/* --- FLOATING NOTIFICATIONS --- */
+.notification-row {
+  outline: none;
+  margin: 0;
+  padding: 0px;
+}
+
+.floating-notifications.background .notification-row .notification-background {
+  background: alpha(@background, .98);
+  box-shadow: 0 0 8px 0 rgba(0,0,0,.6);
+  border: 1px solid @selected;
+  border-radius: 24px;
+  margin: 8px;
+  padding: 0;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification {
+  padding: 3px;
+  border-radius: 12px;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification.critical {
+  border: 2px solid @urgent;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification .notification-content {
+  margin: 7px;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * {
+  min-height: 0.5em;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action {
+  border-radius: 8px;
+  background-color: @background-alt ;
+  margin: 6px;
+  border: 1px solid transparent;
+}
+
+.floating-notifications.background .notification-row .notification-background .notification > *:last-child > * .notification-action:hover {
+  background-color: @hover;
+  border: 1px solid @selected;
+}
+
+.image {
+  margin: 10px 20px 10px 0px;
+}
+
+.summary {
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.body {
+  font-size: 0.8rem;
+}
+
+.floating-notifications.background .notification-row .notification-background .close-button {
+  margin: 6px;
+  padding: 2px;
+  border-radius: 6px;
+  background-color: transparent;
+  border: 1px solid transparent;
+}
+
+.floating-notifications.background .notification-row .notification-background .close-button:hover {
+  background-color: @selected;
+}
+
+.notification.critical progress {
+  background-color: @selected;
+}
+
+.notification.low progress,
+.notification.normal progress {
+  background-color: @selected;
+}
+
+/* --- WIDGETS --- */
+.widget-title {
+  font-size: 1.2em;
+  margin: 6px;
+}
+
+.widget-title button {
+  background: @background-alt;
+  border-radius: 6px;
+  padding: 4px 16px;
+}
+
+.widget-title button:hover {
+  background-color: @hover;
+}
+
+.widget-dnd {
+  margin: 6px;
+  font-size: 1.2rem;
+}
+
+.widget-dnd > switch {
+  background: @background-alt;
+  font-size: initial;
+  border-radius: 8px;
+  box-shadow: none;
+  padding: 2px;
+}
+
+.widget-dnd > switch:hover {
+  background: @hover;
+}
+
+.widget-dnd > switch:checked {
+  background: @selected;
+}
+
+.widget-dnd > switch slider {
+  background: @text;
+  border-radius: 6px;
+}
+
+.widget-buttons-grid {
+  font-size: x-large;
+  padding: 6px 2px;
+  margin: 6px;
+  border-radius: 12px;
+  background: @background-alt;
+}
+
+.widget-buttons-grid>flowbox>flowboxchild>button {
+  margin: 4px 10px;
+  padding: 6px 12px;
+  background: transparent;
+  border-radius: 8px;
+}
+
+.widget-buttons-grid>flowbox>flowboxchild>button:hover {
+  background: @hover;
+}
+
+.widget-volume, .widget-backlight {
+    background: @background-alt;
+    padding: 8px;
+    margin: 6px;
+    border-radius: 12px;
+}
+
+.widget-volume label, .widget-backlight label {
+    font-size: 20px;
+    margin-right: 15px;
+}
+
+.widget-volume scale, .widget-backlight scale {
+}
+
+scale trough {
+    min-height: 6px;
+    border-radius: 12px;
+    background-color: alpha(@background, 0.5);
+}
+
+scale trough highlight {
+    border-radius: 12px;
+    background-color: @selected;
+}

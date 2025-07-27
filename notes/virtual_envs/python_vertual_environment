@@ -1,0 +1,92 @@
+python -m venv <environment-name> #Creates a new virtual environment. A directory with the specified name will be created in your current location.
+
+source <environment-name>/bin/activate #Activates the specified virtual environment. Your shell prompt will typically change to indicate the active environment
+
+deactivate	#Deactivates the current virtual environment, returning you to your standard shell context. This command is only available when an environment is active.
+
+
+
+PIP Package Administration (pip) 
+These pip commands are to be executed within an activated virtual environment to manage the Python packages specific to that environment.
+
+pip install <package-name>	#Installs the latest version of a specified package.
+
+pip install <package-name>==<version>	#Installs a specific version of a package.
+
+pip install -r requirements.txt	#Installs all packages listed in a requirements.txt file. This is the standard method for replicating an environment.
+
+pip list	#Lists all installed packages and their versions within the current environment.
+
+pip show <package-name>	#Displays detailed information about a specific installed package, including its dependencies.
+
+pip install --upgrade <package-name>	#Upgrades an already installed package to its latest version.
+
+pip uninstall <package-name>	#Uninstalls a package from the environment. It will prompt for confirmation before proceeding.
+
+pip freeze	#Outputs a list of installed packages in a format suitable for a requirements.txt file.
+
+pip freeze > requirements.txt	#Generates a requirements.txt file from the packages currently installed in the environment. Essential for project portability and replication.
+
+
+
+	INSTALLING A PYENV FOR ENABLING DIFFRENNT PYTHON VERSIONS FOR VENV
+
+sudo pacman -S --needed base-devel openssl zlib xz tk bzip2 readline sqlite3 ncurses
+
+paru -S pyenv
+
+	Configure the Shell Environment for pyenv For pyenv to properly intercept calls to the Python interpreter, your shell must be configured to initialize it at startup. This is accomplished by modifying your shell's resource file (e.g., ~/.bashrc or ~/.zshrc)
+	
+	Append Configuration to Shell Profile:
+	Add the subsequent lines to the terminus of your ~/.bashrc or ~/.zshrc file.
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
+eval "$(pyenv init -)"
+
+	restart your terminal after this for the changes to take effect
+
+	Install the Target Python Version
+pyenv install <eg3.9>
+
+	regenerate Shims
+
+pyenv rehash
+
+	Create and Activate the Virtual Environment
+	Navigate to Your Project Directory:eg
+	
+mkdir ~/my-project && cd ~/my-project
+
+	Set the Local Python Version: EG: Instruct pyenv to use Python 3.9 within this directory. eg.
+
+pyenv local 3.9
+
+	proceed normally here on and Create a Virtual Environment
+
+python -m venv <virtualenvironmentname>
+
+
+	DOWNLOAD LOCALLY 
+	
+pip download <xyzpackage> --index-url www.whateverurl.com --dest /mnt/ramdisk/local_whl_dir/
+
+	for a specific version between two versions eg Cython
+
+pip download "Cython<3.1,>=0.29.34"
+
+	for a specific version 
+
+pip download Cython==3.1
+
+	INSTALL LOCAL DOWNLAODS
+	
+	--no-index is specifically designed to prevent external lookups so don't use that if there might be additional dependiencies that aren't present locally. to use the hybrid mehtond of utilizing local and downlaoding the onces that aren't present use without --no-index
+
+pip install torch torchvision torchaudio --no-index --find-links=/mnt/ramdisk/python_whl_local/
+
+
+	DELETE ALL LOCAL CACHE (CAUTION: WILL REDOWNLAOD ALL)
+	
+pip cache purge

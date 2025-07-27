@@ -1,0 +1,8 @@
+sudo pacman -S ttf-jetbrains-mono-nerd
+
+prerequisite to have this font installed and set in kitty's config
+kitten choose-fonts   
+and select it and hit enter and save this as defualt font
+
+install nvchad
+git clone https://github.com/NvChad/starter ~/.config/nvim && nvim

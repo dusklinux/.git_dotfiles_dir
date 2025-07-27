@@ -1,0 +1,93 @@
+	PERFORMANCE TUNING
+	
+	overlay and a gui for using it .
+
+mangohud goverlay
+
+	kernal
+
+zen-kernal
+
+	see ram usage
+
+free -h
+
+  inxi  (for memory viewing)
+  sorts apps by memory usage , change 10 to how many apps/programs you want listed. 
+sudo inxi -t m10
+
+to benchmark a disk's read speed. with the t flag (-t) dont use other flags unles you know what youre doing, they ar dangerious. (no write cycles incurred!!,great)
+
+hdparm -t /dev/sdX
+	
+	to check weather direct gpu rendering is enabled or disabled
+
+glxinfo | grep "direct rendering"
+
+	for massive disk io improvements and if you have multiple disks, consisder ssetting them as software RAID. 
+	
+	for visuvalizig disk sector's data
+
+baobab
+
+	Layout on HDDs
+
+	If using a traditional spinning HDD, your partition layout can influence the system's performance. Sectors at the beginning of the drive (closer to the outside of the disk) are faster than those at the end. Also, a smaller partition requires less movements from the drive's head, and so speed up disk operations. Therefore, it is advised to create a small partition (15-20GiB, more or less depending on your needs) only for your system, as near to the beginning of the drive as possible. Other data (pictures, videos) should be kept on a separate partition, and this is usually achieved by separating the home directory (/home) from the system (/).
+	
+	
+	LimitCPU is a program to limit the CPU usage percentage of a specific process. After installing limitcpuAUR, you may limit the CPU usage of a processes' PID using a scale of 0 to 100 times the number of CPU cores that the computer has. For example, with eight CPU cores the percentage range will be 0 to 800. Usage:
+
+limitcpu -l 50 -p 5081
+
+
+----------------
+	DIOGNOSTIC
+----------------
+	
+	SYSTEMD BLAME
+	to show what's causing boot delays
+systemd-analyze blame
+
+	to list services that caused the most delays in a tree format.
+systemd-analyze critical-chain
+
+	to see a beautiful visual representation in a browser using the svg file
+systemd-analyze plot > boot_analysis.svg
+
+  services that are set to autostart 
+systemctl list-unit-files --state=enabled
+
+  service that are set to autostart (userspace)
+systemctl --user list-unit-files --state=enabled
+---------------
+	BENCHMARKING
+-----------------	 
+	Stress-testing utility, it possesses the unique capability to report its performance in real time. It does this by calculating "bogo ops/s" (realtime) (bogus operations per second), a metric that, while not scientifically absolute, provides an excellent, fluctuating, real-time measure of the CPU's computational throughput.
+
+stress-ng
+
+	--cpu 0 is for all cpu's if you want to bench mark a single core, replace "0" with how many cores to be benchmarked eg --cpu 1 (it will only benchmark one core)
+	
+stress-ng --cpu 0 --metrics-brief
+
+	to visulaize cpu utilizations.
+s-tui 
+
+	SINGLE SPECIFIC CORE BENCHMARKING
+	The general syntax is taskset -c <CPU_CORE_NUMBER> <COMMAND>. The -c flag specifies the CPU core list. Cores are numbered starting from zero.
+	To benchmark CPU core #4, for instance, you would execute:
+
+    taskset -c 4: This pins the subsequent command exclusively to CPU core 4.
+    stress-ng --cpu 1: This is of paramount importance. It instructs stress-ng to use only one worker thread. If you were to use --cpu 0 (all cores) 
+    while pinning to a single core, you would create multiple workers that would then compete for time on that one core, yielding a meaningless result.
+    
+    The output will be the familiar real-time "bogo ops/s" metric, but this time it will reflect the throughput of only the specified core.
+
+taskset -c 4 stress-ng --cpu 1 --metrics-brief
+
+	power consumtiion
+	to see the power utiliztion in watts of your cpu (-i for internval how often do you want it to refresth)
+	
+sudo turbostat -i 1 --show PkgWatt
+
+	

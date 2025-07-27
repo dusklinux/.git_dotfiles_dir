@@ -1,0 +1,29 @@
+
+  for kitty's config, change the following to 
+  from
+include current-theme.conf
+  to 
+include ~/.cache/wal/colors-kitty.conf
+
+
+  for getting the current wallpaers colors, set with swww
+    
+wal -n -i "$(swww query | grep -oP 'image: \K.*' | head -n 1)"
+
+------------
+  gtk themeing custom: instructions. 
+
+    Manual Installation: You can also download themes from websites like GNOME-Look or GitHub. Once downloaded, you'll typically have a .zip or .tar.gz file. Extract this file, and move the resulting theme folder to one of the following directories:
+
+        ~/.themes/ or ~/.local/share/themes/: For themes that are specific to your user.[1]
+
+        /usr/share/themes/: For themes that will be available system-wide.[2]
+
+Once you've installed a theme, you can use nwg-look to apply it.
+
+
+-------------
+    downlaod copy the decay-green to this folder  
+  #copy the decay-green directory to 
+ ~/.local/share/themes/
+

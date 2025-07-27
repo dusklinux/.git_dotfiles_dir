@@ -1,0 +1,36 @@
+  disable sddm if it's installed and enabled. (don't add the disable now flag by adding --now or it'll crash your session)
+
+sudo systemctl disable sddm.service
+
+  Create a systemd Override File
+  First, you will need to create a directory and a configuration file to override the default behavior of the getty service for TTY1  As root, create the directory:
+
+sudo mkdir -p /etc/systemd/system/getty@tty1.service.d/
+ 
+ Next, create and edit the override file 
+
+sudo nvim /etc/systemd/system/getty@tty1.service.d/override.conf
+
+  Add the following lines to this file, replacing YOUR_USERNAME with your actual username
+
+[Service]
+ExecStart=
+ExecStart=-/usr/bin/agetty --autologin YOUR_USERNAME --noclear --noissue %I $TERM
+
+  Auto login INTO UWSM HYPRLAND WITH TTY1, ADD THIS TO YOUR .zshrc file. 
+  this Checks if you are on tty1 and no display server is running and then runs the "exec uwsm start hyprland.desktp" command.
+
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+  if uwsm check may-start; then
+    exec uwsm start hyprland.desktop
+  fi
+fi
+
+  OR (OPTIONAL)
+  auto login to hyprland uwsm
+  add to zshrc
+
+if uwsm check may-start; then
+    exec uwsm start hyprland.desktop
+fi
+

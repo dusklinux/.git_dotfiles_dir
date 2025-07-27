@@ -1,0 +1,214 @@
+// ~/.config/waybar/config
+{
+    // General bar settings
+    "layer": "bottom",
+    "position": "left",
+    "spacing": 3,
+    "width": 10,
+    "margin-top": 0,
+    "margin-bottom": 0,
+    "margin-left": -2,
+    "margin-right": 0,
+    "fixed-center": true,
+    "modules-order": ["modules-left", "modules-center", "modules-right"],
+
+    // Modules that will appear at the top of the vertical bar
+    "modules-left": [
+        "custom/ollama",
+        "battery",
+        "pulseaudio",
+        "backlight",
+        "memory",
+        "cpu",
+        "temperature"
+    ],
+
+    // Modules that will appear in the center of the vertical bar
+    "modules-center": [
+        "hyprland/workspaces"
+    ],
+
+    // Modules that will appear at thebottom of the vertical bar
+    "modules-right": [
+       // "tray", //uncomment this to enable tray
+        "custom/network-upload",
+        "custom/network-unit",
+		    "custom/network-download",
+        "custom/inhibit-suspend",
+        "custom/notification",
+        "clock",
+        "custom/power"
+    ],
+
+    // Module specific configurations
+
+
+    "temperature": {
+        "thermal-zone":"/sys/class/thermal/thermal_zone6/type:x86_pkg_temp",
+        "hwmon-path-abs": null,
+        "critical-threshold": 65,
+        "format-critical": "🔥\n{temperatureC}",
+        "format": "°\n{temperatureC}",
+        "interval":2,
+        "tooltip-format": "Package: {temperatureC}"
+},
+
+
+"battery": {
+    "format": "\n{capacity}\n{power:.1f}",       // This is the default, used for "discharging"
+    "format-charging": "\n{capacity}\n{power:.0f}", // Explicitly show power when charging
+    "format-plugged": "\n{capacity}",          // When plugged in and full, show a hyphen
+    "interval": 5,
+    "states": {
+        "warning": 30,
+        "critical": 15
+    },
+    "tooltip-format": "{timeTo}\n󱟦 Health {health}%"
+},
+
+  "pulseaudio":{
+        "format": "{icon}\n{volume}",
+        "format-muted": "󰖁\nX",
+        "on-click": "pavucontrol",
+        "on-click-right": "playerctl play-pause",
+        "format-icons": ["󰖁", "", ""],
+        "tooltip": true,
+        "tooltip-format": "Volume: {volume}%\n{desc}"
+    },
+
+    "backlight": {
+        "device": "intel_backlight",
+        "format": "{icon}\n{percent}",
+        "format-icons": [
+										      "",
+										      "",
+										      "",
+										      "",
+										      "",
+										      "",
+										      "",
+										      "",
+										      "",
+										      "",
+										      "",
+										      "",
+										      "",
+										      "",
+										      ""
+										    ],
+        "tooltip": true,
+        "tooltip-format": "Brightness: {percent}%\nLMB: Brightness -1%\nRMB: Brightness +1%",
+        "on-click": "brightnessctl set 1%-",
+        "on-click-right": "brightnessctl set 1%+",
+        "on-click-middle": "~/user_scripts/waybar/hyprsunsetoff.sh",
+        "on-scroll-up": "~/user_scripts/waybar/hyprsunset1500.sh",
+        "on-scroll-down": "~/user_scripts/waybar/hyprsunset3500.sh",
+        "min-length": 4,
+        "interval": 60
+    },
+		
+    "cpu": {
+        "format": "\n{usage}",
+        "tooltip": true,
+        "on-click": "sh -c 'kitty btop'",
+        "tooltip-format": "CPU: {usage}%\nAvg Freq: {avg_frequency}GHz",
+        "interval": 2
+    },
+
+    "memory": {
+        "format": "\n{percentage}",
+        "interval": 2,
+        "states": {
+            "critical": 80
+		},
+		"tooltip": true,
+ 		"tooltip-format":"Used {used} GiB\nAvail {avail} Gib\nSwap {swapUsed} GiB"
+ 	},
+        
+    "hyprland/workspaces": {
+        "all-outputs": true,
+        "sort-by-number": true
+    },
+
+    "tray": {
+        "icon-size": 18,
+        "show-passive-items": true,
+        "spacing": 3, 
+        "rotate": 90
+    },
+     
+    "custom/ollama": {
+		    "format": "󱋊",
+		    "tooltip": true,
+		    "tooltip-format": "Chat with Ollama",
+		    "on-click": "$HOME/user_scripts/waybar/waybar_ollama.sh"
+    },
+
+    "custom/network-unit": {
+        "return-type": "json",
+		    "tooltip": true,
+		    "tooltip-format": "Network Traffic",
+        "interval": 1,
+        "exec": "awk 'BEGIN { \"ip route get 1.1.1.1\" | getline; for(i=1;i<=NF;i++) if($i==\"dev\") iface=$(i+1); close(\"ip route get 1.1.1.1\"); rx = \"/sys/class/net/\" iface \"/statistics/rx_bytes\"; tx = \"/sys/class/net/\" iface \"/statistics/tx_bytes\"; getline r1 < rx; getline t1 < tx; close(rx); close(tx); system(\"sleep 1\"); getline r2 < rx; getline t2 < tx; close(rx); close(tx); bps = (r2-r1) + (t2-t1); mbs = bps/1024/1024; if (mbs >= 1) { text = \"MB\"; class = \"network-mb\"; } else { text = \"KB\"; class = \"network-kb\"; } printf \"{\\\"text\\\": \\\"%s\\\", \\\"class\\\": \\\"%s\\\"}\\n\", text, class; }'"
+    },
+
+    "custom/network-upload": {
+        "return-type": "json",
+		    "tooltip": true,
+		    "tooltip-format": "Upload Speed",
+        "interval": 1,
+        "exec": "awk 'BEGIN { \"ip route get 1.1.1.1\" | getline; for(i=1;i<=NF;i++) if($i==\"dev\") iface=$(i+1); close(\"ip route get 1.1.1.1\"); tx = \"/sys/class/net/\" iface \"/statistics/tx_bytes\"; getline t1 < tx; close(tx); system(\"sleep 1\"); getline t2 < tx; close(tx); bps = t2-t1; mbs = bps/1024/1024; kbs = bps/1024; if (mbs >= 1) { class = \"network-mb\"; if (mbs >= 10) { text = sprintf(\"%.0f\", mbs); } else { text = sprintf(\"%.1f\", mbs); } } else { class = \"network-kb\"; text = sprintf(\"%.0f\", kbs); } printf \"{\\\"text\\\": \\\"%s\\\", \\\"class\\\": \\\"%s\\\"}\\n\", text, class; }'"
+    },
+
+    "custom/network-download": {
+        "return-type": "json",
+		    "tooltip": true,
+		    "tooltip-format": "Download Speed",
+        "interval": 1,
+        "exec": "awk 'BEGIN { \"ip route get 1.1.1.1\" | getline; for(i=1;i<=NF;i++) if($i==\"dev\") iface=$(i+1); close(\"ip route get 1.1.1.1\"); rx = \"/sys/class/net/\" iface \"/statistics/rx_bytes\"; getline r1 < rx; close(rx); system(\"sleep 1\"); getline r2 < rx; close(rx); bps = r2-r1; mbs = bps/1024/1024; kbs = bps/1024; if (mbs >= 1) { class = \"network-mb\"; if (mbs >= 10) { text = sprintf(\"%.0f\", mbs); } else { text = sprintf(\"%.1f\", mbs); } } else { class = \"network-kb\"; text = sprintf(\"%.0f\", kbs); } printf \"{\\\"text\\\": \\\"%s\\\", \\\"class\\\": \\\"%s\\\"}\\n\", text, class; }'"
+    },
+
+    "clock": {
+        "format": "{:%I\n%M}",
+        "tooltip-format": "<big>{:%A, %d %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "timezone": "Asia/Kolkata",
+        "interval": 60
+	},
+
+    "custom/notification": {
+        "tooltip-format": "Left: Notifications\nRight: Do not disturb",
+        "format": "{icon}",
+        "format-icons": {
+            "notification": "<span rise='8pt'><span foreground='red'><sup></sup></span></span>",
+            "none": "",
+            "dnd-notification": "<span rise='8pt'><span foreground='red'><sup></sup></span></span>",
+            "dnd-none": "",
+            "inhibited-notification": "<span rise='8pt'><span foreground='red'><sup></sup></span></span>",
+            "inhibited-none": "",
+            "dnd-inhibited-notification": "<span rise='8pt'><span foreground='red'><sup></sup></span></span>",
+            "dnd-inhibited-none": ""
+        },
+        "return-type": "json",
+        "exec-if": "which swaync-client",
+        "exec": "swaync-client -swb",
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "escape": true
+    },
+
+"custom/inhibit-suspend": {
+    "format": "{}",
+    "exec": "if pgrep -x 'hypridle' > /dev/null; then echo '{\"text\": \"󰤄\", \"tooltip\": \"Suspend is enabled. Click to disable.\", \"class\": \"enabled\"}'; else echo '{\"text\": \"\", \"tooltip\": \"Suspend is disabled. Click to enable.\", \"class\": \"disabled\"}'; fi",
+    "interval": 5,
+    "return-type": "json",
+    "on-click": "~/user_scripts/waybar/toggle_hypridle.sh",
+    "escape": true
+}, 
+
+    "custom/power": {
+        "format": "",
+        "tooltip": true,
+        "tooltip-format": "Power Menu",
+        "on-click": "wlogout"
+    }
+}

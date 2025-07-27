@@ -1,0 +1,91 @@
+  THE DEFAULT INSTRUCITONS ON THE GITHUB page ARE WRONG, THE FOLLOWING DELINIATED INSTRCUTIONS ARE TRIED AND TESTED TO WORK. 
+https://github.com/lucasjinreal/Kokoros
+
+  make parent directories. 
+
+mkdir -p ~/contained_apps/uv/
+
+  go into the directory. 
+
+cd ~/contained_apps/uv/
+
+  create a uv virtual environemnt, default python version. 
+
+uv venv kokoros_rust_onnx
+source kokoros_rust_onnx/bin/activate
+
+  go into the directory
+
+cd kokoros_rust_onnx
+
+  git clone the repo with the html link. 
+
+git clone https://github.com/lucasjinreal/Kokoros.git
+
+  go into the cloned git repo dir. 
+
+cd Kokoros
+
+  install the requirements with uv. 
+
+uv pip install -r scripts/requirements.txt
+
+  don't downlaod teh voices or models just yet.
+  now, while in teh same git cloned repo Kokoros.there're two files named Cargo - Cargo.lock and Cargo.toml this is the directory you need to be in to run this command, Now you are ready to build the main application. Use Cargo, the Rust build tool, to compile the project. Using the --release flag will create an optimized executable.
+
+  requires rust to be installed (cargo is rust)
+
+sudo pacman -S cargo
+  
+  build with rust 
+
+cargo build --release
+
+  This command compiles the Rust code and creates an executable file located at ./target/release/koko. This process may take a few minutes to complete.
+  then run the following command. 
+
+./target/release/koko -h
+
+  now let's download the voices file and the model file in their defualt folders, otherwise you have to append the koko command with a flag to point to the path to the model file each time you want to run it. According to koko -h , the default path for the modelfile is in checkpoints/kokoro-v1.0.onnx, and the defualt path for the voice data fie is, data/voices-v1.0.bin 
+
+  let's download both these files with provided script for model and voice in the scripts directory of the repo. but before we run tthe scripts, they need to have exicutable permissions so were gonna give them the permission. 
+
+sudo chmod u+x scripts/download_{models,voices}.sh
+  or 
+sudo chmod u+x scripts/download_models.sh scripts/download_voices.sh
+
+  and then check there permissions with 
+ls -la scripts/
+
+  now let's download the files by exicuting each script., IT'S IMPORTNAT TO BE IN THE directory where you currentl are because the scripts downloads voices relative to the path you're in. in your currnet directory, there already exists two directories ie checkpoint and data. so the downloaded files will be placed in those direcotries. 
+
+./scripts/download_models.sh
+./scripts/download_voices.sh
+
+  check if the koko binary still works. 
+./target/release/koko -h
+
+  now crete a symbolic link to the koko binary in ~/.local/bin/ to facilitate invoking koko from a regular shell environment and with the full name 'kokoros' instead of just koko. (requires the path to be set for /locl/bin as an environmnnt variable in uwsm env-hyprland)
+
+nvim ~/.config/uwsm/env-hyprland
+export PATH="$HOME/.local/bin:$PATH"
+
+  then create teh symbolic link
+ln -s ~/contained_apps/uv/kokoros_rust_onnx/Kokoros/target/release/koko ~/.local/bin/kokoros
+
+  keep this in mind for the format of the command. ,this info was obtained from kokoros -h command. 
+Usage: kokoros [OPTIONS] <COMMAND>
+
+  create a directory where the output will be saved. eg:
+
+mkdir /mng/ramdisk/kokoros
+
+  THIS IS DOWNLAOD TEH MODEL AGAIN! SO RUN THIS ONCE. 
+  The generated audio will be saved to tmp/output.wav by default. You can customize the save location with "> /mnt/ramdisk/kokoros/" 
+kokoros -s af_heart stream > /mnt/ramdisk/kokoros/1.wav
+
+
+  this is an example for reading text provided to it. 
+kokoros text "there was once a time in new york when things were not as good as they are right now" -o /mnt/ramdisk/kokoros/2.wav
+  
+

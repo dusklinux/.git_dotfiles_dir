@@ -1,0 +1,42 @@
+git init = initialize project to use git
+git add . = add all changes to be saved
+git add *filename* = add single file to be saved
+git commit -m “message” = savechanges with message
+git push origin master = push changes to github master
+git push origin new-branch = push changes to github new-branch
+git pull origin master = pull changes from github master
+git checkout -b new-branch = create a new branch
+git status = check status of changes
+git log = see all previous saved changes
+git checkout *commit hash* = travel back to old commit
+
+
+
+Git Cheat Sheet
+Git: configurations
+$ git config --global user.name “FirstName LastName®
+$ git config --global user.email "your-email@email-provider.com”
+$ git config --global color.ui true
+$ git config --list
+Git: starting a repository
+$ gitinit
+$ git status
+Git: staging files
+$ git add <file-name>
+$ git add <file-name> <another-file-name> <yet-another-file-name>
+$ git add .
+$ git add --all
+$ git add -A
+$ git rm --cached <file-name>
+$ git reset <file-name>
+Git: committing to a repository
+$ git commit -m "Add three files”
+$ git reset --soft HEADA
+$ git commit --amend -m <enter your message>
+Git: pulling and pushing from and to repositories
+$ git remote add origin <link>
+$ git push -u origin master
+$ git clone <clone>
+$ git pull
+
+
