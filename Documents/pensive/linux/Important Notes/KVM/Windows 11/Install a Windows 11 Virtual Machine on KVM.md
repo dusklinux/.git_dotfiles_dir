@@ -4,13 +4,13 @@ once the installation begins You must then select the disk on which Windows 11 w
 
 This is because you selected the VirtIO disk bus when configuring Windows 11 virtual hardware. VirtIO devices are not natively recognized by Windows, so you must manually install the drivers.
 
-To install the VirtIO disk driver, click Load driver, then Browse, expand the CD Drive (E:), expand Viostor, expand w11, select amd64, and click OK.
+To install the VirtIO disk driver, click `Load driver`, then `Browse`, expand the `CD Drive (E:)`, expand `Viostor`, expand `w11`, select `amd64`, and click `OK`.
 
 and then install the `Red Hat virtio ....` driver
 
 > [!danger] Don't proceed with the installation just yet. You still need to install the VirtIO network driver.
 
-Repeat the procedure for the network device as well. Click **Load driver** again, then **Browse**, expand the **CD Drive (E:)**, expand **NetKVM**, expand **w11**, select **amd64**, and click **OK**.
+Repeat the procedure for the network device as well. Click `**Load driver**` again, then `**Browse**`, expand the `**CD Drive (E:)**`, expand `**NetKVM**`, expand `**w11**`, select `**amd64**`, and click `**OK**`.
 And then install it. 
 
 After installing the VirtIO network device driver, click the Next button to proceed with the installation.
