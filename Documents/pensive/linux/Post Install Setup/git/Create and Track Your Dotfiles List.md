@@ -3,9 +3,9 @@
 To avoid adding files one-by-one, we will create a master list of all files and directories we wish to place under version control.
 
 1.  **Create the list file** in your home directory.
-    ```bash
-    nvim ~/.git_dotfiles_list
-    ```
+```bash
+nvim ~/.git_dotfiles_list
+```
 
 2.  **Populate the file** with the paths to your desired dotfiles and directories. List one entry per line, with no extra spaces or comments. This file will also track itself.
 
@@ -34,22 +34,22 @@ notes/
 ```
 
 3.  **Create another alias** to easily add all files from this list to the staging area. Open your shell configuration file again:
-    ```bash
-    nvim ~/.zshrc
-    ```
+```bash
+nvim ~/.zshrc
+```
     And add the following alias:
-    ```bash
-    alias git_dotfiles_add_list='git_dotfiles add --pathspec-from-file=.git_dotfiles_list'
-    ```
+```bash
+alias git_dotfiles_add_list='git_dotfiles add --pathspec-from-file=.git_dotfiles_list'
+```
     Remember to `source ~/.zshrc` again after saving.
 
 4.  **Run the new alias** to stage your files for the first time.
-    ```bash
-    git_dotfiles_add_list
-    ```
+```bash
+git_dotfiles_add_list
+```
 
 5.  **Verify and commit.** Run `git_dotfiles status` to see all your specified files listed under "Changes to be committed." This confirms the system is working. Now, commit them to the repository's history.
-    ```bash
-    git_dotfiles status
-    git_dotfiles commit -m "Initial commit: Add core dotfiles"
-    ```
+```bash
+git_dotfiles status
+git_dotfiles commit -m "Initial commit: dotfiles backup"
+```

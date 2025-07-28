@@ -8,7 +8,7 @@
 # --- User-configurable variables ---
 # The UUID of the encrypted partition to unlock.
 # Find this by running `lsblk -f` or `sudo blkid` in your terminal.
-DEVICE_UUID="dcc9ed43-feec-44c3-b81e-2b493d799778"
+DEVICE_UUID="4dfcfa72-9a53-4b80-a737-99a90eedb49b"
 
 # The mount point (e.g., a path defined in /etc/fstab)
 MOUNT_POINT="/mnt/slow"

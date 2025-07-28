@@ -26,7 +26,14 @@ UUID=bb5a5a44-4b30-4db2-822f-ceab3171ee51	/mnt/fast	btrfs		defaults,discard=asyn
 
 #External Machanacial Hard Disk - NTFS (WD Passport)
 
-UUID=319E44F71F4E3E14	/mnt/slow	ntfs3	defaults,noatime,nofail,noauto,comment=x-gvfs-show,uid=1000,gid=1000,umask=002,windows_names   0 0
+#UUID=319E44F71F4E3E14	/mnt/slow	ntfs3	defaults,noatime,nofail,noauto,comment=x-gvfs-show,uid=1000,gid=1000,umask=002,windows_names   0 0
+
+
+
+
+#External Machanacial Hard Disk - BTRFS (WD Passport) (no copy on write also disables compression zstd but improves speed of the drive)
+
+UUID=c0ecd5ca-01a5-4baf-832d-840a448e1d24	/mnt/slow	btrfs		defaults,noauto,nofail,noatime,nodatacow,autodefrag,space_cache=v2	0 0
 
 
 

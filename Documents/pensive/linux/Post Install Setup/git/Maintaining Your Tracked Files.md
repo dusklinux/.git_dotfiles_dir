@@ -4,8 +4,7 @@ Whenever you want to add a new file or directory to your backup, simply add its 
 
 1.  Edit `~/.git_dotfiles_list` and add the new line: `.config/obs/`
 2.  Run the workflow:
-    ```bash
-    git_dotfiles_add_list
-    git_dotfiles commit -m "Add OBS configuration"
-    git_dotfiles push
-    ```
+```bash
+git_dotfiles_add_list
+git_dotfiles commit -m "Add OBS configuration"
+```

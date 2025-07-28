@@ -9,7 +9,7 @@
 # The UUID of the encrypted partition to lock.
 # This MUST match the UUID used in your unlock script.
 # Find this by running `lsblk -f` or `sudo blkid`.
-DEVICE_UUID="dcc9ed43-feec-44c3-b81e-2b493d799778"
+DEVICE_UUID="4dfcfa72-9a53-4b80-a737-99a90eedb49b"
 
 # The mount point (e.g., a path defined in /etc/fstab)
 MOUNT_POINT="/mnt/slow"
