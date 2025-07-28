@@ -70,3 +70,5 @@ This step guides you on creating a shared folder accessible by both your host ma
 ### 6. [[Conclusion Win]]
 A final wrap-up of the process, acknowledging that while the guide covers the most critical steps, further optimizations are always possible for power users.
 
+
+[[Resize aka extend storage after os is already installed]]
