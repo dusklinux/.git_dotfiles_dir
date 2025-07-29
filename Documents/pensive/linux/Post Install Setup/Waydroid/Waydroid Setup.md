@@ -142,6 +142,11 @@ Once the session is running, you should see the Waydroid application in your sys
 
 ---
 
+FIXING BLACK SCREEN 
+
+```bash
+waydroid prop set persist.waydroid.multi_windows true
+```
 ## Fixing Network issues. 
 [[Waydroid Network & Firewall Configuration]]
 
