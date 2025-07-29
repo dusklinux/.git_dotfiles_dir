@@ -142,7 +142,7 @@ Once the session is running, you should see the Waydroid application in your sys
 
 ---
 
-FIXING BLACK SCREEN 
+## FIXING BLACK SCREEN 
 
 ```bash
 waydroid prop set persist.waydroid.multi_windows true
