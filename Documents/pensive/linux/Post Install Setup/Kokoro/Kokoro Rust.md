@@ -106,11 +106,14 @@ The repository includes scripts to download the necessary files. First, we must 
 ```bash
 # You can use either of the following commands
 sudo chmod u+x scripts/download_{models,voices}.sh
-# or
-sudo chmod u+x scripts/download_models.sh scripts/download_voices.sh
 ```
 
+ or
+ 
+```bash
+sudo chmod u+x scripts/download_models.sh scripts/download_voices.sh
 You can verify the permissions have been set correctly with:
+```
 
 ```bash
 ls -la scripts/

@@ -67,7 +67,7 @@ export HYPRCURSOR_SIZE=24
 # device paths with `ls -l /dev/dri/by-path`. Forcing the Intel iGPU might look
 # like `/dev/dri/card0`, but this should only be used for debugging.
 #card1 is intel for me and card2 is nvidia, set to the intel card for powersaving
-export AQ_DRM_DEVICES=/dev/dri/card1
+#export AQ_DRM_DEVICES=/dev/dri/card1
 #export AQ_MGPU_NO_EXPLICIT=1 	#Disables explicit syncing on mgpu buffers
 #export AQ_NO_MODIFIERS=1 	#Disables modifiers for DRM buffers
 
