@@ -125,9 +125,11 @@ Execute the scripts to download the model and voice files. They will be placed i
 
 ```bash
 ./scripts/download_models.sh
-./scripts/download_voices.sh
 ```
 
+```bash
+./scripts/download_voices.sh
+```
 ### Step 3: Final Verification
 
 Check that the `koko` binary still functions correctly with the models in place.

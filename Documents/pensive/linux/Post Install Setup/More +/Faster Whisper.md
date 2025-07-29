@@ -85,7 +85,7 @@ For a streamlined workflow, a shell script (`faster_whisper_sst.sh`) is availabl
 Run the script from your terminal:
 
 ```bash
-./faster_whisper_sst.sh
+$HOME/user_scripts/faster_whisper/faster_whisper_sst.sh
 ```
 
 > [!important] Running the script for the first time will take time cuz it needs to download the models. 
