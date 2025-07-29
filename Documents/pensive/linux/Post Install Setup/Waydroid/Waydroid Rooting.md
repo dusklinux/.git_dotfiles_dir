@@ -5,6 +5,16 @@ This guide covers advanced configuration for Waydroid on Arch Linux, including r
 > [!NOTE] Related Guides
 > For initial setup, please refer to the [[Waydroid Setup]] note.
 
+or
+
+run this whole thing at once to root. (it's from the link above, same thing)
+```bash
+git clone https://github.com/casualsnek/waydroid_script
+cd waydroid_script
+python3 -m venv venv
+venv/bin/pip install -r requirements.txt
+sudo venv/bin/python3 main.py
+```
 ---
 
 ## 1. Rooting Waydroid with Magisk
