@@ -112,24 +112,22 @@ FIRST_FIVE_WORDS=$(echo "$CLIPBOARD_TEXT" \
 FILENAME="${NEXT_INDEX}_${FIRST_FIVE_WORDS}.wav"
 FULL_OUTPUT_PATH="${OUTPUT_DIR}/${FILENAME}"
 
-# Step 7: Generate the audio file using the 'text' subcommand
-# This is the correct command for processing a block of text as a single unit.
-kokoros \
+# Step 7: Execute TTS → Save → Play → Notify
+# We pipe the kokoros output to both a file and mpv, background mpv so we can fire the notification.
+echo "$CLIPBOARD_TEXT" | kokoros \
     -s "$VOICE_MODEL" \
     -m "$KOKOROS_MODEL_PATH_EXPANDED" \
     -d "$KOKOROS_DATA_PATH_EXPANDED" \
-    text "$CLIPBOARD_TEXT" -o "$FULL_OUTPUT_PATH"
+    stream \
+  | tee "$FULL_OUTPUT_PATH" \
+  | mpv --no-terminal --force-window --speed="$PLAYBACK_SPEED" --title="Kokoros TTS" - &
 
-# Step 8: Check if the file was created successfully and then play it
-# We use `[ -s "$FILE" ]` to check that the file exists AND has a size greater than zero.
-if [ -s "$FULL_OUTPUT_PATH" ]; then
-    # Send notification and play the now-complete audio file.
-    notify "🔊 Playing: $(basename "$FULL_OUTPUT_PATH")"
-    mpv --no-terminal --force-window --speed="$PLAYBACK_SPEED" --title="Kokoros TTS" "$FULL_OUTPUT_PATH"
-else
-    # This handles the case where kokoros might fail and create an empty file.
-    notify "Error: TTS Generation Failed" "Kokoros failed to create a playable audio file."
-    exit 1
-fi
+MPV_PID=$!
+
+# Send desktop notification now that playback has started
+notify "🔊 $(basename "$FULL_OUTPUT_PATH")"
+
+# Optional: wait for playback to finish before exiting the script
+wait $MPV_PID
 
 exit 0
