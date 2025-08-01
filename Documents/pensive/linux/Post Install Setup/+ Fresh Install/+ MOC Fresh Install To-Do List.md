@@ -268,6 +268,17 @@ nvim ~/.config/hypr/hyprland.conf
 > bind = ALT, 6, exec, hyprctl keyword monitor eDP-1,1920x1080@60,0x0,1.6
 > bind = ALT, 7, exec, hyprctl keyword monitor eDP-1,1920x1080@144,0x0,1.6
 
+- [ ] Comment out this and replace it with this. 
+
+> [!tip]- Comment out this line 
+> ```ini
+>bind = $mainMod, I, exec, ~/user_scripts/parakeet/parakeet.sh 
+>```  
+
+> [!tip]- And add this line instead
+> ```ini
+> bind = $mainMod, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst.sh
+>```
 
 ---
 
