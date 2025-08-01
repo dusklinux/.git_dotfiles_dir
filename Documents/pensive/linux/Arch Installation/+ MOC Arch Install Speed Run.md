@@ -187,7 +187,7 @@ vim /etc/pacman.d/mirrorlist
 
 ### 16. *Installing Linux*
 ```bash
-pacstrap /mnt base base-devel linux-zen linux-zen-headers linux-firmware nvim
+pacstrap /mnt base base-devel linux linux-headers linux-firmware nvim
 ```
 - [ ] Status
 
