@@ -8,8 +8,17 @@ For proper functionality of your NVIDIA GPU, including hardware acceleration, di
 
 Execute the following command to install the complete set of recommended packages for modern NVIDIA cards.
 
+Nvidia Opensource
+
 ```bash
 sudo pacman -S nvidia-open-dkms nvidia-utils nvidia-settings opencl-nvidia libva-nvidia-driver nvidia-prime egl-wayland
+```
+
+or
+Propriotory 
+
+```bash
+sudo pacman -S nvidia-dkms nvidia-utils nvidia-settings opencl-nvidia libva-nvidia-driver nvidia-prime egl-wayland
 ```
 
 > [!TIP] Why `nvidia-dkms` is Recommended
