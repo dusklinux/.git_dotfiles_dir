@@ -27,6 +27,11 @@ Only if numpy fails to install.
 uv pip install numpy==1.26.4 --force-reinstall
 ```
 
+this is for the server script. 
+```bash
+uv pip install Flask
+```
+
 ```bash
 nvim modeldownload.py
 ```

@@ -29,7 +29,7 @@ pacman -S hyprland xorg-xwayland uwsm qt5-wayland qt6-wayland xdg-desktop-portal
 Install Polkit for permissions, XDG portals for Hyprland integration, and essential Nerd Fonts for icons and terminal aesthetics.
 - [ ] Status
 ```bash
-pacman -S xorg-xhost polkit xdg-desktop-portal-hyprland xdg-utils ttf-font-awesome ttf-jetbrains-mono-nerd
+pacman -S xorg-xhost polkit xdg-desktop-portal-hyprland xdg-utils ttf-font-awesome ttf-jetbrains-mono-nerd noto-fonts-emoji
 ```
 
 ### 4. Hyprland Ecosystem & Desktop Utilities

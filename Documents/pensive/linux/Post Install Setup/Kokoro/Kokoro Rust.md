@@ -112,9 +112,9 @@ sudo chmod u+x scripts/download_{models,voices}.sh
  
 ```bash
 sudo chmod u+x scripts/download_models.sh scripts/download_voices.sh
-You can verify the permissions have been set correctly with:
 ```
 
+You can verify the permissions have been set correctly with:
 ```bash
 ls -la scripts/
 ```

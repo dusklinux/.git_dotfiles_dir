@@ -9,12 +9,19 @@ This phase focuses on critical system files, user environment, and restoring you
 > [!IMPORTANT]+
 > Steps to be followed Sequentially.
 
+- [ ] **Login with uwsm** 
+```bash
+exec uwsm start hyprland
+```
+
 - [ ] **Connect to the internet**: Depending on what you use, (ie tethering does not usually need to be setup) [[Network Manager]]
 
 ---
 
-- [ ] *Optional but recommended* There are 2 commands that are long and complex, to prevent typos, it's recommended to copy paste them by SSH'ing into the PC from a phone or another pc [[SSH]]
-
+- [ ] *Optional but recommended* There are 2 commands that are long and complex, to prevent typos, it's recommended to copy paste them by SSH'ing into the PC from a phone or another pc, for referenced- not needed to refer to [[SSH]]
+```bash
+sudo systemctl start sshd && ip a
+```
 ---
 
 - [ ] **Restore Dotfiles:** Download the `git` bare repository and deploy the files on your PC [[Restore Backup On a Fresh Install]].

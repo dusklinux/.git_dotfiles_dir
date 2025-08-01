@@ -397,8 +397,7 @@ systemctl --user enable pipewire.socket pipewire-pulse.socket wireplumber.servic
 
 *Tlp-rdw services*
 ```bash
-sudo systemctl mask systemd-rfkill.service
-sudo systemctl mask systemd-rfkill.socket
+sudo systemctl mask systemd-rfkill.service && sudo systemctl mask systemd-rfkill.socket
 ```
 - [ ] Status
 
