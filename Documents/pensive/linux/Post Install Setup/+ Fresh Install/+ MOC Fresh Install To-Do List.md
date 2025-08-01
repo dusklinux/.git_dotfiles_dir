@@ -328,6 +328,16 @@ sudo cp ~/notes/setup/etc/asusd /etc/
 cp -r /mnt/media/Documents/do_not_delete_linux/themes/Decay-Green ~/.local/share/themes/
 ```
 
+- [ ] make sure to uncomment this line if it's commented to allow for the nvidia gpu to sleep or else xwayland will keep it awake and prevent d3 state. 
+
+```bash
+nvim ~/.config/uwsm/env
+```
+
+> [!tip]- UN-Comment this line
+> ```ini
+> export WLR_DRM_DEVICES="/dev/dri/card1"
+>```
 ---
 
 ### 3. (Optional) Package Management & Software Installation
