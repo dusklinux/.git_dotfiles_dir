@@ -84,3 +84,8 @@ When troubleshooting code or scripts, finding the exact variable or function cal
 grep -wn "user" /usr/local/bin/backup-script.sh
 ```
 
+#### 6. Search for a mentioned word through all files withing the subdirectories
+
+```bash
+grep -r "your_word_here"
+```
