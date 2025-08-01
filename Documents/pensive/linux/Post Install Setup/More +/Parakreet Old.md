@@ -127,7 +127,7 @@ https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2/tree/main
 
 
 
-Of course. I will meticulously revise your setup guide for [[Parakreet]] on Arch Linux, adhering strictly to your proven steps. The guide will be restructured for clarity, aesthetics, and ease of use within Obsidian, with distinct sections perfect for linking.
+Of course. I will meticulously revise your setup guide for [[Parakreet Old]] on Arch Linux, adhering strictly to your proven steps. The guide will be restructured for clarity, aesthetics, and ease of use within Obsidian, with distinct sections perfect for linking.
 
 Here is the revised, beautifully formatted manual.
 
@@ -318,7 +318,7 @@ python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f
 
 #### Sources:
 
-- [[Parakreet]]
+- [[Parakreet Old]]
 - [[Faster Whisper]]
 - [[Kokoro Rust]]
 - [[Installation and Configuration]]
