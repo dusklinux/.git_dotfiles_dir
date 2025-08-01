@@ -1,4 +1,6 @@
 
+> [!important] Disable ollama service if you have nvidia gpu 
+> leaving the service running keeps the gpu awake and there's no way to see what's using it. and you'll never know. this is fine if you're primarly using the nvidia gpu, in which case the nvidia gpu will always be awake anyway. but if you have a laptop with integrated gpu that puts the dedicated gpu to sleep. this will prevent 3d state for the nvidia gpu
 # Manually Importing Local GGUF Models
 
 This guide provides a detailed, step-by-step method for importing a pre-downloaded GGUF model into Ollama. The primary goal is to use your local model file while fetching the official `Modelfile` (containing parameters, templates, and system prompts) from Hugging Face. This process saves significant bandwidth by avoiding a redundant download and ensures your model runs with its intended configuration.

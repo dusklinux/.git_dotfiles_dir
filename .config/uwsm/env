@@ -167,7 +167,7 @@ export LIBVA_DRIVER_NAME=iHD
 
 #EXTRA STUFF NOT SURE IF THEY WORK
 #wlroot is no longer relied upon by hyprland, use aquamarine in the hyprland specific env file to achienve teh same effect, since aquamarine has replaced wlroots and is the defacto drm engine since hyprland 42
-export WLR_DRM_DEVICES=/dev/dri/card1 #(this is to force intel gpu CHECK which card BEFORE UNCOMMENTING (intel is card1 and nvidia is card 2 for me might be diffrent for you))
+#export WLR_DRM_DEVICES=/dev/dri/card1 #(this is to force intel gpu CHECK which card BEFORE UNCOMMENTING (intel is card1 and nvidia is card 2 for me might be diffrent for you))
 # In hyprland.conf or UWSM env file
 
 #export __GL_VRR_ALLOWED=0 # Set to 0 if you have issues with Adaptive Sync in games
