@@ -1,5 +1,6 @@
-First time linux user, took me 84 days to configure. 
+First time linux user, took me 84 days to setup. 
 
+why i spent 54 days setting up linux
 
 Left my job to configure linux full time. 
 
@@ -8,7 +9,6 @@ the linux rabbit hole : 84 days later.
 i configured my linux setup for 84 days.. everyday.
 thumbnail says: perfect linux setup. 
 
-The best that Linux has to offer takes 84 days. 
 
 Of course. An incredible amount of effort deserves a title and thumbnail strategy that does it justice. Spending 84 days on a project is a powerful story, and we will leverage that narrative to create compelling, clickable titles that promise immense value to the viewer.
 

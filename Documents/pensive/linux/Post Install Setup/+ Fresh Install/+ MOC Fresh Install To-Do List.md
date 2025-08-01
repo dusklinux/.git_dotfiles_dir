@@ -270,9 +270,13 @@ nvim ~/.config/hypr/hyprland.conf
 
 - [ ] Comment out this and replace it with this. 
 
-> [!tip]- Comment out this line 
+> [!tip]- Comment out these lines 
 > ```ini
->bind = $mainMod, I, exec, ~/user_scripts/parakeet/parakeet.sh 
+>#FASTERWHISPER TTS
+bind = $mainMod SHIFT, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst.sh
+>
+>#Nvidia Parakeet
+>bind = $mainMod, I, exec, ~/user_scripts/parakeet/parakeet.sh
 >```  
 
 > [!tip]- And add this line instead
