@@ -22,10 +22,12 @@ notes/
 .git_dotfiles_list
 .config/starship.toml
 .config/mimeapps.list
-Documents/pensive/linux/
 Documents/pensive/Adobe/
-Documents/pensive/templates/
 Documents/pensive/ai_prompt/
+Documents/pensive/Drafts/
+Documents/pensive/linux/
+Documents/pensive/templates/
+Documents/pensive/Windows/
 Documents/pensive/z_temp/
 Documents/pensive/.obsidian/hotkeys.json
 Documents/pensive/.obsidian/snippets/
