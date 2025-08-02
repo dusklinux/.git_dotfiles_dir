@@ -9,26 +9,26 @@ This phase focuses on critical system files, user environment, and restoring you
 > [!IMPORTANT]+
 > Steps to be followed Sequentially.
 
-- [ ] **Login with uwsm** 
+- [x] **Login with uwsm** 
 ```bash
 exec uwsm start hyprland
 ```
 
-- [ ] **Connect to the internet**: Depending on what you use, (ie tethering does not usually need to be setup) [[Network Manager]]
+- [x] **Connect to the internet**: Depending on what you use, (ie tethering does not usually need to be setup) [[Network Manager]]
 
 ---
 
-- [ ] *Optional but recommended* There are 2 commands that are long and complex, to prevent typos, it's recommended to copy paste them by SSH'ing into the PC from a phone or another pc, for referenced- not needed to refer to [[SSH]]
+- [x] *Optional but recommended* There are 2 commands that are long and complex, to prevent typos, it's recommended to copy paste them by SSH'ing into the PC from a phone or another pc, for referenced- not needed to refer to [[SSH]]
 ```bash
 sudo systemctl start sshd && ip a
 ```
 ---
 
-- [ ] **Restore Dotfiles:** Download the `git` bare repository and deploy the files on your PC [[Restore Backup On a Fresh Install]].
+- [x] **Restore Dotfiles:** Download the `git` bare repository and deploy the files on your PC [[Restore Backup On a Fresh Install]].
 
 ---
 
-- [ ] **Link Restored Vault files to Obsidian** : open and link to existing vault. 
+- [x] **Link Restored Vault files to Obsidian** : open and link to existing vault. 
 - When you open Obsidian for the first time, you'll be prompted with three options. Select "open Folder as Vault (Choose an existing folder of Markdown Files)" this directory should have been populated in ~/Documents/pensive/ after you restored the git files. 
 
 - make sure to NOT create a new vault or sync. select the aforementioned option and navigate to the pensive directory to be selected as source for existing markdown files. 
@@ -37,11 +37,11 @@ sudo systemctl start sshd && ip a
 
 ---
 
-- [ ] **Set up GNOME Keyring:** Configure GNOME Keyring with PAM for password management. [[Gnome Keyring PAM]]
+- [x] **Set up GNOME Keyring:** Configure GNOME Keyring with PAM for password management. [[Gnome Keyring PAM]]
 
 ---
 
-- [ ] **Enable polkitagent for the user-session. 
+- [x] **Enable polkitagent for the user-session. 
 
 ```bash
 systemctl --user enable --now hyprpolkitagent.service
@@ -49,7 +49,7 @@ systemctl --user enable --now hyprpolkitagent.service
 
 ---
 
-- [ ] **Set Default Shell:** Change the default shell from `bash` to `zsh` 
+- [x] **Set Default Shell:** Change the default shell from `bash` to `zsh` 
 - To make Zsh your login shell, use the `chsh` (change shell) command and then enter your Password
 
 ```bash
@@ -59,7 +59,7 @@ chsh -s $(which zsh)
 > [!IMPORTANT]-
 > For the change to take full effect, you must **log out and log back in**. Simply opening a new terminal window is not enough.
 
-- [ ] **Reboot** :
+- [x] **Reboot** :
 
 ```bash
 systemctl reboot
@@ -75,11 +75,11 @@ The output should be `/bin/zsh` or `/usr/bin/zsh`.
 
 ---
 
-- [ ] **Install `paru`:** Set up the `paru` AUR helper. [[Installing an AUR Helper]]
+- [x] **Install `paru`:** Set up the `paru` AUR helper. [[Installing an AUR Helper]]
 
 ---
 
-- [ ] **Install Core Applications:** Use `paru` to install your essential packages from the repositories and the AUR. [[AUR Packages]]
+- [x] **Install Core Applications:** Use `paru` to install your essential packages from the repositories and the AUR. [[AUR Packages]]
 
 ---
 
@@ -91,7 +91,7 @@ sudo systemctl enable --now fwupd.service warp-svc.service asusd.service
 
 ---
 
-- [ ] **Create Directories** for Block device mount points. (only create the ones you have drives for)
+- [x] **Create Directories** for Block device mount points. (only create the ones you have drives for)
 
 ```bash
 sudo mkdir /mnt/{browser,windows,wdslow,wdfast,media,fast,slow,enclosure}
@@ -99,7 +99,7 @@ sudo mkdir /mnt/{browser,windows,wdslow,wdfast,media,fast,slow,enclosure}
 
 ---
 
-- [ ] **Update `fstab`:** Edit the fstab to reflect the new drives' UUIDs. [[fstab reference]]
+- [x] **Update `fstab`:** Edit the fstab to reflect the new drives' UUIDs. [[fstab reference]]
 - find out UUID's of your relevant disks. boot, home & root are already set. don't touch those in fstab. 
 
 ```bash
@@ -122,7 +122,7 @@ sudo systemctl daemon-reload
 
 ---
 
-- [ ] **Update Drive Unlock Script:** Change the UUID in your LUKS/drive unlocking script.
+- [x] **Update Drive Unlock Script:** Change the UUID in your LUKS/drive unlocking script.
 
 - Test if it worked by running the unlock drive script for browser drive. There's an alias for it in the zshrc file, run this. and enter your password, Then check if it correctly mounted at /mnt/browser/
 
@@ -132,7 +132,7 @@ unlock browser
 
 ---
 
-- [ ] *Optional* : Link Browser data to existing drive (only do if you have a seperate browser drive where you have exisitng browser data stored)
+- [x] *Optional* : Link Browser data to existing drive (only do if you have a seperate browser drive where you have exisitng browser data stored)
 
 - Do Not Open Firefox until all steps are done (close it if it's open)
 
@@ -153,7 +153,7 @@ sudo ln -s /mnt/browser/.mozilla ~/.mozilla
 ```
 
 ---
-- [ ] **Comment out anything beyond  the end line of zshrc, if there is anything there,  to speed up your terminal:** :- 
+- [x] **Comment out anything beyond  the end line of zshrc, if there is anything there,  to speed up your terminal:** :- 
 
 ```bash
 nvim ~/.zshrc
@@ -166,23 +166,23 @@ nvim ~/.zshrc
 
 ---
 
-- [ ] *Optional*: **TLP config** : copy the tlp config to /etc/tlp.conf [[+ MOC tlp config]]
+- [x] *Optional*: **TLP config** : copy the tlp config to /etc/tlp.conf [[+ MOC tlp config]]
 
 ---
 
-- [ ] *Optional*:**Create Disk Swap** [[Disk Swap]] 
+- [x] *Optional*:**Create Disk Swap** [[Disk Swap]] 
 
 ---
 
-- [ ] *Optional*: **Configure Auto-Login:** Set up automatic login on TTY1. [[+ MOC Auto Login]]
+- [x] *Optional*: **Configure Auto-Login:** Set up automatic login on TTY1. [[+ MOC Auto Login]]
 
 ---
 
-- [ ] *Optional*: **Configure Power Key:** Define the system's behavior when the power key is pressed. [[Power Key Behaviour]]
+- [x] *Optional*: **Configure Power Key:** Define the system's behavior when the power key is pressed. [[Power Key Behaviour]]
 
 ---
 
-- [ ] Fix logratate by uncommenting size and compress in 
+- [x] Fix logratate by uncommenting size and compress in 
 
 ```bash
 sudo nvim /etc/logrotate.conf
@@ -326,13 +326,13 @@ rm -rf ~/.config/systemd/user/swaync.service.d/gpu-fix.conf
 sudo cp ~/notes/setup/etc/asusd /etc/
 ```
 
-- [ ] copy the decay green folder from the media drive to the local drive. 
+- [x] copy the decay green folder from the media drive to the local drive. 
 
 ```bash
 cp -r /mnt/media/Documents/do_not_delete_linux/themes/Decay-Green ~/.local/share/themes/
 ```
 
-- [ ] make sure to uncomment this line if it's commented to allow for the nvidia gpu to sleep or else xwayland will keep it awake and prevent d3 state. 
+- [x] make sure to uncomment this line if it's commented to allow for the nvidia gpu to sleep or else xwayland will keep it awake and prevent d3 state. 
 
 ```bash
 nvim ~/.config/uwsm/env
@@ -358,7 +358,7 @@ nvim ~/.config/uwsm/env
 
 This section covers the visual setup of your desktop, from dynamic colors to fonts and terminal appearance.
 
-- [ ] **Install `pywal16`:** Install the dynamic theming engine. [[pywal16]]
+- [x] **Install `pywal16`:** Install the dynamic theming engine. [[pywal16]]
 
 ```bash
 pipx install pywal16
@@ -410,7 +410,7 @@ sudo systemctl disable NetworkManager-wait-online.service
 
 ---
 
-- [ ] **Configure `tlp-rdw` (If Used):** For improved Wi-Fi power management with TLP, mask the `systemd-rfkill` services.
+- [x] **Configure `tlp-rdw` (If Used):** For improved Wi-Fi power management with TLP, mask the `systemd-rfkill` services.
 
 ```bash
 sudo systemctl mask systemd-rfkill.service
@@ -419,7 +419,7 @@ sudo systemctl mask systemd-rfkill.socket
 
 ---
 
-- [ ] **Set up FTP:** Configure your FTP client or server as needed. [[+ MOC FTP]]
+- [x] **Set up FTP:** Configure your FTP client or server as needed. [[+ MOC FTP]]
 
 ---
 
@@ -427,7 +427,7 @@ sudo systemctl mask systemd-rfkill.socket
 
 Finalize the setup for individual applications.
 
-- [ ] **`mpv`:** Setup your MPV player to be controlled with a keybind. (keybind already set in hyprland conf) , not needed but for more info refer to [[MPV]]
+- [x] **`mpv`:** Setup your MPV player to be controlled with a keybind. (keybind already set in hyprland conf) , not needed but for more info refer to [[MPV]]
 
 
 ```bash
@@ -448,7 +448,7 @@ ln -s /usr/lib/mpv/scripts/mpris.so ~/.config/mpv/scripts/
 
 ---
 
-- [ ] Neovim NVChad 
+- [x] Neovim NVChad 
 
 ```bash
 git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
@@ -456,11 +456,11 @@ git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
 
 ---
 
-- [ ] **`firefox`:** Apply your custom `userChrome.css` for the side-panel modifications., hardware acceleration and smoothscrooling and other stuff refer to [[+ MOC Firefox]]
+- [x] **`firefox`:** Apply your custom `userChrome.css` for the side-panel modifications., hardware acceleration and smoothscrooling and other stuff refer to [[+ MOC Firefox]]
 
 ---
 
-- [ ] **`spotify`:** without adds script [[Spotify]]
+- [x] **`spotify`:** without adds script [[Spotify]]
 
 ---
 ### 7. Re-Link exisiting github repo to continue backing up to it. 
