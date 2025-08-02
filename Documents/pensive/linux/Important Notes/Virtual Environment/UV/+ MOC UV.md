@@ -50,7 +50,7 @@ For when you know what you want to do but just need to look up the exact command
 > see [[Troubleshooting Virtual Environments]] for more info. 
 
 
-> [!note] Numpy error fix 
+> [!note] Numpy error fix eg for a specific version
 > ```bash
 > uv pip install numpy==1.26.4 --force-reinstall
 > ```

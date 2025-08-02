@@ -385,6 +385,7 @@ nvim ~/.config/uwsm/env
 - [ ] **Install Tools:**
     - [ ] Install `ollama`. [[+ MOC Ollama]]
     - [ ] Install `faster-whisper`. [[Faster Whisper]]
+    - [ ] Install Nvidia `parakeet` [[Parakeet]]
 	- [ ] Install `kokoro` [[Kokoro Rust]]
 	- [ ] Install `Waydroid` :- Android container. lightweight. [[+ MOC Waydroid]]
 

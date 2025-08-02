@@ -3,15 +3,7 @@ paru -S sentencepiece
 ```
 
 ```bash
-cd ~/contained_apps/uv
-```
-
-```bash
-uv venv parakeet
-```
-
-```bash
-source parakeet/bin/activate
+cd ~/contained_apps/uv && uv venv parakeet --python 3.12 && source parakeet/bin/activate
 ```
 
 ```bash
@@ -45,6 +37,11 @@ asr_model = nemo_asr.models.ASRModel.from_pretrained(model_name="nvidia/parakeet
 ```bash
 python modeldownload.py
 ```
+
+
+the following is not needed, just run the exisitng custom made script with the assigned keybind in hyprconfig. 
+
+---
 
 ```bash
 wget https://dldata-public.s3.us-east-2.amazonaws.com/2086-149220-0033.wav
