@@ -150,6 +150,9 @@ function y() {
 }
 
 
+#-- LM- Studio-- 
+alias llm='/mnt/media/Documents/do_not_delete_linux/appimages/LM-Studio-0.3.20-4-x64.AppImage'
+
 # --- Functions ---
 # Creates a directory and changes into it.
 mkcd() {
