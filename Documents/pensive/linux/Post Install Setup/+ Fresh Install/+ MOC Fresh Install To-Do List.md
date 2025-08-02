@@ -98,6 +98,11 @@ sudo systemctl enable --now fwupd.service warp-svc.service asusd.service
 
 ---
 
+- [ ] Run Jdownloader once to let it downlaod all the files it needs to update it self. 
+`just open it with rofi or wofi`
+
+---
+
 - [ ] **Create Directories** for Block device mount points. (only create the ones you have drives for)
 
 ```bash
