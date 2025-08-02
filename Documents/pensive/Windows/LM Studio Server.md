@@ -16,7 +16,7 @@ make sure to allow firefall for both public and private for lmstudio and python.
 
 and make sure to turn on the api developer in lmstudio 
 
-make sure to toggle on `CORS` as well. every thing turned on. 
+make sure to toggle on `CORS` as well. Every thing turned on. 
 
 
 the following is just a screen text ocr grab, dont' pay too much mind to it. 
