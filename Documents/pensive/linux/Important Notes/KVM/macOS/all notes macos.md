@@ -73,13 +73,13 @@ Note: The macOS VM's resolution can be changed via `Settings -> Displays`
 option easily.
 
 Note: After changing the `config.plist` file, please regenerate the
-`OpenCore.qcow2` file using the [instructions](./OpenCore/README.md#notes)
+`OpenCore.qcow2` file using the instructions (./OpenCore/README.md#notes)
 included in this repository.
 
 ### GPU passthrough notes
 
 These steps will need to be adapted for your particular setup. A host machine
-with IOMMU support is required. Consult [this Arch Wiki article](https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF)
+with IOMMU support is required. Consult this Arch Wiki article (https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF)
 for general-purpose guidance and details.
 
 I am running Ubuntu 22.04.4 LTS on Intel i5-6500 + ASUS Z170-AR motherboard +
@@ -208,7 +208,7 @@ AMD RX 6600 GPU (April 2024).
 Note: On `Pop!_OS`, use the `kernelstub` command to change the kernel boot
 arguments.
 
-Note 2: Use [AMD VBFlash](https://www.techpowerup.com/download/ati-atiflash/)
+Note 2: Use AMD VBFlash (https://www.techpowerup.com/download/ati-atiflash/)
 to dump the AMD GPU bios, and pass on to QEMU. This is especially required if
 your AMD GPU is not starting up properly (resulting in "no signal" on the
 monitor).
@@ -220,7 +220,7 @@ UPDATE: Project sponsors get access to the `Private OSX-KVM repository`, and
 direct support. This private repository has a playbook to automate 95% of this
 work in a rugged, consistent manner.
 
-[Link to a list of supported GPUs](https://dortania.github.io/GPU-Buyers-Guide/modern-gpus/amd-gpu.html).
+Link to a list of supported GPUs (https://dortania.github.io/GPU-Buyers-Guide/modern-gpus/amd-gpu.html).
 
 ### USB passthrough notes
 
@@ -266,7 +266,7 @@ These steps will need to be adapted for your particular setup.
 
 - Boot the VM, and devices attached to the ASMedia USB controller should just work under macOS.
 
-[Here is a link to a list of recommended USB PCIe cards](http://blog.greggant.com/posts/2018/05/07/definitive-mac-pro-upgrade-guide.html).
+Here is a link to a list of recommended USB PCIe cards (http://blog.greggant.com/posts/2018/05/07/definitive-mac-pro-upgrade-guide.html).
 
 ### Synergy Notes
 
@@ -299,7 +299,7 @@ USB Sound Card passthrough instead.
 Note: It seems that playback of Flash videos requires an audio device to be
 present.
 
-![USB Sound Card](./screenshots/QHM623_USB_Sound_Card_1.jpg)
+USB Sound Card (./screenshots/QHM623_USB_Sound_Card_1.jpg)
 
 This cheap(est) USB sound card works pretty well on macOS *without* requiring
 USB-controller-passthrough.
@@ -385,7 +385,7 @@ To enable AVX2, do the following change,
 
 `Clover boot menu -> Options -> Binaries patching -> Fake CPUID -> 0x0306C0  # for Haswell`
 
-For details, see [this wiki](https://clover-wiki.zetam.org/Configuration/KernelAndKextPatches) page.
+For details, see this wiki (https://clover-wiki.zetam.org/Configuration/KernelAndKextPatches) page.
 
 Once enabled, the following commands can be used to confirm the presence of AVX
 and AVX2 instructions on the macOS guest.
@@ -416,7 +416,7 @@ presence of `VMX` flag.
 If the `VMX` flag is missing, use the following steps to enable it:
 
 - Make sure that `kvm_intel` module is loaded properly. This is documented in our
-  [main documentation](./README.md).
+   main documentation (./README.md).
 
 - Make sure the VM is booted with VMX support passed through using one of the
   two below strategies:
@@ -425,7 +425,7 @@ If the `VMX` flag is missing, use the following steps to enable it:
   file (easier option).
 
   You may add `+vmx,` to the front of `MY_OPTIONS` in the boot script while
-  changing `-cpu Penryn` to `-cpu Skylake-Client` or [any other suitable supported CPU](https://manpages.ubuntu.com/manpages/disco/man7/qemu-cpu-models.7.html).
+  changing `-cpu Penryn` to `-cpu Skylake-Client` or any other suitable supported CPU (https://manpages.ubuntu.com/manpages/disco/man7/qemu-cpu-models.7.html).
 
   Note: Host CPU passthrough is troublesome and not generally recommended.
 
@@ -476,7 +476,7 @@ already been done for `boot-passthrough.sh`)
 
 ### ISO/DMG (`createinstallmedia` generated) install medium not detected
 
-In OpenCore's `config.plist` and set `ScanPolicy` to `0` ([For more information, check the Dortania Troubleshooting Guide](https://dortania.github.io/OpenCore-Install-Guide/troubleshooting/troubleshooting.html#can-t-see-macos-partitions))
+In OpenCore's `config.plist` and set `ScanPolicy` to `0` (For more information, check the Dortania Troubleshooting Guide (https://dortania.github.io/OpenCore-Install-Guide/troubleshooting/troubleshooting.html#can-t-see-macos-partitions))
 
 ### Attach physical drive to QEMU VM
 
@@ -537,7 +537,7 @@ sudo systemctl enable ssh.service
 
 - https://www.nicksherlock.com/2020/11/working-around-the-amd-gpu-reset-bug-on-proxmox/
 
-- Consider using CMMChris's [RadeonBoost.kext](https://forums.macrumors.com/threads/tired-of-low-geekbench-scores-use-radeonboost.2231366/)
+- Consider using CMMChris's  RadeonBoost.kext (https://forums.macrumors.com/threads/tired-of-low-geekbench-scores-use-radeonboost.2231366/)
   for the RX480, RX580, RX590 and Radeon VII GPUs.
 
 ### USB passthrough notes
@@ -683,7 +683,7 @@ The `-smp line` should read something like the following:
 
 ### Troubles with iMessage
 
-Check out [this Dortania article on this topic](https://dortania.github.io/OpenCore-Post-Install/universal/iservices.html#using-gensmbios).
+Check out this Dortania article on this topic (https://dortania.github.io/OpenCore-Post-Install/universal/iservices.html#using-gensmbios).
 
 ### Fix 'guest boots to UEFI shell' problem (stuck at startup.nsh problem)
 

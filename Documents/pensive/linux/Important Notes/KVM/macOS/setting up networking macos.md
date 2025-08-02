@@ -90,7 +90,7 @@ sudo ip link set dev tap0 master virbr0
 This has been enough for me so far.
 
 Note: You may need to enable the `rc.local` functionality manually on modern
-Ubuntu versions. Check out the [notes](notes.md) included in this repository
+Ubuntu versions. Check out the [[all notes macos]] included in this repository
 for details.
 
 

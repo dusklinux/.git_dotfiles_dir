@@ -1,0 +1,1 @@
+Note: If the USB drive does not boot properly using the default ISO Image mode, DD Image mode should be used instead. To switch this mode on, select GPT from the Partition scheme drop-down menu. After clicking START you will get the mode selection dialog, select DD Image mode.

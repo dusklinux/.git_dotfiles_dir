@@ -106,7 +106,7 @@ sudo mkdir /mnt/{browser,windows,wdslow,wdfast,media,fast,slow,enclosure}
 
 ---
 
-- [ ] **Update `fstab`:** Edit the fstab to reflect the new drives' UUIDs. [[fstab reference]]
+- [ ] **Update `fstab`:** Edit the fstab to reflect the new drives' UUIDs. **fstab requires unlocked UUIDs of block devices** [[fstab reference]] 
 - find out UUID's of your relevant disks. boot, home & root are already set. don't touch those in fstab. 
 
 ```bash
@@ -129,7 +129,7 @@ sudo systemctl daemon-reload
 
 ---
 
-- [ ] **Update Drive Unlock Script:** Change the UUID in your LUKS/drive unlocking script.
+- [ ] **Update Drive Unlock Script:** Change the UUID in your LUKS/drive unlocking script. **Both, lock and unlock scripts require Locked UUIDs**
 
 - Test if it worked by running the unlock drive script for browser drive. There's an alias for it in the zshrc file, run this. and enter your password, Then check if it correctly mounted at /mnt/browser/
 
@@ -291,6 +291,27 @@ bind = $mainMod SHIFT, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst
 > ```ini
 > bind = $mainMod, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst.sh
 >```
+
+- [ ] for changing file manager from yazi to thunar. 
+
+> [!tip]- to change yazi to thunar as default
+>replace this line `$fileManager = yazi` with 
+>```ini
+>$fileManager = thunar
+>```
+>and then replace this line `bind = $mainMod, E, exec, kitty -e $fileManager` with 
+>```ini
+>bind = $mainMod, E, exec, $fileManager
+>```
+>and then finally run this command
+>```bash
+>xdg-mime default thunar.desktop inode/directory
+>```
+> explination of the command
+> By running this command, you are telling your system, "From now on, whenever you are asked to 'open' a directory, use the application defined in thunar.desktop." This change is saved specifically for your user in the ~/.config/mimeapps.list file.
+> xdg-mime default: This is the command to set a default application.
+>thunar.desktop: This is the standard desktop entry for the Thunar application. The system looks for this file in /usr/share/applications/ to get information about how to run Thunar.
+>inode/directory: This is the official MIME type for a folder or directory.
 
 ---
 
@@ -468,6 +489,10 @@ git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
 ---
 
 - [ ] **`spotify`:** without adds script [[Spotify]]
+
+---
+
+- [ ] **Obsidian** download `hider`, `copilot` plugins and also downlaod the `primary` theme. 
 
 ---
 ### 7. Re-Link exisiting github repo to continue backing up to it. 

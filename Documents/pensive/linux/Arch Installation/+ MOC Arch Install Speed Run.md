@@ -125,7 +125,9 @@ cfdisk /dev/sdX
 
 ---
 
-### 8. *Identifying Target Drive's Partitions*
+### 8. *Formatting Root and ESP/Boot partitions*
+
+*Identifying Target Drive's Partitions*
 
 ```bash
 lsblk /dev/sdX

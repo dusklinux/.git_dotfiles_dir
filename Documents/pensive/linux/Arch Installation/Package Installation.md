@@ -17,7 +17,7 @@ pacman -S --needed intel-media-driver mesa vulkan-intel mesa-utils intel-gpu-too
 
 > [!note] Only install this if you have an **intel** mobile chip between **5th gen and 11th gen** (hardware encoding/decoding)
 >```bash
->pacman intel-media-sdk
+>pacman -S --needed intel-media-sdk
 > ```
 
 ### 2. Hyprland Window Manager & Wayland Components
@@ -90,7 +90,8 @@ pacman -S --needed logrotate lshw ffmpeg mpv mpv-mpris firefox gnome-keyring lib
 
 ### See Also
 For alternative hardware or additional software, refer to these notes:
-- - [ ] [[Nvidia Packages]] 
-- - [ ] [[Optional packages]]
+- [ ] only for pc's with nvidia gpu [[Nvidia Packages]] 
+- [ ] extra stuff [[Optional packages]]
+
 
 - (if you have an nvidia gpu and you don't install this while also restoring backup, you'll get an error logging in, make sure to uncomment this line in .config/uwsm/env-hyprland `export AQ_DRM_DEVICES=/dev/dri/card1`and if it still doesn't login, try commenting out the display thing `monitor=eDP-1,1920x1080@60,0x0,1.6` in the hyprland config )
