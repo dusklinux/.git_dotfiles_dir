@@ -19,7 +19,7 @@ This section covers the essential, non-negotiable steps for installing the propr
 
 ```bash
 # Install headers for the standard 'linux' and 'linux-lts' kernels
-sudo pacman -S linux-headers linux-lts-headers
+sudo pacman -S --needed linux-headers linux-lts-headers
 ```
 
 > [!TIP] **Kernel Specificity**
@@ -33,7 +33,7 @@ sudo pacman -S linux-headers linux-lts-headers
 
 ```bash
 # Install the DKMS driver, essential utilities, and the graphical settings panel
-sudo pacman -S nvidia-dkms nvidia-utils nvidia-settings
+sudo pacman -S --needed nvidia-dkms nvidia-utils nvidia-settings
 ```
 
 **Package Breakdown:**

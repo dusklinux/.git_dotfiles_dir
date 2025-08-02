@@ -6,6 +6,9 @@ This guide is organized by common tasks to help you find the right command quick
 
 ---
 
+> [!Important] Why use `--needed`
+> `--needed` Prevents reinstalling of the package if the package is already installed, saving bandwidth, CPU Cycles, Disk I/O and Power
+
 ### 1. System Maintenance: Synchronizing & Upgrading
 
 Keeping your system up-to-date is critical for security and stability. These commands manage the synchronization of your local package database with the remote repositories and upgrade your installed packages.
@@ -162,7 +165,7 @@ pacman -F virtqemud.service
 > ```
 > sudo pacman -Fy
 > pacman -F virtqemud.service  # → shows qemu-virtio package
-> sudo pacman -S qemu-virtio
+> sudo pacman -S --needed qemu-virtio
 > ```
 
 

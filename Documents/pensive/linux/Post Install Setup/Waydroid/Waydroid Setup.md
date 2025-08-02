@@ -28,7 +28,7 @@ Before you begin, it's crucial to verify that your Linux kernel has the necessar
 > [!note] (Optional, NOT NEEDED)
 > If the command returns no output or is missing one of the modules, Waydroid will not work. On Arch Linux, the `linux-zen` kernel includes these modules by default. You may need to install it and reboot your system.
 > ```bash
-> sudo pacman -S linux-zen
+> sudo pacman -S --needed linux-zen
 > ```
 
 ---

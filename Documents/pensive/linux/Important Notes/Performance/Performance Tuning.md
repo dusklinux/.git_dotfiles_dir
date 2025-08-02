@@ -100,7 +100,7 @@ Understanding power draw is crucial for thermal management and performance tunin
 > [!NOTE] Installation
 > `turbostat` is part of the `linux-tools` package. You may need to install it first:
 > ```bash
-> sudo pacman -S linux-tools
+> sudo pacman -S --needed linux-tools
 > ```
 
 *   **Monitor CPU Package Power:**

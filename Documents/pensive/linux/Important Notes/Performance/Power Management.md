@@ -17,7 +17,7 @@ TLP (Linux Advanced Power Management) is a feature-rich utility that applies a c
 Install TLP and `tlp-rdw`, which is essential for managing power on radio devices like Wi-Fi and Bluetooth.
 
 ```bash
-sudo pacman -S tlp tlp-rdw
+sudo pacman -S --needed tlp tlp-rdw
 ```
 
 **Step 2: Enable and Start the Service**
@@ -45,7 +45,7 @@ sudo systemctl status tlp.service
 **Step 1: Installation**
 
 ```bash
-sudo pacman -S powertop
+sudo pacman -S --needed powertop
 ```
 
 **Step 2: Interactive Diagnostics**

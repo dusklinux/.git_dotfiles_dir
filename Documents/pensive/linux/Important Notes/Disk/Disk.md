@@ -67,7 +67,7 @@ To watch disk activity in real-time, use `iostat`. This is invaluable for diagno
 
 ```bash
 # Monitor I/O on nvme0n1, updating every 1 second
-# Install with: sudo pacman -S sysstat
+# Install with: sudo pacman -S --needed sysstat
 iostat -d 1 /dev/nvme0n1
 ```
 
@@ -80,7 +80,7 @@ S.M.A.R.T. (Self-Monitoring, Analysis, and Reporting Technology) is a monitoring
 > [!NOTE] Installation
 > The `smartctl` tool is part of the `smartmontools` package.
 > ```bash
-> sudo pacman -S smartmontools
+> sudo pacman -S --needed smartmontools
 > ```
 
 To get a detailed health report for a drive, use the following command:
@@ -106,7 +106,7 @@ NVMe drives have a dedicated set of tools for advanced management, primarily thr
 > [!NOTE] Installation
 > Ensure you have the `nvme-cli` package installed.
 > ```bash
-> sudo pacman -S nvme-cli
+> sudo pacman -S --needed nvme-cli
 > ```
 
 ### Identifying NVMe Drive Details
@@ -198,8 +198,7 @@ For traditional spinning hard drives (HDDs), physical data placement matters.
 To get a graphical, interactive map of what's taking up space on your disk, use `baobab` (Disk Usage Analyzer).
 
 ```bash
-# Install with: sudo pacman -S baobab
-baobab
+sudo pacman -S --needed baobab
 ```
 
 ### Software RAID

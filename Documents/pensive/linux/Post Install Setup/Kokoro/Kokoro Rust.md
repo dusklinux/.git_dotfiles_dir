@@ -71,7 +71,7 @@ Now, we will install the necessary build tools and compile the `Kokoros` applica
 If you don't have Rust installed, use `pacman` to install it. Cargo is the official build tool and package manager for Rust.
 
 ```bash
-sudo pacman -S cargo
+sudo pacman -S --needed cargo
 ```
 
 ### Step 2: Compile the Executable

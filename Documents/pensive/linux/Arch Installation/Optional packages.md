@@ -10,7 +10,7 @@ This note provides a curated list of optional packages you can install to enhanc
 > You can install any combination of these packages using a single `pacman` command. Simply copy the package names you want into the command.
 >
 > ```bash
-> sudo pacman -S package1 package2 package3 ...
+> sudo pacman -S --needed package1 package2 package3 ...
 > ```
 
 ---
@@ -126,7 +126,7 @@ A good set of fonts is crucial for readability in both the terminal and GUI appl
 
 ```bash
 # Example installation command for all recommended fonts
-sudo pacman -S ttf-dejavu ttf-firacode-nerd noto-fonts noto-fonts-emoji ttf-nerd-fonts-symbols
+sudo pacman -S --needed ttf-dejavu ttf-firacode-nerd noto-fonts noto-fonts-emoji ttf-nerd-fonts-symbols
 ```
 
 more:

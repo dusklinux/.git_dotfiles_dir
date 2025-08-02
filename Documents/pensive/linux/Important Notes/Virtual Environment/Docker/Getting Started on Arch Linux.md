@@ -4,7 +4,7 @@ Getting Started on Arch Linux
 
 ```bash
 # Install the docker package from the official repositories
-sudo pacman -S docker
+sudo pacman -S --needed docker
 ```
 
 ### 2. Service Management

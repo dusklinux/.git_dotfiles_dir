@@ -11,7 +11,7 @@
 First, install the `reflector` package using `pacman`.
 
 ```bash
-pacman -S reflector
+pacman -S --needed reflector
 ```
 
 ### 2. Configure and Run Reflector

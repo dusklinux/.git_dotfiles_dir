@@ -10,7 +10,7 @@
 To get started, you need to install `fzf`. For the best experience, it's highly recommended to also install `bat`, a modern `cat` clone with syntax highlighting, which `fzf` can use for its preview window.
 
 ```bash
-sudo pacman -S fzf bat
+sudo pacman -S --needed fzf bat
 ```
 
 > [!TIP] Why `bat`?

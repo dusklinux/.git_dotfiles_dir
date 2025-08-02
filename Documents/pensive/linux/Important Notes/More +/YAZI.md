@@ -16,7 +16,7 @@ First, we need to install Yazi and its essential dependencies. While Yazi can fu
 Execute the following command in your terminal to install everything you need:
 
 ```bash
-sudo pacman -S yazi fd ripgrep fzf zoxide
+sudo pacman -S --needed yazi fd ripgrep fzf zoxide
 ```
 
 ---

@@ -15,7 +15,7 @@ Follow these steps to get `pywal16` up and running on your system.
 To install `pipx` on Arch Linux, use your package manager:
 
 ```bash
-sudo pacman -S python-pipx
+sudo pacman -S --needed python-pipx
 ```
 
 > [!TIP] Why use `pipx`?

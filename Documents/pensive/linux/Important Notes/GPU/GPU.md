@@ -20,7 +20,7 @@ The primary tool for checking the graphics stack, `glxinfo`, is not installed by
 *   **Install `mesa-utils`:** This package contains essential OpenGL utilities, including `glxinfo` and `glxgears`.
 
     ```bash
-    sudo pacman -S mesa-utils
+    sudo pacman -S --needed mesa-utils
     ```
 
 ---

@@ -6,7 +6,7 @@ Real applications often have multiple parts (e.g., a website, a database, a cach
 ### The Solution: Docker Compose
 Docker Compose is a tool that uses a single YAML file (`docker-compose.yml`) to define and run an entire multi-container application.
 
-*   **Installation:** `sudo pacman -S docker-compose`
+*   **Installation:** `sudo pacman -S --needed docker-compose`
 *   **The Manifest:** You create a `docker-compose.yml` file to declare all your services, networks, and volumes.
 *   **One Command to Rule Them All:** With `docker-compose up -d`, you can launch your entire application stack. With `docker-compose down`, you can tear it all down.
 

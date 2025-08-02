@@ -17,9 +17,9 @@ First, install the necessary packages using `pacman`.
 
 *   **GPU Monitoring & Media Drivers:** These packages provide tools to monitor the integrated GPU and enable hardware acceleration for video encoding/decoding, which offloads work from the CPU, improving performance and reducing power consumption.
 
-    ```bash
-    sudo pacman -S intel-gpu-tools libva-utils libva-intel-driver intel-media-driver
-    ```
+```bash
+sudo pacman -S --needed intel-gpu-tools libva-utils libva-intel-driver intel-media-driver
+```
 
 | Package | Purpose |
 | :--- | :--- |

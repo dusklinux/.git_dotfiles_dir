@@ -46,7 +46,7 @@ The `sensors` command reads data from hardware monitoring chips on your motherbo
 The `sensors` command is part of the `lm_sensors` package. If it's not already installed, you can add it with:
 
 ```bash
-sudo pacman -S lm_sensors
+sudo pacman -S --needed lm_sensors
 ```
 
 ### First-Time Setup

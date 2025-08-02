@@ -4,9 +4,9 @@ NVIDIA
 	make sure any previously proprietary driver is removoved if you installed them. 
 	3050 Ti is supported by the main nvidia package. However, to handle kernel updates automatically, it's strongly recommended to use the DKMS version.
 	make sure your kernal-headers are installed first.
-sudo pacman -S linux-headers linux-lts-headers (ltsheaders only if that kernal is also instlaled.)
+sudo pacman -S --needed linux-headers linux-lts-headers (ltsheaders only if that kernal is also instlaled.)
 	install nvidia-dkms and other stuff
-sudo pacman -S nvidia-dkms nvidia-utils nvidia-settings
+sudo pacman -S --needed nvidia-dkms nvidia-utils nvidia-settings
 	(it'll install the following packages and dependencies Packages (7) dkms-3.1.8-1  egl-gbm-1.1.2.1-1  egl-x11-1.0.1-1  libxnvctrl-570.144-1  nvidia-dkms-570.144-3  nvidia-settings-570.144-1  nvidia-utils-570.144-3)
 	nvidia-dkms: Installs the driver source and uses DKMS to automatically rebuild the kernel module when you update your kernel.
 	nvidia-utils: Provides essential libraries and utilities like nvidia-smi.

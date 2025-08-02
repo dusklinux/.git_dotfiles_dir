@@ -54,7 +54,7 @@ df -h
 > [!ATTENTION] Installation Required
 > `inxi` is not installed by default on Arch Linux. You must install it first using `pacman`:
 > ```bash
-> sudo pacman -S inxi
+> sudo pacman -S --needed inxi
 > ```
 
 To list the top processes sorted by memory usage, use the following command. You can change `10` to any number to see more or fewer processes.

@@ -7,7 +7,7 @@ This is the first step, where you install the necessary software packages for th
 Install the essential packages for a UEFI system. The command below includes `grub` itself, `efibootmgr` to interact with the UEFI firmware, and `grub-btrfs` which is highly recommended if you are using a Btrfs filesystem.
 
 ```bash
-pacman -S grub efibootmgr grub-btrfs
+pacman -S --needed grub efibootmgr grub-btrfs
 ```
 
 > [!TIP] Why `grub-btrfs`?
@@ -18,7 +18,7 @@ pacman -S grub efibootmgr grub-btrfs
 If you are setting up a dual-boot system (e.g., with Windows), you must also install `os-prober`. This package allows GRUB to detect other operating systems on your machine.
 
 ```bash
-pacman -S os-prober
+pacman -S --needed os-prober
 ```
 
 > [!NOTE]

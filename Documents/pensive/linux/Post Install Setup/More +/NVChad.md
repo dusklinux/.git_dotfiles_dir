@@ -14,7 +14,7 @@ NVChad is managed through Git and runs on Neovim. If you followed the base Arch 
 You can ensure they are installed with the following command:
 
 ```bash
-sudo pacman -S git neovim
+sudo pacman -S --needed git neovim
 ```
 
 #### **1.2. Install a Nerd Font**
@@ -23,7 +23,7 @@ NVChad's user interface relies heavily on icons for a clean and modern look. The
 Install it using `pacman`:
 
 ```bash
-sudo pacman -S ttf-jetbrains-mono-nerd
+sudo pacman -S --needed ttf-jetbrains-mono-nerd
 ```
 
 > [!TIP] What are Nerd Fonts?

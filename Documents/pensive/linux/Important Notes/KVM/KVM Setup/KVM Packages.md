@@ -39,7 +39,7 @@ paru -S virtio-win
 windows specific
 
 ```bash
-sudo pacman -S swtpm
+sudo pacman -S --needed swtpm
 ```
 
 macos specific
