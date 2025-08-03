@@ -315,10 +315,3 @@ python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f
 > ```bash
 > paru -S sentencepiece
 > ```
-
-#### Sources:
-
-- [[Parakreet Old]]
-- [[Faster Whisper]]
-- [[Kokoro Rust CPU]]
-- [[Installation and Configuration]]

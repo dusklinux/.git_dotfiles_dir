@@ -392,6 +392,7 @@ nvim ~/.config/uwsm/env
     - [ ] Install `faster-whisper`. [[Faster Whisper]]
     - [ ] Install Nvidia `parakeet` [[Parakeet]]
 	- [ ] Install `kokoro` [[Kokoro Rust CPU]]
+	- [ ] Install `kokoro` [[Kokoro GPU]]
 	- [ ] Install `Waydroid` :- Android container. lightweight. [[+ MOC Waydroid]]
 
 ---
