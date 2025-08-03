@@ -11,14 +11,18 @@ Execute the following command to install the complete set of recommended package
 Nvidia Opensource
 
 ```bash
-sudo pacman -S --needed nvidia-open-dkms nvidia-utils nvidia-settings opencl-nvidia libva-nvidia-driver nvidia-prime egl-wayland
+pacman -S --needed nvidia-open-dkms nvidia-utils nvidia-settings opencl-nvidia libva-nvidia-driver nvidia-prime egl-wayland
+```
+
+```bash
+pacman -S --needed cuda
 ```
 
 or
 Propriotory 
 
 ```bash
-sudo pacman -S --needed nvidia-dkms nvidia-utils nvidia-settings opencl-nvidia libva-nvidia-driver nvidia-prime egl-wayland
+pacman -S --needed nvidia-dkms nvidia-utils nvidia-settings opencl-nvidia libva-nvidia-driver nvidia-prime egl-wayland
 ```
 
 > [!TIP] Why `nvidia-dkms` is Recommended

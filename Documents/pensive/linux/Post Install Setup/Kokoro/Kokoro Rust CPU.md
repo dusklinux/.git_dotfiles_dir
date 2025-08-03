@@ -27,14 +27,14 @@ Using `uv`, we'll create a virtual environment named `kokoros_rust_onnx` and the
 
 ```bash
 # Create the environment
-uv venv kokoros_rust_onnx
+uv venv kokoros_cpu
 
 # Activate the environment
-source kokoros_rust_onnx/bin/activate
+source kokoros_cpu/bin/activate
 ```
 
 > [!TIP] Your Shell Prompt
-> After activation, your shell prompt should change to indicate that you are in the `(kokoros_rust_onnx)` environment.
+> After activation, your shell prompt should change to indicate that you are in the `(kokoros_cpu)` environment.
 
 ### Step 3: Clone the Kokoros Repository
 
@@ -42,7 +42,7 @@ Navigate into the newly created environment directory and clone the project sour
 
 ```bash
 # Enter the virtual environment directory
-cd kokoros_rust_onnx
+cd kokoros_cpu
 
 # Clone the repository
 git clone https://github.com/lucasjinreal/Kokoros.git
@@ -76,7 +76,12 @@ sudo pacman -S --needed cargo
 
 ### Step 2: Compile the Executable
 
-Ensure you are still in the `~/contained_apps/uv/kokoros_rust_onnx/Kokoros/` directory, where the `Cargo.toml` file is located. Run the build command with the `--release` flag to create a highly optimized executable.
+Ensure you are still in the `~/contained_apps/uv/kokoros_cpu/Kokoros/` directory, where the `Cargo.toml` file is located. Run the build command with the `--release` flag to create a highly optimized executable.
+the next command will fail to build the project if espeak-ng is instlaled, uninstlall it . 
+
+```bash
+sudo pacman -Rns espeak-ng
+```
 
 ```bash
 cargo build --release
@@ -169,7 +174,7 @@ export PATH="$HOME/.local/bin:$PATH"
 Create a symlink from the compiled binary to your local bin directory, renaming it to `kokoros` for convenience.
 
 ```bash
-ln -s ~/contained_apps/uv/kokoros_rust_onnx/Kokoros/target/release/koko ~/.local/bin/kokoros
+ln -s ~/contained_apps/uv/kokoros_cpu/Kokoros/target/release/koko ~/.local/bin/kokoros
 ```
 
 ### Step 3: Basic Usage

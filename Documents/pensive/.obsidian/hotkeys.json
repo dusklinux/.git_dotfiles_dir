@@ -1,21 +1,4 @@
 {
-  "obsidian-textgenerator-plugin:generate-text": [
-    {
-      "modifiers": [
-        "Alt"
-      ],
-      "key": "T"
-    }
-  ],
-  "obsidian-textgenerator-plugin:generate-text-with-metadata": [
-    {
-      "modifiers": [
-        "Alt",
-        "Shift"
-      ],
-      "key": "T"
-    }
-  ],
   "obsidian-textgenerator-plugin:get-title": [
     {
       "modifiers": [
