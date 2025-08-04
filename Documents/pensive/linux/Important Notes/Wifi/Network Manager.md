@@ -7,14 +7,16 @@
 Before you can use `NetworkManager`, you must enable its systemd service to start on boot and then start it for the current session.
 
 1.  **Enable the service to start automatically on boot:**
-    ```bash
-    sudo systemctl enable NetworkManager.service
-    ```
+
+```bash
+sudo systemctl enable NetworkManager.service
+```
 
 2.  **Start the service immediately:**
-    ```bash
-    sudo systemctl start NetworkManager.service
-    ```
+
+```bash
+sudo systemctl start NetworkManager.service
+```
 
 
 > [!TIP] Enable and Start in One Go

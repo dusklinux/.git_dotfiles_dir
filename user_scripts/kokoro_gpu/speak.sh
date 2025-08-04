@@ -17,7 +17,7 @@ KOKORO_APP_DIR="$HOME/contained_apps/uv/kokoro_gpu"
 PYTHON_SCRIPT_PATH="$HOME/user_scripts/kokoro_gpu/speak.py"
 
 # Default path for saving the generated audio files.
-SAVE_DIR="/mnt/zram1/kokoro"
+SAVE_DIR="/mnt/zram1/kokoro_gpu"
 
 # --- MPV Playback Speed Control ---
 # Controls the playback speed in MPV.

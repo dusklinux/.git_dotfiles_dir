@@ -129,10 +129,3 @@ If you no longer need the hotspot profile, you can delete it completely.
 ```bash
 nmcli connection delete "MyArchHotspot"
 ```
-
-#### Sources:
-
-- [[Configuring Hotspot]]
-- [[Network Manager]]
-- [[IWD]]
-- [[Connmanctl]]
