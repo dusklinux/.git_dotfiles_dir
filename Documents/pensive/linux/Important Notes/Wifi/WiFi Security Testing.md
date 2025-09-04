@@ -1,3 +1,7 @@
+This note is my documentation: 
+
+official documentation [[WiFi Security Testing Official]]
+
 Monitor Mode: Normally, your Wi-Fi card only listens to traffic addressed specifically to it. To see all the Wi-Fi traffic in the air around you, including data not meant for you, the card must be put into a special "monitor mode."
 
 The Handshake: For WPA2, the critical piece of data is the 4-Way Handshake. This is a four-packet exchange that happens every time a device connects to the router. This handshake proves the device knows the password without ever sending the password itself. We can capture this handshake and then try to crack it offline.
@@ -30,6 +34,21 @@ sudo pacman -S --needed aircrack-ng
 
 ```bash
 nmcli device wifi list
+```
+
+for gui, install this 
+```bash
+sudo pacman -S --needed reaver bully john wireshark-cli wifite hcxtools hcxdumptool cowpatty macchanger hashcat
+```
+
+```bash
+paru -S pyrit
+```
+
+and then run 
+
+```bash
+sudo wifite --kill
 ```
 
 ---

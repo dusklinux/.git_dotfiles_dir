@@ -69,7 +69,7 @@ setfont latarcyrheb-sun32
 
 ---
 
-### 4. *Optional* : *Limiting Battery Charge to 60%*
+### 4. *Optional* : *Limiting Battery Charge to 60%* (check if you have BAT1 or somehting else first, or it wont work)
 
 ```bash
 echo 60 | sudo tee /sys/class/power_supply/BAT1/charge_control_end_threshold
