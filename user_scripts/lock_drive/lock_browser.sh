@@ -9,7 +9,7 @@
 # The UUID of the encrypted partition to lock.
 # This MUST match the UUID used in your unlock script.
 # Find this by running `lsblk -f` or `sudo blkid`.
-DEVICE_UUID="9150739f-d057-4958-85ea-ffdb81dfe29f"
+DEVICE_UUID="48182dde-f5ae-4878-bc15-fe60cf6cd271"
 
 # The mount point (e.g., a path defined in /etc/fstab)
 MOUNT_POINT="/mnt/browser"

@@ -35,7 +35,7 @@ export HYPRCURSOR_SIZE=24
 # setting them is usually unnecessary and could interfere with the session manager.
 
 # export XDG_SESSION_TYPE=wayland
-# export XDG_CURRENT_DESKTOP=Hyprland
+export XDG_CURRENT_DESKTOP=Hyprland
 # export XDG_SESSION_DESKTOP=Hyprland
 # export XDG_CONFIG_HOME=$HOME/.config
 # export XDG_DATA_HOME=$HOME/.local/share
