@@ -367,6 +367,10 @@ sudo cp ~/notes/setup/etc/asusd /etc/
 cp -r /mnt/media/Documents/do_not_delete_linux/themes/Decay-Green ~/.local/share/themes/
 ```
 
+for root
+```bash
+sudo cp -r /mnt/media/Documents/do_not_delete_linux/themes/Decay-Green /usr/share/themes/
+```
 - [ ] Copy the Wallpaper folder into local pictures directory 
 
 ```bash
