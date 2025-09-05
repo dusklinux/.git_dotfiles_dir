@@ -413,6 +413,14 @@ pipx install pywal16
 
 ---
 
+- [ ] **Create a symlink** for the service file in user_scripts/waybar/network so the service works. , this is done because service files are looked for in .config/systemd/user/.
+
+```bash
+ln -s $HOME/user_scripts/waybar/network/network_meter.service ~/.config/systemd/user/network_meter.service
+```
+
+---
+
 - [ ] **Generate Initial Theme:** Run `wal` with your desired wallpaper to create the first color palette. Eg: command
 
 ```bash
