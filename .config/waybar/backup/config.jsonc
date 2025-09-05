@@ -14,6 +14,7 @@
 
     // Modules that will appear at the top of the vertical bar
     "modules-left": [
+        "custom/ollama",
         "battery",
         "pulseaudio",
         "backlight",
@@ -136,26 +137,36 @@
         "rotate": 90
     },
      
-"custom/network-unit": {
-  "return-type": "json",
-  "tooltip": true,
-  "interval": 1,
-  "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh unit"
-},
+    "custom/ollama": {
+		    "format": "󱋊",
+		    "tooltip": true,
+		    "tooltip-format": "Chat with Ollama",
+		    "on-click": "$HOME/user_scripts/waybar/waybar_ollama.sh"
+    },
 
-"custom/network-upload": {
-  "return-type": "json",
-  "tooltip": true,
-  "interval": 1,
-  "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh up"
-},
+    "custom/network-unit": {
+        "return-type": "json",
+		    "tooltip": true,
+		    "tooltip-format": "Network Traffic",
+        "interval": 1,
+        "exec": "awk 'BEGIN { \"ip route get 1.1.1.1\" | getline; for(i=1;i<=NF;i++) if($i==\"dev\") iface=$(i+1); close(\"ip route get 1.1.1.1\"); rx = \"/sys/class/net/\" iface \"/statistics/rx_bytes\"; tx = \"/sys/class/net/\" iface \"/statistics/tx_bytes\"; getline r1 < rx; getline t1 < tx; close(rx); close(tx); system(\"sleep 1\"); getline r2 < rx; getline t2 < tx; close(rx); close(tx); bps = (r2-r1) + (t2-t1); mbs = bps/1024/1024; if (mbs >= 1) { text = \"MB\"; class = \"network-mb\"; } else { text = \"KB\"; class = \"network-kb\"; } printf \"{\\\"text\\\": \\\"%s\\\", \\\"class\\\": \\\"%s\\\"}\\n\", text, class; }'"
+    },
 
-"custom/network-download": {
-  "return-type": "json",
-  "tooltip": true,
-  "interval": 1,
-  "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh down"
-},
+    "custom/network-upload": {
+        "return-type": "json",
+		    "tooltip": true,
+		    "tooltip-format": "Upload Speed",
+        "interval": 1,
+        "exec": "awk 'BEGIN { \"ip route get 1.1.1.1\" | getline; for(i=1;i<=NF;i++) if($i==\"dev\") iface=$(i+1); close(\"ip route get 1.1.1.1\"); tx = \"/sys/class/net/\" iface \"/statistics/tx_bytes\"; getline t1 < tx; close(tx); system(\"sleep 1\"); getline t2 < tx; close(tx); bps = t2-t1; mbs = bps/1024/1024; kbs = bps/1024; if (mbs >= 1) { class = \"network-mb\"; if (mbs >= 10) { text = sprintf(\"%.0f\", mbs); } else { text = sprintf(\"%.1f\", mbs); } } else { class = \"network-kb\"; text = sprintf(\"%.0f\", kbs); } printf \"{\\\"text\\\": \\\"%s\\\", \\\"class\\\": \\\"%s\\\"}\\n\", text, class; }'"
+    },
+
+    "custom/network-download": {
+        "return-type": "json",
+		    "tooltip": true,
+		    "tooltip-format": "Download Speed",
+        "interval": 1,
+        "exec": "awk 'BEGIN { \"ip route get 1.1.1.1\" | getline; for(i=1;i<=NF;i++) if($i==\"dev\") iface=$(i+1); close(\"ip route get 1.1.1.1\"); rx = \"/sys/class/net/\" iface \"/statistics/rx_bytes\"; getline r1 < rx; close(rx); system(\"sleep 1\"); getline r2 < rx; close(rx); bps = r2-r1; mbs = bps/1024/1024; kbs = bps/1024; if (mbs >= 1) { class = \"network-mb\"; if (mbs >= 10) { text = sprintf(\"%.0f\", mbs); } else { text = sprintf(\"%.1f\", mbs); } } else { class = \"network-kb\"; text = sprintf(\"%.0f\", kbs); } printf \"{\\\"text\\\": \\\"%s\\\", \\\"class\\\": \\\"%s\\\"}\\n\", text, class; }'"
+    },
 
     "clock": {
         "format": "{:%I\n%M}",
