@@ -187,7 +187,7 @@
 
 "custom/inhibit-suspend": {
     "format": "{}",
-    "exec": "if pgrep -x 'hypridle' > /dev/null; then echo '{\"text\": \"󰤄\", \"tooltip\": \"Suspend is enabled. Click to disable.\", \"class\": \"enabled\"}'; else echo '{\"text\": \"\", \"tooltip\": \"Suspend is disabled. Click to enable.\", \"class\": \"disabled\"}'; fi",
+    "exec": "if pgrep -x 'hypridle' > /dev/null; then echo '{\"text\": \"\", \"tooltip\": \"Suspend is enabled. Click to disable.\", \"class\": \"enabled\"}'; else echo '{\"text\": \"\", \"tooltip\": \"Suspend is disabled. Click to enable.\", \"class\": \"disabled\"}'; fi",
     "interval": 5,
     "return-type": "json",
     "on-click": "~/user_scripts/waybar/toggle_hypridle.sh",
