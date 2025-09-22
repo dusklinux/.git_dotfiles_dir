@@ -47,7 +47,7 @@ def main():
     try:
         samples, sr = kokoro.create(
             full_text,
-            voice="pm_santa", # Or your preferred voice
+            voice="af_heart", # Or your preferred voice
             speed=1.0,      # kokoro playback speed
             lang="en-us"
         )
