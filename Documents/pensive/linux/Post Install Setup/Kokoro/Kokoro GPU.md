@@ -1,5 +1,13 @@
 ```bash
-sudo pacman -S --needed cuda cudnn mpv ffmpeg wl-clipboard
+sudo pacman -S --needed mpv ffmpeg wl-clipboard
+```
+
+```bash
+paru -S cuda-12.5
+```
+
+```bash
+paru -S cudnn9.3-cuda12.5
 ```
 
 ```bash
