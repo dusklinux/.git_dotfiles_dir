@@ -151,7 +151,7 @@ function y() {
 
 
 #-- LM- Studio-- 
-alias llm='/mnt/media/Documents/do_not_delete_linux/appimages/LM-Studio-0.3.20-4-x64.AppImage'
+alias llm='/mnt/media/Documents/do_not_delete_linux/appimages/LM-Studio*'
 
 # --- Functions ---
 # Creates a directory and changes into it.
@@ -216,3 +216,8 @@ fi
 # =============================================================================
 # End of ~/.zshrc
 # =============================================================================
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/home/dusk/.lmstudio/bin"
+# End of LM Studio CLI section
+
