@@ -5,6 +5,7 @@ video/mp4=mpv.desktop;vlc.desktop;fr.handbrake.ghb.desktop;
 application/octet-stream=featherpad.desktop;
 audio/aac=mpv.desktop;fr.handbrake.ghb.desktop;
 audio/flac=mpv.desktop;
+video/x-matroska=vlc.desktop;
 
 [Default Applications]
 application/octet-stream=featherpad.desktop

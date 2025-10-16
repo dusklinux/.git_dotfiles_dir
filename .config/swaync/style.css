@@ -26,7 +26,9 @@
   border-radius: 24px;
   border: 1px solid @selected;
   box-shadow: 0 0 10px 0 rgba(0,0,0,.6);
-  margin: 18px;
+  /* Changed margin to 0 to allow the panel to sit flush with the screen edge */
+  margin: 0;
+  /* Retained padding to keep content spaced nicely */
   padding: 12px;
 }
 
