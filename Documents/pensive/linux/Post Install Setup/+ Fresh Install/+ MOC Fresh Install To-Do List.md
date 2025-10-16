@@ -207,6 +207,14 @@ sudo nvim /etc/logrotate.conf
 
 ---
 
+- [ ] run this once to install and enable hyprland plugins- hyprpm
+
+```bash
+hyprpm update
+```
+
+---
+
 - [ ] **Reboot** 
 
 ```bash

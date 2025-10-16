@@ -1,7 +1,7 @@
 {
     "$schema": "/etc/xdg/swaync/configSchema.json",
     "positionX": "left",
-    "positionY": "top",
+    "positionY": "bottom",
     "fit-to-screen": true,
     "layer": "overlay",
     "control-center-layer": "top",
@@ -65,20 +65,20 @@
                     "command": "kitty -- bash $HOME/user_scripts/performance/services_and_process_terminator.sh"
                 },
                 {
-                    "label": "",
-                    "command": "notify-send 'Placeholder Button' 'Configure the script path in config.json'"
+                    "label": "",
+                    "command": "hyprlock -q"
                 },
                 {
-                    "label": "󰌌",
-                    "command": "notify-send 'Placeholder Button' 'Configure the script path in config.json'"
+                    "label": "󰤄",
+                    "command": "systemctl suspend"
                 },
                 {
-                    "label": "",
-                    "command": "notify-send 'Placeholder Button' 'Configure the script path in config.json'"
+                    "label": "",
+                    "command": "systemctl reboot"
                 },
                 {
-                    "label": "",
-                    "command": "notify-send 'Placeholder Button' 'Configure the script path in config.json'"
+                    "label": "⏻",
+                    "command": "systemctl poweroff"
                 }
             ]
         }
