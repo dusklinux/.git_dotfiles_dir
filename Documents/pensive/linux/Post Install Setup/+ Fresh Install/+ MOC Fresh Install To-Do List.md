@@ -213,6 +213,22 @@ sudo nvim /etc/logrotate.conf
 hyprpm update
 ```
 
+
+---
+- [ ] add this hyprland plugins repo to install from a list of plugins. 
+
+```bash
+hyprpm add https://github.com/hyprwm/hyprland-plugins
+```
+
+---
+
+- [ ] enable `hyprexpo` plugin for overview preview of workspaces
+
+```bash
+hyprpm enable hyprexpo
+```
+
 ---
 
 - [ ] **Reboot** 
