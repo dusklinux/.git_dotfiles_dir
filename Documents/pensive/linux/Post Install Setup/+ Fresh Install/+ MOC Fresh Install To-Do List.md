@@ -422,6 +422,7 @@ nvim ~/.config/uwsm/env
 	- [ ] Install `kokoro` [[Kokoro Rust CPU]]
 	- [ ] Install `kokoro` [[Kokoro GPU]]
 	- [ ] Install `DaVinci Resolve` [[DaVinci Resolve]]
+	- [ ] Install `Steam, wine, lutris` [[Gaming]]
 	- [ ] Install `Waydroid` :- Android container. lightweight. [[+ MOC Waydroid]]
 
 ---

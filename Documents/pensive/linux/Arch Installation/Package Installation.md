@@ -59,7 +59,7 @@ pacman -S --needed pipewire wireplumber pipewire-pulse bluez bluez-utils blueman
 Install tools for version control, file transfers, firewall, power management, and system monitoring.
 - [ ] Status
 ```bash
-pacman -S --needed git wget curl xdg-user-dirs gvfs firewalld udisks2 udiskie tlp tlp-rdw thermald powertop 7zip usbutils usbmuxd gparted ntfs-3g acpid pacman-contrib nvtop btop inxi less dialog man-db sysstat openssh libheif lutris wine zip unrar wev cpio
+pacman -S --needed git wget curl xdg-user-dirs gvfs firewalld udisks2 udiskie tlp tlp-rdw thermald powertop 7zip usbutils usbmuxd gparted ntfs-3g acpid pacman-contrib nvtop btop inxi less dialog man-db sysstat openssh libheif zip unrar wev cpio
 ```
 
 ### 8. File Management & Productivity Tools
