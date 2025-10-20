@@ -59,14 +59,14 @@ pacman -S --needed pipewire wireplumber pipewire-pulse bluez bluez-utils blueman
 Install tools for version control, file transfers, firewall, power management, and system monitoring.
 - [ ] Status
 ```bash
-pacman -S --needed git wget curl xdg-user-dirs gvfs firewalld udisks2 udiskie tlp tlp-rdw thermald powertop 7zip usbutils usbmuxd gparted ntfs-3g acpid pacman-contrib nvtop btop inxi less dialog
+pacman -S --needed git wget curl xdg-user-dirs gvfs firewalld udisks2 udiskie tlp tlp-rdw thermald powertop 7zip usbutils usbmuxd gparted ntfs-3g acpid pacman-contrib nvtop btop inxi less dialog man-db sysstat openssh libheif lutris wine zip unrar wev cpio
 ```
 
 ### 8. File Management & Productivity Tools
 Install a file manager, clipboard manager, screenshot tools, and other productivity utilities.
 - [ ] Status
 ```bash
-pacman -S --needed tealdeer iotop iftop ethtool httrack filezilla handbrake cliphist grim slurp wl-clipboard tree fzf thunar swaync compsize clang obsidian gnome-disk-utility
+pacman -S --needed tealdeer iotop iftop ethtool httrack filezilla handbrake cliphist grim slurp wl-clipboard tree fzf thunar swaync compsize clang obsidian gnome-disk-utility gnome-calculator gnome-clocks baobab qbittorrent
 ```
 
 ### 9. Optical Character Recognition (OCR)
