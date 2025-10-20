@@ -421,6 +421,7 @@ nvim ~/.config/uwsm/env
     - [ ] Install Nvidia `parakeet` [[Parakeet]]
 	- [ ] Install `kokoro` [[Kokoro Rust CPU]]
 	- [ ] Install `kokoro` [[Kokoro GPU]]
+	- [ ] Install `DaVinci Resolve` [[DaVinci Resolve]]
 	- [ ] Install `Waydroid` :- Android container. lightweight. [[+ MOC Waydroid]]
 
 ---
