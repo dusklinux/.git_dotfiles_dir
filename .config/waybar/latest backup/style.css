@@ -30,7 +30,7 @@
 
 #workspaces button,
 #workspaces, #clock, #battery, #pulseaudio, #network, #cpu, #memory,
-#backlight, #tray,#custom-ollama, #temperature, #custom-notification, #custom-inhibit-suspend, #custom-power,
+#backlight, #tray, #temperature, #custom-notification, #custom-inhibit-suspend, #custom-power,
 #custom-network-unit, #custom-network-upload, #custom-network-download {
     /* VARIABLE 2: Module Horizontal Padding. This is the primary control for the bar's width. */
     padding-left: 0px;
@@ -125,7 +125,6 @@ tooltip label {
 #tray,
 #custom-notification,
 #custom-power,
-#custom-ollama,
 #custom-inhibit-suspend,
 #custom-network-unit,
 #custom-network-upload,
@@ -155,7 +154,6 @@ tooltip label {
 #cpu:hover,
 #memory:hover,
 #backlight:hover,
-#custom-ollama:hover,
 #custom-notification:hover,
 #custom-power:hover,
 #temperature:hover,
@@ -207,27 +205,14 @@ tooltip label {
     margin-bottom: 0px;
 }
 
-/* --- Ollama --- */
-#custom-ollama {
-    color: @color_purple;
-    margin-top: 3px;
-    margin-bottom: 0;
-}
-
 /* --- Battery --- */
-#battery {
-    color: @color_good;
-}
-#battery.warning {
-    color: @color_warning;
-}
+#battery { color: @color_good; }
+#battery.warning { color: @color_warning; }
 #battery.critical {
     color: @color_critical;
     animation: blink-critical 1s steps(1, end) infinite;
 }
-#battery.charging, #battery.plugged {
-    color: @color_good;
-}
+#battery.charging, #battery.plugged { color: @color_good; }
 
 /* --- Pulseaudio --- */
 #pulseaudio { color: @color_info; }
@@ -241,7 +226,6 @@ tooltip label {
 #temperature { color: @color_info; }
 #temperature.critical { color: @color_critical; }
 
-
 /* --- CPU / Memory / Backlight --- */
 #cpu { color: @color_info; }
 #memory { color: @color_purple; }
@@ -249,17 +233,12 @@ tooltip label {
 #backlight { color: @color_warning; }
 
 /* --- System Tray --- */
-#tray {
-}
+#tray {}
 
 /* --- Inhibit Suspend --- */
-#custom-inhibit-suspend.enabled {
-    color:  @color_good; 
-}
+#custom-inhibit-suspend.enabled { color:  @color_good; }
+#custom-inhibit-suspend.disabled { color: @color_critical; }
 
-#custom-inhibit-suspend.disabled {
-    color: @color_critical; /* Red, indicating suspend is off */
-}
 /* --- Custom Modules --- */
 #custom-power {
     color: @color_good;
@@ -274,8 +253,6 @@ tooltip label {
     animation: blink-info 1s steps(1, end) infinite;
     margin-top: 2px;
     margin-bottom: 0px;
-
-
 }
 
 /* --- Custom Network Speed Indicator --- */
@@ -303,20 +280,12 @@ tooltip label {
  * ===================================================================
  */
 
-@keyframes blink-critical {
-    to { color: @text_primary; }
-}
+@keyframes blink-critical { to { color: @text_primary; } }
 
 @keyframes blink-urgent {
-    to {
-        background-color: @bg_active;
-        color: @text_active;
-    }
+    to { background-color: @bg_active; color: @text_active; }
 }
 
 @keyframes blink-info {
-    to {
-        color: @color_info;
-        opacity: 0.5;
-    }
+    to { color: @color_info; opacity: 0.5; }
 }
