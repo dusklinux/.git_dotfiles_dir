@@ -166,6 +166,7 @@ Efficiently find and modify text across your entire file.
 | `N` | Go to the **p**revious match (opposite direction). |
 | `:nohl` | Clears the search highlighting. |
 
+
 ### ➤ Search Settings
 
 These are set using the `:set` command.
@@ -182,12 +183,16 @@ These are set using the `:set` command.
 
 The `:substitute` command (`:s`) is a powerhouse for find-and-replace.
 
-| Command | Action |
-|:---|:---|
-| `:s/old/new/g` | On the **current line**, substitute all (`/g`) instances of `old` with `new`. |
-| `:%s/old/new/g` | On **every line** in the file (`%`), substitute all instances. |
-| `:%s/old/new/gc` | Same as above, but **c**onfirm (`/c`) each replacement. |
-| `:#,#s/old/new/g` | On a specific range of lines (e.g., `:10,20s/...`), substitute all. |
+| Command           | Action                                                                        |
+| :---------------- | :---------------------------------------------------------------------------- |
+| `:s/old/new/g`    | On the **current line**, substitute all (`/g`) instances of `old` with `new`. |
+| `:%s/old/new/g`   | On **every line** in the file (`%`), substitute all instances.                |
+| `:%s/old/new/gc`  | Same as above, but **c**onfirm (`/c`) each replacement.                       |
+| `:#,#s/old/new/g` | On a specific range of lines (e.g., `:10,20s/...`), substitute all.           |
+| `:%s/^/add before` | Add something to all line at the beginning |
+| `:%s/$/add after` | Add something to all line at the end |
+#### To add somethign at the beggining of selected line/all lines. 
+
 
 ---
 

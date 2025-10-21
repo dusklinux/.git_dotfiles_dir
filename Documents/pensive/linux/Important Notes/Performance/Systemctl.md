@@ -18,41 +18,41 @@ These commands provide a real-time view of what is currently running on your sys
 
 
 - Shows detailed runtime status of a specific unit, including whether it's active, its PID, memory usage, and the latest log entries. **This is often the most useful command for checking a single service.**
-> ```bash
-> systemctl status <unit>
-> ```
+```bash
+systemctl status <unit>
+```
 
  - Lists all currently active and loaded units (services, sockets, targets, etc.). This is your immediate overview of what's running.
-> ```bash
-> systemctl list-units
-> ```
+```bash
+systemctl list-units
+```
 
 - Filters the `list-units` output to show only service units that are active and were once active during the current boot. Useful for focusing on services that ran during the current boot.
-> ```bash
-> systemctl list-units --type=service
-> ```
+```bash
+systemctl list-units --type=service
+```
 
 - Filters the `list-units` list by only the services that are currently running.
-> ```bash
-> systemctl list-units --type=service --state=running
-> ``` 
+```bash
+systemctl list-units --type=service --state=running
+``` 
 
 - Shows all units `systemd` knows about, regardless of their state (active, inactive, loaded, failed). Essential for seeing services that have stopped or are defined but not running. 
-> ```bash
-> systemctl list-units --all
-> ```
+```bash
+systemctl list-units --all
+```
 
 - A critical diagnostic command that specifically lists any services that have failed to start or have crashed. **Start your troubleshooting here.**
-> ```bash
-> systemctl list-units --type=service --state=failed
-> ```
+```bash
+systemctl list-units --type=service --state=failed
+```
 
 ### Example: Checking a Service
 
 To get a detailed report on the NetworkManager service:
-> ```bash
-> systemctl status NetworkManager.service
-> ```
+```bash
+systemctl status NetworkManager.service
+```
 
 ---
 
@@ -75,9 +75,9 @@ These commands are used to control services in the current session (start, stop)
 
 
 # Enable and start multiple services at once
-> ```bash
-> sudo systemctl enable --now NetworkManager.service bluetooth.service firewalld.service
-> ```
+```bash
+sudo systemctl enable --now NetworkManager.service bluetooth.service firewalld.service
+```
 
 ---
 
@@ -95,14 +95,14 @@ systemctl list-unit-files
 These commands are essential for reviewing what will launch automatically when you boot your system or log in.
 
 *   **System-wide services set to autostart:**
-    ```bash
-    systemctl list-unit-files --state=enabled
-    ```
+```bash
+systemctl list-unit-files --state=enabled
+```
 
 *   **User-specific services set to autostart:**
-    ```bash
-    systemctl --user list-unit-files --state=enabled
-    ```
+```bash
+systemctl --user list-unit-files --state=enabled
+```
 
 ---
 
@@ -138,10 +138,10 @@ sudo systemctl daemon-reload
 Masking is a more powerful version of disabling. It creates a symlink from the service file to `/dev/null`, making it impossible for any other service to start it, even as a dependency.
 
 *   **Mask a service:**
-    ```bash
-    sudo systemctl mask <unit>
-    ```
+```bash
+sudo systemctl mask <unit>
+```
 *   **Unmask a service:**
-    ```bash
-    sudo systemctl unmask <unit>
-    ```
+```bash
+sudo systemctl unmask <unit>
+```

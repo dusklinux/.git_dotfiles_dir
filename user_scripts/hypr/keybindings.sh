@@ -7,7 +7,7 @@
 # --- CONFIGURATION ---
 # Set the path to your keybindings file.
 # The script will first check for 'keybindings.conf' and then fall back to 'hyprland.conf'.
-KEYBINDINGS_CONF="$HOME/.config/hypr/keybindings.conf"
+KEYBINDINGS_CONF="$HOME/.config/hypr/source/keybinds.conf"
 HYPRLAND_CONF="$HOME/.config/hypr/hyprland.conf"
 
 # --- SCRIPT LOGIC ---

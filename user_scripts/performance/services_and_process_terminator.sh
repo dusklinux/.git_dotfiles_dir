@@ -20,10 +20,8 @@
 # Processes to be STOPPED BY DEFAULT. They will be pre-selected in the menu.
 # Run with --auto, these are the processes that will be killed.
 DEFAULT_PROCESSES=(
-    "blueman-manager"
     "hyprsunset"
     "swww-daemon"
-    "firewalld"
     "waybar"
     "wallpaper_updat"
     "swaync"
@@ -37,31 +35,29 @@ OPTIONAL_PROCESSES=(
 # --- System Services (requires sudo) ---
 # System services to be STOPPED BY DEFAULT.
 DEFAULT_SYSTEM_SERVICES=(
-    "systemd-udevd"
-    "vsftpd"
-    "firewalld"
-    "systemd-timesyncd"
-    "logrotate.timer"
-    "shadow.timer"
-    "systemd-tmpfiles-clean.timer"
-    "archlinux-keyring-wkd-sync.timer"
-    "systemd-coredump.socket"
-    "systemd-hostnamed.socket"
-    "sshd"
-    "waydroid-container"
-    "NetworkManager"
-    "warp-svc"
-    "wpa_supplicant"
-    "bluetooth"
-    "polkit"
-    "upower"
-    "udisks2"
-    "rtkit-daemon"
-    "systemd-importd.socket"
+  "polkit"
+  "systemd-journald-dev-log.socket"
+  "systemd-journald.socket"
+  "systemd-journald"
+  "systemd-resolved-monitor.socket"
+  "systemd-resolved-varlink.socket"
+  "systemd-resolved"
+  "udisks2"
+  "bluetooth"
+  "firewalld"
+  "vsftpd"
+  "warp-svc"
+  "waydroid-container"
+  "logrotate.timer"
+  "sshd"
 )
 # Optional system services.
 OPTIONAL_SYSTEM_SERVICES=(
-
+  "NetworkManager-dispatcher"
+  "NetworkManager"
+  "wpa_supplicant"
+  "acpid"
+  "asusd"
 )
 
 
@@ -70,24 +66,33 @@ OPTIONAL_SYSTEM_SERVICES=(
 # --- User Services ---
 # User services to be STOPPED BY DEFAULT.
 DEFAULT_USER_SERVICES=(
-    "pipewire-pulse.socket"
-    "pipewire.socket"
-    "pipewire-pulse"
-    "pipewire"
-    "wireplumber"
-    "p11-kit-server"
-    "gvfs-daemon.service"
-    "gnome-keyring-daemon"
-    "gnome-keyring-daemon"
-    "xdg-user-dirs-update"
-    "gnome-keyring-daemon"
-    "hyprpolkitagent"
-    "app-blueman@autostart"
-    "at-spi-dbus-bus"
+  "hypridle"
+  "hyprpolkitagent"
+  "gvfs-daemon"
+  "gvfs-metadata"
+  "firewalld"
+  "hyprpolkitagent"
+  "swaync"
+  "blueman-applet"
+  "blueman-manager"
+  "waybar"
+  "gnome-keyring-daemon"
+  "hyprpolkitagent"
+  "hyprsunset"
 )
 # Optional user services.
 OPTIONAL_USER_SERVICES=(
-
+  "pipewire-pulse.socket"
+  "pipewire.socket"
+  "pipewire-pulse"
+  "pipewire"
+  "wireplumber"
+  "xdg-desktop-portal-gtk"
+  "xdg-desktop-portal-hyprland"
+  "xdg-document-portal"
+  "xdg-permission-store"
+  "xdg-desktop-portal"
+  "at-spi-dbus-bus"
 )
 
 
