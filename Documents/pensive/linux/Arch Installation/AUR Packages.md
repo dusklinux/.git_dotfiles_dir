@@ -2,7 +2,7 @@
 - with PARU
 
 ```bash
-paru -S wlogout acpi_call qtodotxt2-git pscircle adwaita-qt6 adwaita-qt5 nordic-theme pacseek jdownloader2 otf-atkinson-hyperlegible-next waypaper hyprshade
+paru --needed -Syu wlogout acpi_call qtodotxt2-git pscircle adwaita-qt6 adwaita-qt5 nordic-theme pacseek jdownloader2 otf-atkinson-hyperlegible-next waypaper hyprshade stremio
 ```
 
 for Asus laptop
