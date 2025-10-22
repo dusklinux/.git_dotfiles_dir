@@ -57,3 +57,21 @@ reboot
 ```bash
 systemctl reboot
 ```
+
+
+if you want to disable it later run these commands 
+
+
+```bash
+for drv in qemu interface network nodedev nwfilter secret storage; do \
+sudo systemctl stop "virt${drv}d.service" "virt${drv}d"{,-ro,-admin}.socket; \
+sudo systemctl disable "virt${drv}d.service" "virt${drv}d"{,-ro,-admin}.socket; \
+done
+```
+
+```bash
+for drv in qemu interface network nodedev nwfilter secret storage; do \
+sudo systemctl disable virt${drv}d.service; \
+sudo systemctl disable virt${drv}d{,-ro,-admin}.socket; \
+done
+```
