@@ -191,6 +191,10 @@ nvim ~/.zshrc
 
 ---
 
+- [ ] *Optional*:**Configure swapiness for zram** Optimal if you have sufficiant ram ie equal to or more than 4GB [[Optimizing Kernel Parameters for ZRAM]]
+
+---
+
 - [ ] *Optional*: **Configure Power Key:** Define the system's behavior when the power key is pressed. [[Power Key Behaviour]]
 
 ---

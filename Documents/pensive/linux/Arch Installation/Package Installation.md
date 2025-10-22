@@ -52,7 +52,7 @@ pacman -S --needed rofi playerctl brightnessctl vsftpd fwupd featherpad networkm
 Set up the modern PipeWire audio server and install utilities for managing Bluetooth devices.
 - [ ] Status
 ```bash
-pacman -S --needed pipewire wireplumber pipewire-pulse bluez bluez-utils blueman dosfstools sof-firmware gst-plugin-pipewire
+pacman -S --needed pipewire wireplumber pipewire-pulse bluez bluez-utils blueman dosfstools sof-firmware gst-plugin-pipewire guvcview
 ```
 
 ### 7. System Management & Power Saving
