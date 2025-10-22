@@ -12,6 +12,8 @@ turn on vt-x and vt-d in bios. and check if iommu is loaded
 
 - [ ] [[check libvert modular daemon availability]]
 
+- [ ] [[Symbolic link to zram for image file]] 
+
 - [ ] [[libvert Modular daemon enable]]
 
 - [ ]  *DON'T ENABLE THESE IF YOUVE ENABLED THE MODULAR DAEMON ABOVE* [[KVM Services]]
