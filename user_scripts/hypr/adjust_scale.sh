@@ -1,112 +1,124 @@
 #!/bin/bash
 
 # Script to adjust monitor scale in Hyprland by stepping through a predefined list.
+# This version preserves the current resolution and refresh rate.
 
-# Configuration: Set your primary monitor name here
-MONITOR_NAME="eDP-1"
+# --- Configuration ---
+# Set your primary monitor name here. Leave empty to auto-detect the focused one.
+MONITOR_NAME=""
 
-# Define known good scales. The script will step through this list.
-# Using 6 decimal places for consistency with Hyprland's suggestions.
-# Verified for 1080x1920 or 1920x1080 resolutions.
-GOOD_SCALES=("1.000000" "1.200000" "1.250000" "1.333333" "1.500000" "1.600000" "1.666667" "2.000000" "2.400000" "2.500000" "3.000000")
-# You can add, remove, or modify scales in this list as needed,
-# but ensure they result in integer logical pixels for your resolution.
+# add a delay for notification after the resolution is changed, recomanded is 0.5 seconds.
+sleep_delay_for_notfication="1.0"
 
-# Read the adjustment direction (+ or - any value, e.g., +0.1 or -anything)
-ADJUSTMENT_INPUT="$1"
+# Define known good scales.
+readonly GOOD_SCALES=("1.000000" "1.200000" "1.250000" "1.333333" "1.500000" "1.600000" "1.666667" "2.000000" "2.400000" "2.500000" "3.000000")
 
-if [[ -z "$ADJUSTMENT_INPUT" ]]; then
-    echo "Usage: $0 [+|-]value"
-    echo "Example: $0 +0.1  (to increase)"
-    echo "         $0 -0.1  (to decrease)"
+# --- Functions ---
+usage() {
+    echo "Usage: $0 [+|-]"
+    echo "Example: $0 +  (to increase)"
+    echo "         $0 -  (to decrease)"
     exit 1
+}
+
+notify() {
+    if command -v notify-send &> /dev/null; then
+        notify-send "Hyprland Scale" "Set ${MONITOR_NAME} scale to ${1}"
+    fi
+}
+
+# --- Main Script ---
+# Check for required commands.
+for cmd in hyprctl jq bc; do
+    if ! command -v "$cmd" &> /dev/null; then
+        echo "Error: Required command '$cmd' is not installed." >&2
+        exit 1
+    fi
+done
+
+# Validate input.
+if [[ "$1" != "+" && "$1" != "-" ]]; then
+    usage
+fi
+ADJUSTMENT_DIRECTION="$1"
+
+# Get current monitor info in JSON format.
+CURRENT_MONITOR_INFO_JSON=$(hyprctl -j monitors)
+
+# Determine the target monitor if not specified.
+if [[ -z "$MONITOR_NAME" ]]; then
+    MONITOR_NAME=$(echo "$CURRENT_MONITOR_INFO_JSON" | jq -r '.[] | select(.focused == true) | .name')
 fi
 
-# Get current monitor info in JSON format
-CURRENT_MONITOR_INFO_JSON=$(hyprctl -j monitors)
 CURRENT_MONITOR_INFO=$(echo "$CURRENT_MONITOR_INFO_JSON" | jq -r --arg MONITOR_NAME "$MONITOR_NAME" '.[] | select(.name == $MONITOR_NAME)')
 
 if [[ -z "$CURRENT_MONITOR_INFO" ]]; then
-    echo "Warning: Monitor $MONITOR_NAME not found directly. Trying to find first active/focused monitor."
-    CURRENT_MONITOR_INFO=$(echo "$CURRENT_MONITOR_INFO_JSON" | jq -r '.[] | select(.focused == true or .active == true) | head -n 1')
-    if [[ -z "$CURRENT_MONITOR_INFO" ]]; then
-        echo "Error: No active or focused monitor found."
-        exit 1
-    fi
-    MONITOR_NAME=$(echo "$CURRENT_MONITOR_INFO" | jq -r '.name') # Update monitor name to the one found
-    echo "Using monitor: $MONITOR_NAME"
+    echo "Error: Monitor '$MONITOR_NAME' not found." >&2
+    exit 1
 fi
 
-# Extract current settings
+# --- **FIX**: Read all current monitor settings ---
 CURRENT_RES_X=$(echo "$CURRENT_MONITOR_INFO" | jq -r '.width')
 CURRENT_RES_Y=$(echo "$CURRENT_MONITOR_INFO" | jq -r '.height')
 CURRENT_REFRESH_FLOAT=$(echo "$CURRENT_MONITOR_INFO" | jq -r '.refreshRate')
 CURRENT_REFRESH=$(printf "%.0f" "$CURRENT_REFRESH_FLOAT") # Round to nearest integer
 CURRENT_X=$(echo "$CURRENT_MONITOR_INFO" | jq -r '.x')
 CURRENT_Y=$(echo "$CURRENT_MONITOR_INFO" | jq -r '.y')
-CURRENT_SCALE_STR=$(echo "$CURRENT_MONITOR_INFO" | jq -r '.scale')
+CURRENT_SCALE=$(echo "$CURRENT_MONITOR_INFO" | jq -r '.scale')
+# --- End of fix section ---
 
-# --- Logic: Step through GOOD_SCALES list ---
 
-# 1. Find the index of the current scale (or the closest one) in GOOD_SCALES
-current_idx=0 # Default to the first scale if not found or on error
-# Initialize min_diff_to_current_scale with the difference to the first scale in the list
-min_diff_to_current_scale=$(bc -l <<< "scale=7; v = $CURRENT_SCALE_STR - ${GOOD_SCALES[0]}; if (v < 0) v = -v; v")
-
-# Iterate through the GOOD_SCALES to find the index of the one closest to CURRENT_SCALE_STR
+# Find the index of the current scale in the GOOD_SCALES array.
+current_idx=-1
 for i in "${!GOOD_SCALES[@]}"; do
-    scale_candidate="${GOOD_SCALES[$i]}"
-    # Calculate absolute difference between current scale and candidate scale
-    diff=$(bc -l <<< "scale=7; v = $CURRENT_SCALE_STR - $scale_candidate; if (v < 0) v = -v; v")
-    
-    # If this candidate is closer than the previous closest (or equally close, favoring later elements in case of exact match with earlier default), update
-    # A small tolerance (0.0000001) is added to handle potential floating point inaccuracies if CURRENT_SCALE_STR
-    # is slightly off from a GOOD_SCALES value (e.g. 1.199999 vs 1.200000)
-    if (( $(echo "$diff <= $min_diff_to_current_scale + 0.0000001" | bc -l) )); then
-        min_diff_to_current_scale="$diff"
-        current_idx="$i"
+    # Use bc for floating point comparison with a tolerance
+    if (( $(echo "($CURRENT_SCALE - ${GOOD_SCALES[$i]}) < 0.00001 && ($CURRENT_SCALE - ${GOOD_SCALES[$i]}) > -0.00001" | bc -l) )); then
+        current_idx=$i
+        break
     fi
 done
-echo "Current scale $CURRENT_SCALE_STR is closest to ${GOOD_SCALES[$current_idx]} (index $current_idx) in the list."
 
-# 2. Determine direction of adjustment (increment or decrement)
-IS_INCREMENTING=false
-if [[ "$ADJUSTMENT_INPUT" == \+* ]]; then
-    IS_INCREMENTING=true
+# If the current scale is not in the list, find the closest one.
+if (( current_idx == -1 )); then
+    min_diff=1000
+    for i in "${!GOOD_SCALES[@]}"; do
+        diff=$(echo "scale=7; v = $CURRENT_SCALE - ${GOOD_SCALES[$i]}; if (v < 0) v = -v; v" | bc -l)
+        if (( $(echo "$diff < $min_diff" | bc -l) )); then
+            min_diff=$diff
+            current_idx=$i
+        fi
+    done
 fi
 
-# 3. Calculate new index based on adjustment direction
-new_idx=$current_idx
+# Calculate the new index.
 num_scales=${#GOOD_SCALES[@]}
+if [[ "$ADJUSTMENT_DIRECTION" == "+" ]]; then
+    new_idx=$((current_idx + 1))
+else
+    new_idx=$((current_idx - 1))
+fi
 
-if "$IS_INCREMENTING"; then
-    if (( current_idx < num_scales - 1 )); then # Check if not already at the maximum scale
-        new_idx=$((current_idx + 1))
-    else
-        echo "Already at maximum scale: ${GOOD_SCALES[$current_idx]}"
-    fi
-else # Decrementing
-    if (( current_idx > 0 )); then # Check if not already at the minimum scale
-        new_idx=$((current_idx - 1))
-    else
-        echo "Already at minimum scale: ${GOOD_SCALES[$current_idx]}"
-    fi
+# Check if the new index is within bounds.
+if (( new_idx < 0 || new_idx >= num_scales )); then
+    echo "Already at min/max scale."
+    exit 0
 fi
 
 NEW_SCALE="${GOOD_SCALES[$new_idx]}"
 
-# --- End of Logic ---
-
-# Construct the new monitor string for hyprctl
+# --- **FIX**: Construct the full, explicit monitor string ---
 NEW_MONITOR_STRING="${MONITOR_NAME},${CURRENT_RES_X}x${CURRENT_RES_Y}@${CURRENT_REFRESH},${CURRENT_X}x${CURRENT_Y},${NEW_SCALE}"
 
-# Apply the new setting if the scale has changed or if "force" is in the input
-# Comparing string representations; Hyprland handles slight format variations (e.g. 2.4 vs 2.400000)
-if [[ "$CURRENT_SCALE_STR" != "$NEW_SCALE" ]] || [[ "$ADJUSTMENT_INPUT" == *"force"* ]]; then
-    hyprctl keyword monitor "$NEW_MONITOR_STRING"
-    echo "Set ${MONITOR_NAME} scale to ${NEW_SCALE}"
-    # Optional: send a notification (requires a notification daemon like dunst)
-    # notify-send "Hyprland Scale" "Set ${MONITOR_NAME} scale to ${NEW_SCALE}"
-else
-    echo "Scale for ${MONITOR_NAME} is already effectively ${NEW_SCALE}. No change applied."
-fi
+# Apply the new setting.
+hyprctl keyword monitor "$NEW_MONITOR_STRING"
+echo "Set ${MONITOR_NAME} scale to ${NEW_SCALE}"
+
+# --- Notification with Delay ---
+# Pause for a fraction of a second to allow Hyprland to apply the change.
+# You can adjust this value if notifications are still flickering.
+
+# this delay is implemented for race condition situation
+sleep ${sleep_delay_for_notfication}
+
+# Now, send the notification.
+notify-send "Hyprland Scale" "Set scale to ${NEW_SCALE}"
