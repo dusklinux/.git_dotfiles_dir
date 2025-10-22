@@ -38,7 +38,7 @@ pacman -S --needed xorg-xhost polkit xdg-desktop-portal-hyprland xdg-utils ttf-f
 Install core components for the Hyprland desktop experience, including the status bar, wallpaper manager, lock screen, and idle daemon.
 - [ ] Status
 ```bash
-pacman -S --needed waybar libdbusmenu-qt5 socat swww inotify-tools sassc file libdbusmenu-glib fastfetch hyprlock hypridle hyprsunset swappy
+pacman -S --needed waybar libdbusmenu-qt5 socat swww inotify-tools sassc file libdbusmenu-glib fastfetch hyprlock hypridle hyprsunset hyprpicker swappy
 ```
 
 ### 5. Essential Applications & Network Tools

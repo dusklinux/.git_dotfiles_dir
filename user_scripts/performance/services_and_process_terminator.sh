@@ -43,7 +43,6 @@ DEFAULT_SYSTEM_SERVICES=(
   "systemd-resolved-varlink.socket"
   "systemd-resolved"
   "udisks2"
-  "bluetooth"
   "firewalld"
   "vsftpd"
   "warp-svc"
