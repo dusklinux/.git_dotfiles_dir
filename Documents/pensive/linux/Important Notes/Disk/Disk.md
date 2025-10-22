@@ -14,7 +14,7 @@ Before you can manage a disk, you must correctly identify it. The following comm
 | `lsblk` | Lists all block devices (disks, partitions) in a tree-like format. This is the primary tool for identifying device names like `/dev/sda` or `/dev/nvme0n1`. |
 | `nvme list` | Specifically lists all NVMe SSDs connected to the system, providing a clean overview. |
 | `lspci` | Lists all PCI devices. Useful for identifying the disk controller hardware. |
-
+| `mount` | List all the flags that each block device / disk is mounted with, ie flags for each file system |
 > [!TIP] Finding Your NVMe Controller
 > To find the specific controller for your NVMe drives, you can filter the output of `lspci`.
 > ```bash

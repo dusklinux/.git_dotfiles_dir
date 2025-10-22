@@ -19,18 +19,22 @@ Add the following content. This will create a ZRAM device named `zram0`.
 > [!NOTE] Change the size that reflects your RAM capacity
 >  The following is an example for devices with more than 2GB RAM 
 
-```ini
-[zram0]
-zram-size = ram - 2000
-compression-algorithm = zstd
+> [!info]+ EXT2
+> ```ini
+> [zram0]
+> zram-size = ram - 2000
+> compression-algorithm = zstd
+> 
+> [zram1]
+> zram-size = ram - 2000
+> fs-type = ext2
+> mount-point = /mnt/zram1
+> compression-algorithm = zstd
+> options = rw,nosuid,noatime,nodev,discard,X-mount.mode=1777
+> ```
 
-[zram1]
-zram-size = ram - 2000
-fs-type = ext2
-mount-point = /mnt/zram1
-compression-algorithm = zstd
-options = rw,nosuid,nodev,discard,X-mount.mode=1777
-```
+
+
 > [!TIP] Configuration Details
 > 
 > | Parameter | Description |
@@ -52,30 +56,30 @@ No further action is required. The configuration file you created is all that's 
 If you are configuring ZRAM on a running system, you must manually reload `systemd` and start the service to apply the changes immediately.
 
 1.  **Reload the systemd manager configuration:**
-    ```bash
-    sudo systemctl daemon-reload
-    ```
+```bash
+sudo systemctl daemon-reload
+```
 
 2.  **Restart the ZRAM service:**
-    ```bash
-    sudo systemctl restart systemd-zram-setup@zram0.service
-    ```
+```bash
+sudo systemctl restart systemd-zram-setup@zram0.service systemd-zram-setup@zram1.service
+```
 
 3.  **Verify the service status:**
    A successful activation will show the service as `active (exited)`.
-    ```bash
-    sudo systemctl status systemd-zram-setup@zram0.service
-    ```
+```bash
+sudo systemctl status systemd-zram-setup@zram0.service systemd-zram-setup@zram1.service
+```
 
 4.  **Start the ZRAM service if it's stopped:**
-    ```bash
-    sudo systemctl start systemd-zram-setup@zram0.service
-    ```
+```bash
+sudo systemctl start systemd-zram-setup@zram0.service systemd-zram-setup@zram1.service
+```
 
 5.  **Reload the systemd manager configuration:**
-    ```bash
-    sudo systemctl daemon-reload
-    ```
+```bash
+sudo systemctl daemon-reload
+```
 
 > [!CAUTION] Troubleshooting
 > If the service fails to start, the most common cause is a syntax error in `/etc/systemd/zram-generator.conf`. Even so much as an extra space screws things up, so you're adviced to painstaingly rewrite the three short lines. 
@@ -83,3 +87,11 @@ If you are configuring ZRAM on a running system, you must manually reload `syste
 > 1.  Carefully check the configuration file for typos.
 > 2.  Correct any errors and save the file.
 > 3.  Repeat the `daemon-reload` and `restart` commands above.
+
+--- 
+
+#### Check which compression algorithm is being used. the one in brackets is the one being used. 
+
+```bash
+cat /sys/block/zram*/comp_algorithm
+```
