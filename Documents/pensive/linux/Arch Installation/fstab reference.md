@@ -3,14 +3,16 @@
 # See fstab(5) for details.
 
 # <file system> <dir> <type> <options> <dump> <pass>
-# /dev/nvme0n1p6
-UUID=27bcd173-4949-4928-a7f1-a12ce65fe8ca	/         	btrfs     	rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@	0 0
-
-# /dev/nvme0n1p6
-UUID=27bcd173-4949-4928-a7f1-a12ce65fe8ca	/home     	btrfs     	rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@home	0 0
+# /dev/nvme0n1p5
+UUID=3cddbe82-420a-44e7-b427-c21568c1e4f5	/         	btrfs     	rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@	0 0
 
 # /dev/nvme0n1p5
-UUID=D0FC-E241      	/boot     	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
+UUID=3cddbe82-420a-44e7-b427-c21568c1e4f5	/home     	btrfs     	rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@home	0 0
+
+# /dev/nvme0n1p4
+UUID=F3C6-EFC7      	/boot     	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
+
+
 
 
 
@@ -33,7 +35,7 @@ UUID=bb5a5a44-4b30-4db2-822f-ceab3171ee51	/mnt/fast	btrfs		defaults,discard=asyn
 
 #External Machanacial Hard Disk - BTRFS (WD Passport) (no copy on write also disables compression zstd but improves speed of the drive)
 
-UUID=e7433f0d-778c-43e8-889c-57902d08b0f9	/mnt/slow	btrfs		defaults,noauto,nofail,noatime,nodatacow,comment=x-gvfs-show,autodefrag,space_cache=v2	0 0
+UUID=5A921A119219F26D	/mnt/slow	ntfs3	defaults,noatime,nofail,noauto,comment=x-gvfs-show,uid=1000,gid=1000,umask=002,windows_names   0 0
 
 
 
@@ -68,10 +70,9 @@ UUID=848A215E8A214E4C	/mnt/windows	ntfs3	defaults,noatime,uid=1000,gid=1000,umas
 
 
 
-
 #SSD BTRFS with Copy_on_Write Disabled which also disabled Compression (Browser)
 
-UUID=abd1e75d-9576-4657-9eb0-afe6e1209629	/mnt/browser	btrfs		defaults,nodatacow,ssd,discard=async,comment=x-gvfs-show,noatime,space_cache=v2,nofail,noauto,subvol=/	0 0
+UUID=9cab0013-8640-483a-b3f0-4587cfedb694	/mnt/browser	btrfs		defaults,nodatacow,ssd,discard=async,comment=x-gvfs-show,noatime,space_cache=v2,nofail,noauto,subvol=/	0 0
 
 
 
@@ -88,7 +89,7 @@ UUID=9C38076638073F30	/mnt/media	ntfs3	defaults,noatime,uid=1000,gid=1000,umask=
 
 #Disk Swap
 
-UUID=6087d4bf-bd82-4c40-9197-3f5450b72241	none	swap	defaults 0 0
+#UUID=6087d4bf-bd82-4c40-9197-3f5450b72241	none	swap	defaults 0 0
 
 
 
@@ -96,6 +97,5 @@ UUID=6087d4bf-bd82-4c40-9197-3f5450b72241	none	swap	defaults 0 0
 #Ramdisk (don't use this, use zram1 instead)
 
 #tmpfs /mnt/ramdisk tmpfs rw,noatime,exec,size=2G,uid=1000,gid=1000,mode=0755,comment=x-gvfs-show 0 0
-
 
 ```
