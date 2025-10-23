@@ -23,6 +23,10 @@
 DEFAULT_PROCESSES=(
     "hyprsunset"
     "swww-daemon"
+    "inotifywait"
+    "wl-paste"
+    "wl-copy"
+    "hypridle"
     "waybar"
     "wallpaper_updat"
     "swaync"
