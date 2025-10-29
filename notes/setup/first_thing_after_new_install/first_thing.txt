@@ -1,0 +1,31 @@
+After new installation of Arch Linux, first thing that is required is for you to change your UUID for the script for unlocking your drives and then you need to install paru and then install all the small packages upon which existing scripts rely which is pi-wall-16 this is the main script because of which Weibar will not initialize unless it has that and so many other things will not initialize so you need to install pi-wall-16 from paru and then everything is already set after installing pi-wall you need to run a command to allow for generating color palette based of a certain wallpaper and the command for that is wall-o and followed by path to the picture that you want for color palette to be generated
+
+coorection it needs to be installed with pipx install pywall16
+
+also clear out total threads in zshrc and environmnt variable. 
+
+
+thunar terminal. 
+
+remove swaping of mouse keys in hyprconfig. 
+
+remove hyprland's display asus and uncomment auto. 
+
+remove alt 6 and alt 7 
+
+remove nvidia specific env. from uwsm env
+remove aq_driver from hyprlnd env as well. 
+
+fstab uuid. 
+
+make sure to intall paru 
+downlaod apps for paru . 
+enable hyporpolkit service
+ 
+ enable these two for tlp-rdw wifi 
+ sudo systemctl mask systemd-rfkill.service
+sudo systemctl mask systemd-rfkill.socket
+
+change bash to zsh
+
+

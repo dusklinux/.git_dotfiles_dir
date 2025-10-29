@@ -1,0 +1,1 @@
+PCH stands for “Platform Controller Hub.” Think of it as a traffic controller that sits between your CPU (the city center) and lots of smaller devices (like your network card, USB ports, etc.).

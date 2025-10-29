@@ -1,0 +1,18 @@
+	asusd bus configuratin is flawed for arch/fedora baased systems,since arch doesn't have a "sudo" group, the dbus looks for it to recieve and send output, 
+	
+	arch has the group "wheel" which does the same thing as teh "sudo" group on debian distros. and asusd service is configured for debian based distors and has a misconfguration that needs to be corrected. 
+	
+	the misconfiguration in question is in the file sudo nvim /usr/share/dbus-1/system.d/asusd.conf on line 9 or so, where the policy is set to for the group "sudo"
+	
+	first open the file 
+	
+sudo nvim /usr/share/dbus-1/system.d/asusd.conf  
+
+	you need to delete the entire section. for the sudo policy. 
+	
+	remove this entire section 
+
+<policy group="sudo">
+    <allow send_destination="xyz.ljones.Asusd"/>
+    <allow receive_sender="xyz.ljones.Asusd"/>
+</policy>

@@ -1,0 +1,30 @@
+
+  go into this exiiting dir, or first create it if it doesn't exist.
+
+cd ~/contained_apps/uv/
+
+  initialize a uv virtual env with the specified python version
+
+uv venv open_web_ui python 3.11
+
+  activate the virtual environment
+
+source open_web_ui/bin/activate
+
+  downlaod and isntall open-webui
+  
+uv pip install open-webui
+
+  start the server.
+
+open-webui serve
+
+  open your browser and go to the localhost port
+
+http://localhost:8080
+
+  crate this password and email so you remember it. 
+
+email: testing@gmail.com
+username : testing
+password: testing

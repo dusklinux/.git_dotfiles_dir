@@ -1,0 +1,10 @@
+* {
+    /* Your Palette */
+    window-background:      #0B192C; /* The main, dark background color */
+    default-text:           #FF6500; /* The primary text color */
+    highlight-background:   #e0af68; /* The background of the selected/highlighted line (the yellow color) */
+    highlight-text:         #1a1b26; /* The text color when a line is selected */
+    
+    input-bar-background:   #1a1b26; /* The background color of the search bar */
+    input-bar-text:         #98C379; /* The text color inside the search bar */
+}

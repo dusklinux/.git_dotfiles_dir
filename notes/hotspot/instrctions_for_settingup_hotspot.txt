@@ -1,0 +1,46 @@
+  first run this command to see if your wifi card support it, most modern cards do, you are looking for AP under supported interface modes. 
+
+iw list 
+
+  Supported interface modes:
+     * IBSS
+     * managed
+     * AP  <-- THIS IS WHAT YOU NEED
+     * AP/VLAN
+     * monitor
+     * P2P-client
+     * P2P-GO  
+
+Identify Your Network Interfaces: You need to know the name of your Wi-Fi interface (e.g., wlan0, wlp3s0) and the interface that has internet (e.g., eth0, enp5s0 for Ethernet, or maybe another Wi-Fi card).
+
+nmcli device
+  or 
+ip a 
+
+  in my case it's wlo1
+
+  Create the hotspot with one command:
+
+  Replace wlo1, "MyArchHotspot", and "supersecretpassword" with your Wi-Fi interface, desired network name, and password.
+  
+nmcli device wifi hotspot ifname wlo1 ssid "MyArchHotspot" password "supersecretpassword"
+
+  explination of the command. 
+      ifname wlo1: The Wi-Fi interface to use.
+
+    ssid "MyArchHotspot": Your hotspot's name.
+
+    password "supersecretpassword": Your password (must be at least 8 characters).
+
+  To turn off the hotspot:
+  First, find the connection name (it will likely be your SSID):
+
+nmcli connection show
+
+  Then, take the connection down:
+
+nmcli connection down "MyArchHotspot"
+
+   shows the Wi-Fi name and password.
+
+nmcli dev wifi show-password

@@ -1,0 +1,21 @@
+[Added Associations]
+application/x-shellscript=featherpad.desktop;
+application/json=featherpad.desktop;
+video/mp4=mpv.desktop;vlc.desktop;fr.handbrake.ghb.desktop;
+application/octet-stream=featherpad.desktop;
+audio/aac=mpv.desktop;fr.handbrake.ghb.desktop;
+audio/flac=mpv.desktop;
+video/x-matroska=vlc.desktop;
+
+[Default Applications]
+application/octet-stream=featherpad.desktop
+image/jpeg=swayimg.desktop
+image/png=swayimg.desktop
+image/gif=swayimg.desktop
+image/webp=swayimg.desktop
+image/svg+xml=swayimg.desktop
+image/heif=swayimg.desktop
+image/avif=swayimg.desktop
+image/tiff=swayimg.desktop
+image/bmp=swayimg.desktop
+application/pdf=org.pwmt.zathura.desktop

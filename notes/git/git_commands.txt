@@ -1,0 +1,304 @@
+	change to main from master globally. 
+git config --global init.defaultBranch main
+
+	to change your current branch name from master to main 
+git branch -m oldname newname
+
+	if you some how mess up a commit message or just want to chagne it or append it, he's how to do it
+git commit --amend -m "F: Merge branch 'add_classics'"
+
+	To perform the merge, you would execute the following commands:
+	# First, ensure you are on the receiving branch
+git switch main
+
+	# Then, execute the merge
+git merge new-feature
+
+
+git init		Consecrates the current directory as a Git repository by creating the .git sanctum.
+
+git clone <url>		Creates a local mirror of a remote repository, including its full history and configuration.
+
+git status		Provides a detailed report on the state of the three trees: Working Directory, Staging Area, and HEAD.
+
+git add <path>		Promotes changes from the working directory to the staging area (index), creating blob objects.
+
+git add -p		Interactively stage discrete portions ("hunks") of changes within files.
+
+git commit -m "msg"		Permanently records the staged snapshot into the repository's history by creating tree and commit objects.
+
+git commit --amend		Replaces the most recent commit with a new one incorporating any staged changes. Rewrites history.
+
+git log		Displays the chronological chain of commits, revealing the project's historical narrative.
+
+git branch <name>		Creates a new, lightweight pointer (a branch) to the current commit.
+
+git switch <branch>		Repositions the HEAD pointer to the specified branch, updating the working directory.
+
+git merge <branch>		Integrates another branch's history via a fast-forward or a new two-parent merge commit.
+
+git rebase <base>		Re-applies a branch's commits on top of another, creating a linear history. Rewrites history.
+
+git remote add <n> <url>		Registers a remote repository's URL under a convenient shorthand name.
+
+git push -u <r> <b>		Uploads local commits to a remote branch and establishes a tracking relationship.
+
+git fetch <remote>		Downloads all new data from a remote without integrating it into local branches.
+
+git pull <remote>		A compound command that performs a fetch followed immediately by a merge.
+
+  Displays the differences between various states (e.g., working directory vs. staging area).
+  Comparing the Working Directory to the Last Commit
+  To discern the delta between your current, uncommitted modifications (the working directory) and the most recent commit (HEAD), the authoritative command is:
+  This command proffers a unified diff encompassing all modifications, both staged and unstaged, relative to the last finalized commit.
+
+git diff HEAD
+
+
+git reset --soft <c>		Moves the current branch pointer to <c>, leaving the staging area and working directory as is.
+
+git reset --mixed <c>		Moves the branch pointer and resets the staging area to match <c>.
+
+git reset --hard <c>		Moves the branch pointer and resets both the staging area and working directory to match <c>. Destructive.
+
+
+git stash		Temporarily shelves uncommitted changes, cleaning the working directory.
+
+  GIT REVERT!
+  The Non-Destructive Undo
+  Creates a new commit that is the logical inverse of commit <c>, safely undoing it.
+  This is the canonical method for undoing a commit in a manner that preserves the integrity of the project's history. It operates not by deleting the antecedent commit, but by creating a new commit that applies the inverse of the changes introduced by the specified commit.
+  First, identify the SHA-1 hash of the commit you wish to nullify
+
+git log --oneline
+
+  Execute the revert operation using the identified hash:  This will initiate a new commit. You will be prompted to enter a commit message for this new, reverting commit.
+
+git revert <commit-hash>
+
+  GIT RESET!
+  git reset: The History-Altering Recourse
+  This command is substantially more potent and irrevocably alters the commit history by repositioning the HEAD of the current branch to a specified earlier commit. Its use on publicly shared history is a cardinal sin and must be assiduously avoided.
+  --hard: This is the most draconian option. It resets the HEAD to <commit-hash>, and crucially, discards all subsequent commits and all changes in both the staging area and the working directory. Any uncommitted work will be annihilated.
+
+git reset --hard <commit-hash>
+
+  eg: to quickly revert the the most recent commit.
+
+git reset --hard HEAD
+
+  --soft: This modality resets the HEAD to <commit-hash> but preserves the changes from all the commits that were undone. These changes are aggregated and left in the staging area (index), poised for a new commit.
+
+git reset --soft <commit-hash>
+
+  --mixed: As the default mode, this resets the HEAD and the index to <commit-hash>, but the changes from the undone commits are kept in the working directory. You must then stage and commit these changes anew.
+
+git reset --mixed <commit-hash>
+
+
+----------------------------------------
+  GIT BARE REPO FOR BACKING UP DOTFILES.
+
+PREREQUSITES (ADDING USERNAME AND EMAIL)
+
+git config --global user.name "dusk"
+git config --global user.email "youremail@yahoo.com"
+  
+  default to main instead of master
+git config --global init.defaultBranch main
+
+1.	first initialize a bare repo (replace this with the path to where you want it initalizing, $HOME/.git_dotfiles_dir)
+
+git init --bare $HOME/.git_dotfiles_dir
+
+2.	It would be intolerably cumbersome to type out the full command to target this repository every single time. We would need to specify the git directory and the working tree for every add, commit, push, etc. This is the most critical step for usability.create a new command, that will act as a proxy to git, but pre-configured to work with our git_dotfiles_dir repository.
+
+	first open your shell file.
+
+nvim ~/.zshrc
+
+3.	add this to the alias section, --git-dir=$HOME/.git_dotfiles_dir/ This flag tells Git where to find its database. This is the path to our bare repository.
+	--work-tree=$HOME: This flag tells Git what directory to consider as the working tree. This is your home directory.
+    
+alias git_dotfiles='/usr/bin/git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=$HOME'
+
+4.	save changes and source the zshrc config
+
+source ~/.zshrc
+
+5.	If you were to run git_dotfiles status right now, Git would dutifully compare every file in your home directory against the (currently empty) repository and present you with a gargantuan list of "untracked files." This is not helpful. It's noise. We must command our new repository to ignore untracked files by default. This is a local configuration for this repository only denoted by teh --local attribute; it will not affect any other Git repositories on your system, status.showUntrackedFiles no: This is the key-value pair that instructs commands like git status to omit the list of untracked files.
+	
+git_dotfiles config --local status.showUntrackedFiles no
+
+6.	Now, running git_dotfiles status will show a clean slate. It will only report on files that you have explicitly told it to track. (which shoudl be none at this point)
+
+git_dotfiles status
+
+7.	now we'll explicitly create a list of paths for files and directoryies within the $HOME directory to add to the staging area before commititng them. in the interest of not having to mention them one by one everytime, we'll create a list that will automaticlaly be sourced and we'll name the list .git_dotfiles_list and populate it with the list of directoriies and files we want version controlled. 
+	
+nvim ~/.git_dotfiles_list
+
+	add the following withtout any spaces or comments:
+
+.config/gtk-3.0/
+.config/gtk-4.0/
+.config/hypr/
+.config/kitty/
+.config/mpv/
+.config/nwg-look/
+.config/pacseek/
+.config/qBittorrent/
+.config/qt5ct/
+.config/qt6ct/
+.config/swaync/
+.config/Thunar/
+.config/uwsm/
+.config/waybar/
+.config/xfce4/
+.config/xsettingsd/
+.config/yazi/
+.config/zellij/
+user_scripts/
+notes/
+.zshrc
+.git_dotfiles_list
+
+
+8.	Now, to have this list be read from by git_dotfiles add ,we need to enter the following command 
+
+git_dotfiles add --pathspec-from-file=.git_dotfiles_list
+
+  But who's got the brain to remember all that everytime??  so we're gonna add an alias for it in the shell config ie bashrc
+
+nvim ~/.zshrc
+
+alias git_dotfiles_add_list='git_dotfiles add --pathspec-from-file=.git_dotfiles_list'
+
+9.	now run this command
+
+git_dotfiles_add_list
+
+10.	check status (You will see these files listed under "Changes to be committed." This confirms the system is working. and then commit them to the repository's history)
+	
+git_dotfiles status
+
+git_dotfiles commit -m "Initial commit: backing shit up"
+
+11.	if you ever have a file/directory path you want backed up, add it to the .git_dotfiles_list file. eg
+
+.config/obs/
+
+12.	Off-site Backup — The Remote Repository, push this database to a remote, off-site location. Services like GitHub or GitLab
+  First create an empty repository on github WITHOUT INITIALIZING IT! NO README, NO LICIENCE,NOTHING, JUST A SHELL OF A Repository.
+  Your local repository already contains the project's foundational commit history; initializing the remote repository with files would create a divergent history, necessitating a more complex merge or rebase operation upon your first push
+
+13.  Generate an Ed25519 SSH Key Pair on local pc through the terminal, save it in at it's default location, and create a password.
+
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+14. Start the ssh-agent and Add Your Private Key, The ssh-agent is a background process that holds your private key in memory, obviating the need to re-enter your passphrase for every connection, first start the shell agent.
+
+eval "$(ssh-agent -s)"
+
+15. Next, add your newly generated SSH private key to the agent, You will be prompted to enter the passphrase you created in the previous step. the path needs to be teh same as where you saved teh key. by default the following is where it'll have saved it.
+
+ssh-add ~/.ssh/id_ed25519
+
+16. Add the Public SSH Key to Your GitHub Account (authentication NOT signing) The key generated via ssh-keygen serves to authenticate your client during git operations (e.g., git push, git pull) executed over the SSH protocol. It substantiates your identity to GitHub's servers. 
+  You must now provide GitHub with the public half of your key pair.
+  Display the public key's contents in your terminal. The cat command suffices.
+  Select and copy the entire output of this command, which starts with ssh-ed25519 and ends with your email address.
+
+cat ~/.ssh/id_ed25519.pub
+
+17. Navigate to the SSH and GPG keys settings page on GitHub
+  Click the "New SSH key" button
+  Provide a descriptive "Title" for the key (anything) 
+  Paste the copied public key into the "Key" field
+  Click "Add SSH key".
+
+18. configure your git remote URL for the ssh url to work. (this is two fold)
+  First go to your newly created (uninitated) github repo and copy the SSH LINK to it, and NOT THE http link. 
+  eg : git@github.com:dusklinux/.git_dotfiles_dir.git
+  and then enter the following in the terminal with YOUR url appended to it.
+
+a.  this is to add remote origin to the local repo.
+
+git_dotfiles remote add origin git@github.com:dusklinux/.git_dotfiles_dir.git
+
+b.  then set the url 
+
+git_dotfiles remote set-url origin git@github.com:dusklinux/.git_dotfiles_dir.git
+
+19. Verify the Connection, You may see a warning about the authenticity of the host. This is expected on the first connection. Type yes and press Enter. A successful connection will yield a message that includes your GitHub username. the "github does not provide shell access" is not a cause for alarm, it's nominal. 
+
+ssh -T git@github.com
+
+20. It has become the prevailing convention to utilize main as the name for the primary development branch. Your local Git configuration may have defaulted to master. To obviate any potential branch disparities, execute this command to rename your current local branch to main
+
+  to check the current name of the branch
+
+git_dotfiles branch
+
+  to forcefully rename the branch to main
+
+git_dotfiles branch -M main
+
+  to rename it with grace
+
+git_dotfiles branch -m <current_name> <main>
+
+21.	now push the main branch to the cloud, -u (or --set-upstream) tells Git to link your local main branch with the main branch on origin. You only need to do this the first time. Subsequent pushes can simply be git_dotfiles push
+
+git_dotfiles push -u origin main
+
+22.	it's all set and done, now if you want to manually specify a file in teh future, you could do the follwoing.
+
+git_dotfiles add <file>
+git_dotfiles commit -m "message"
+git_dotfiles push 
+
+-----------------------------------------
+
+23.	Deployment on a New System On the new machine, clone your remote repository as a bare repository into the same location, ~/.git_dotfiles_dir
+
+git clone --bare --depth 1 https://github.com/dusklinux/.git_dotfiles_dir.git $HOME/.git_dotfiles_dir
+
+24.	Set up the Alias: Just as before, add the alias to your ~/.zshrc
+
+alias git_dotfiles='/usr/bin/git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=$HOME'
+
+25.	Checkout the Configuration: Now for the critical step. You need to "check out" the files from your .git_dotfilees_dir database into the working tree ($HOME)
+	
+git_dotfiles checkout
+
+	CRITICAL POINT: The checkout command might fail if default configuration files already exist (e.g., a default .bashrc). It wisely refuses to overwrite them. You have two choices. You can manually delete or rename the conflicting files, or you can use a more forceful approach if you're sure you want to overwrite:
+
+git_dotfiles checkout -f
+
+	This forces the checkout, overwriting any conflicting files. Use with caution, but it's often what you want on a fresh system but perhaps you want a backup of the defaults, in that case copy them over to a backup folder before deploying your preonfigrued dotfiles. 
+
+26.	now repeat the steps from above to configure it on the new system. 
+
+
+
+
+
+
+
+
+
+  REMOVING A FILE/DIRECTORY FROM VERSION CONTROL. (for bare repo)
+  if you've been tracking a file and want to no longer track it, first remove it from the list of files/directories that are specifically tracking each file/direcotry. 
+    then to remving it from your repo in teh next commit, you need to use the folowing command for file and directory
+
+    FOR REMOVING A FILE. (add -f if needed)
+
+git_dotfiles rm --cached path/to/file
+
+    FOR REMOVING A DIRECTORY (add -f if needed)
+
+git_dotfiles rm -r --cached path/to/directory/
+    eg: git_dotfiles rm -r --cached .config/Thunar/
+
+

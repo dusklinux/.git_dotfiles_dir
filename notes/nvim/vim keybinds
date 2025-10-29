@@ -1,0 +1,255 @@
+=INSERT
+i append text at the curser. 
+a append text to after the curser.
+A append text at the end of line. 
+
+enter or K - to open links or enter a hyper link
+: to type commands
+hjkl navigation. 
+
+
+motions for d: = operator (d) + motion(w,e,$)
+w until the start of the next word, EXCLUDING its first character.
+e to the end of the current word, INCLUDING the last characterl
+b the last word if the cursor is on the first charactor, or the current word if the current word from the point of where the cursor is if it at any place other than the first word. 
+$ to the end of the line, INCLUDING the last character.
+0 to the start of the line
+shift 0 beggining of the next line. (right after period)
+
+number + motion will allow you to navigate and jump to words at once eg
+2w move two words foraward to the first charctor of teh second word
+2e move two words forared to the last charactor of teh 2nd word
+2b move back 2 words 
+0 move to the start of the line
+
+
+
+
+:q exit
+:q! exit without saving
+:w to write the file aka save. 
+:wq write and exit aka save and exit. 
+
+
+VISUAL MODE - v
+v allow you to select a text with and moving aorund with motions
+V selects the entire current line
+
+COPY
+y operator (yank) y + (optional) num + motion eg y2w to yank two words.
+
+PASTE
+everything deleted is temperaroly saved to the nvim registory.
+p to put previously deleted/yanked/changed text after the cursor.
+P put the text before the cursor (captial P)
+
+DELETE
+d is the operator
+dd to delete the entire current line
+num plus operator will delete that many things eg:
+2dd will delete 2 lines
+x delete charactor
+
+UNDO/REDO
+u to undo 
+U to undo the whole line and bring it back to original state
+Crtl r to redo. 
+
+
+
+CHANGE OPERATOR 
+this can be used to cut and paste as well. everything deleted is saved in teh nvim registary
+operator + (optional) numbers + motions
+c + motion  Deletes words onwards the cursor, for you to type something else in place of or leave blank.eg:-
+c2w deletes two words from where the cursor is or c2e
+c2j deletes two lines below from where the cursor is
+c2k deletes two lines above from where the cursor is.
+C deletes until the end of line from onwards the placemnt of the cursor. 
+
+
+HIGHLIGHTING TEXT AND SAVING JUST THE HIGLIGHTED TEXT TO A FILE
+v to toggle highlight and then move around with motion keys then type in just ':' and ":'<','>'" will appear automatically at the bottom. and then you can type w <filename> to save just the highlighted to a file that doesn't exist yet.
+:!ls to see the newly created file. 
+
+REPLAACE:
+r replaces just one character with what ever follows, if you conitnnue typing, it'll append instead of replace.
+R replaces more than one charactor goes on until you esc
+
+
+CURSOR LOCAITON AND FILE STATUS
+crtl g tells you how far deep you're in the document in percentage and also tells you total lines in the document. and also the path to the file open
+
+MOVING QUICKLY
+G moves you to the bottom of the file
+gg moves you to the start of the file
+[number]+ G to go to the line number. 
+
+
+FIND
+/(search word) looks for the searched word in the forwared direction. 
+?(search word) looks for the searched word in teh reverse direction. 
+after pressing enter to look serch for the word:-
+n to move to the next word, will move forward if searched with / and backword if searched with ?
+N to move to the PREVIOUS word, will move backword if searched with / and forward if searched with ?
+\c to ignore the case for just the current search command. /<searchterm>\c
+
+REMOVE HIGHLIGHTS OF MATCHED TEXTS
+:nohlsearch
+
+
+
+IGNORE CASE
+:set to set options for the options below
+:set ic to ignore case
+:set noic to not ignore case
+
+:set is 'incsearch'    show partial matches for a search phrase
+:set hls 'hlsearch'    highlight all matching phrases
+
+COMMAND LINE COMPLETINON
+tab to auto complete or show the commands to complete after you type the first word of a command eg :e <TAB> 
+crtl d to also show all the diffrent possible commands but this is formated diffrently and is BETTER imo
+
+
+INVERT THE VALUE OF A SETTING
+ivn
+:set invic to invert the value of ignore case; achieves teh same result as :set noic ie to not ignore case
+
+
+
+jumping back and forth 
+crtl o to go back to where you came from for when you use somethign like [num] G 
+crtl i to go forware to where you got back from eg, you you were on line 3 and then went on line 4, then line 5 then went back to line 4, then crtl i to go back to line 5
+
+% to jump to the pair bracket or parantihisis or curly bracket.
+
+
+
+SUBSTITUTE MULTIPLE INSTANCES OF THE SAME word eg teh to the
+:s the substitute command
+/g to make the channge in all instances of the word "teh" in the line/s. (by defualt all the below operators only substitue the first word in each line with /g added. eveyrthing instance is substituted)
+/c to ask for conformation each time add /c
+
+:s/teh/the/g substitute in just the line where the cursor is and all instances of them in each line.
+:#,#s/teh/the/g substitute in just the mentioned lines and all instances of them in each line
+:%s/teh/the/gc subsittue in the WHOLE file, and all instances of them if there are multiple in each line
+
+
+  TO AUTOMATICALLY PLACE A BLANK LINE AFTER EACH EXISTING LINE 
+:%s/$/\r/g
+:: This prefix signals entry into Neovim's command-line mode, preparatory to executing an ex command.
+%: This range specifier designates that the subsequent command is to be applied universally across all lines within the current buffer, from the inaugural line to the ultimate line.
+s: This denotes the substitute command, an immensely versatile and frequently utilized function for pattern-based text replacement.
+/$: This component defines the search pattern. The dollar sign ($) is a regular expression metacharacter that anchors the match to the very end of each line. Effectively, it signifies "find the position immediately before the newline character that terminates a line."
+/\r: This constitutes the replacement string. The \r (carriage return) is a special character in Neovim's regular expression syntax that, when used in the replacement part of a substitute command, inserts a literal newline character.
+/g: This is a flag, signifying "global." In the context of the substitute command, it ensures that if the pattern were to occur multiple times on a single line (which is not the case with $), all occurrences would be replaced. For the specific pattern $, it is largely redundant but is standard practice.
+
+  TO AUTOMATICALLY PLACE A BLANK LINE AFTER EACH EXISTING LINE
+:%s/^/\r/g 
+:: Initiates Neovim's command-line mode.
+%: Specifies that the operation is to encompass all lines in the buffer.
+s: Invokes the substitute command.
+/^: This is the search pattern. The caret (^) specifically matches the beginning of a line.
+/\r: This is the replacement string, inserting a newline character.
+/g: The global flag, ensuring consistent application, though it is functionally superfluous when matching the singular beginning of a line.
+
+  to do it for a certian number of lines specified.   you can also select the lines with the visual mode and then just git color and follow with the s/^/\r/ 
+
+:#,#s/$/\r/g
+
+
+
+EXICUTE EXTERNAL COMMANDS FROM WITHIN NVIM
+:! followed by an external command like ls eg :!ls
+:!rm <currently saved file from the disk> this is an example of all you can do with this. you can remove the saved file youre' currenlty working on and then perhaps save it to a diffrent place. when you delete it, the file is still in ram temperaroly unless you quit without writing it to disk somewhere.
+
+
+
+THE OPEN COMMAND
+o creates a new line BELOW the cursor and places you in insert mode. 
+O creates a new line ABOVE the cursor and places you in insert mode.  
+
+
+RETRIEVING AND MERGING FILES
+:r /path/to/file
+this will paste the contents of the file to where the cursor is. 
+
+
+  #macros#
+Press q followed by a letter to start recording (e.g., qa to record into register a).
+
+Perform any sequence of Vim commands.
+
+Press q again to stop recording.
+
+Persistence: They are temporary. They are stored in a "register" (like a clipboard) and are forgotten when you close Neovim (unless you go out of your way to save them).
+
+How you play them back:
+
+Press @ followed by the letter you saved it to (e.g., @a to play the macro from register a).
+
+To repeat the last-played macro, just press @@.
+
+
+    Record your macro:
+
+        qa (to start recording in register a)
+
+        ...do your sequence of commands...
+
+        q (to stop recording)
+
+    Run it the first time:
+
+        Move your cursor to the first line you want to change.
+
+        Press @a. The macro runs once.
+
+    Repeat it instantly:
+
+        Move your cursor to the next line (usually just by pressing j).
+
+        Press @@. The macro runs again.
+
+        Press j then @@ again.
+
+        And again... j, @@, j, @@...
+
+This j @@ combination becomes a very fast, rhythmic way to apply a change down a list of lines, giving you full control to skip a line if you need to.
+Even More Powerful Methods
+
+While @@ is the direct answer to your "one key" (or close to it) question, here are two other "pro-level" techniques for applying macros that are even more efficient than repeating @@.
+Method 1: Apply to a Known Number of Lines
+
+This is the method you mentioned (2@a). It's perfect when you know exactly how many times you need to run the macro.
+
+    To run the macro on the next 10 lines: 10@a
+
+Neovim will execute @a ten times in a row.
+Method 2: The Best Way - Apply to a Visual Selection
+
+This is often the most practical and efficient method. You don't need to count the lines; you just select them.
+
+Place your cursor on the first line you want to change.
+
+Enter Visual Line mode by pressing V (uppercase).
+
+Use j to move down and select all the lines you want to affect. The lines will be highlighted
+    Once they are all selected, type the following
+:normal 
+
+How this works:
+
+:: When you are in Visual mode, this automatically enters Command-line mode with the range of the selected lines pre-filled (:'<,'>).
+
+normal: This command tells Neovim to execute the following keys as if you were in Normal mode.
+
+@a: The Normal mode command to execute your macro.
+
+  Summary of Macro Repetition Techniques
+
+  Command	What It Does	Best Use Case
+@a	Runs the macro stored in register a.	Running it the first time.
+@@	Repeats the last macro that was run.	Manually stepping through lines one-by-one (j @@).
+10@a	Runs macro a exactly 10 times.	When you know the exact number of repetitions needed.
+V + select + :normal @a	Runs macro a on every selected line.	When you want to apply a change to a visible block of text.

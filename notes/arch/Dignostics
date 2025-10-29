@@ -1,0 +1,599 @@
+	WORDCOUNT
+| ws -l #word count for lines. to see how many lines there are. eg ls -l | ws -l (list files and -l for listing in a detialed format)
+
+	GREP
+
+|grep -i #ignores case
+
+-v #inverts results, ie shows only things where the mentioned keyword/s is not mentioned. 
+
+	GROUPS
+groups $(whoami) #to see all the groups the current user is a part of. 
+-------------------
+	JOURNALCTL 
+	
+The journalctl tool reads the systemd journal
+
+-f #to follow aka to show all curretnt LIVE logs, this can be combined with any process to isolate the live feed to just that one process. 
+
+-u <unit_name> #to focus on just one UNIT-u, this outpusts the logs for just the specified unit. eg journalctl -u vftpd
+
+-f -u <unit_name>#combines live follow mode with being specific to a specified unit. eg -f -u vsftpd
+
+--since "Y-M-D H:M:S" #this is to show you logs sincce a specified time. you can combine this with -u as well. The quotes are part of the flag.
+
+--since "YYYY-MM-DD HH:MM:SS" --until "YYYY-MM-DD HH:MM:SS"#for a specific timeframe
+
+--since "1 hour ago" --until "now" #
+
+--since "yesterday" or "1 hour ago" #this can be used to show logs since specified moment in time. the --since "" flag might have more posibilites than just the once listed. 
+
+-b #shows you boot logs. 
+-b -1 #previous boot logs. 
+
+--list-boots #shows you a table of boot entries. You can then use the ID from the first column to view logs for a specific boot, e.g. -b <ID>
+-b <ID> #specific boot to check
+
+-k #the kernal logs alone. can be combined with -b for the current boot's kernal logs
+-k -b #
+
+-r #Show logs in reverse order (most recent first)
+
+-b -o verbose #Show more detailed output (verbose), Get all fields stored in the journal for matching entries, which can sometimes reveal extra context
+
+(-p err) or (-p 3) #Filter logs by message priority, You can use numbers: 0 for emerg, 1 for alert, 2 for crit, 3 for err, 4 for warning, 5 for notice, 6 for info, 7 for debug
+
+-p warning #Warnings, errors
+
+-b | grep -i "your search term" #a specific term
+
+#Combining flags (e.g. -k for kernel, -u for unit, -p for priority) lets you zero in
+
+--vacuum-size=500M # limits the log size of journalctl becuae this builds up over time and occupies storage. 
+
+------------------
+
+	DMESG (driver message)
+	
+Note on Arch/systemd: Often, journalctl -k is a more powerful way to view these same messages, as it integrates them with other system logs and provides better filtering and persistence. However, dmesg is the classic, universal tool.
+		
+sudo dmesg #The dmesg command prints the kernel’s ring buffer (messages from boot until now). It’s literally the kernel’s “birth cry” at boot and subsequent system messages. prints the contents of the kernel ring buffer. This is a special, fixed-size area in memory where the kernel logs important messages about its operations – from the earliest stages of boot-up to ongoing activities like hardware detection, driver loading (and failures), errors, and warnings.
+
+#How it Works (Behind the Scenes): The kernel writes messages directly into this circular buffer in memory. When the buffer gets full, new messages overwrite the oldest ones (hence, "ring"). dmesg simply reads this buffer and displays its contents. Because it's a direct kernel log, it's invaluable for diagnosing low-level issues.
+
+Boot Issues: See what happened during the boot process, especially if you can't see the screen or logs aren't being written to disk yet.
+Hardware Detection: When you plug in a USB device, dmesg will show messages about its detection, identification, and driver assignment (or failure).
+Driver Errors: If modprobe fails or a device misbehaves, dmesg often contains the error messages from the kernel or driver explaining why.
+Crashes/Freezes: dmesg (or its persistent equivalent) can sometimes hold clues about what happened right before a system lock-up.
+Performance Issues: It can sometimes show I/O errors or other low-level problems.
+
+dmesg #Shows the entire buffer. Can be very long.
+dmesg | tail #Shows the most recent messages (often the most relevant).
+dmesg -H #Displays the output in a human-readable format with colors and relative times.
+dmesg -T #Displays with human-readable timestamps (very useful!).
+dmesg -w or dmesg --follow #Continuously displays new messages as they arrive (like tail -f but for the kernel).
+dmesg | grep -i <keyword> #Searches for specific terms (e.g., dmesg | grep -i usb, dmesg | grep -i error, dmesg | grep -i nvidia)
+| grep -i error #to find hardware errors
+
+-------------------
+
+	SYSTEMCTL
+
+systemctl list-units #Lists all currently active and loaded units. This is your immediate overview of what's running.
+
+systemctl list-units --type=service #this is to see all services and disable the onces you dont' want and make sure acpi is active
+
+systemctl list-units --all #Show all units that systemd knows about, regardless of their state (active, inactive, loaded, failed, etc.). Very useful for seeing things that might have started and stopped, or services that are defined but not running.
+
+systemctl list-unit-files #Shows all available unit files on your system and their "state" (enabled, disabled, static, masked). This gives you a view of what can be managed, not just what is currently running.
+
+systemctl list-units --type=service --state=failed #A diagnostic gem! This will specifically show you any services that have failed to start or have crashed. Essential for troubleshooting.
+
+systemctl daemon-reload #After you edit or create a unit file (e.g., in /etc/systemd/system/), systemd needs to be told to re-read its configuration. This command does exactly that. Always run this after modifying a unit file.
+
+journalctl -u <xyz.service> # While not strictly a systemctl command, journalctl is the direct way to view logs from the 
+systemd journal for a specific unit. This is critical for understanding why a service failed or what it's doing.
+-------------------
+	LSMOD
+	
+lsmod #(List Modules)
+The Kernel's Roll Call 🧾
+What it is: lsmod (List Modules) provides a snapshot of all the kernel modules currently loaded into memory. Think of the Linux kernel as a core engine. Modules are like optional, add-on components (drivers for your Wi-Fi card, GPU, USB devices, filesystems, etc.) that can be plugged in or removed while the engine is running. lsmod tells you which add-ons are currently plugged in.
+How it Works (Behind the Scenes): It doesn't perform any complex operations. It simply reads and formats the information found in a special virtual file: /proc/modules. This file is a direct window into the kernel's list of loaded modules.
+Checking Drivers: Is the driver for your new Wi-Fi card loaded? lsmod | grep iwlwifi
+Dependencies: It shows which other modules depend on a specific module. This is crucial for understanding why a module might be loaded or why it can't be unloaded.
+
+sudo depmod # usually uncecessory, done automatically, depmod is typically run after kernel updates or when you install, update, or remove custom kernel modules. Its purpose is to rebuild the module dependency database so that the kernel knows how to load modules correctly. let's say you load a module A into the kernal, but that it needs MOdule B to function as it's dependency. depmod generates a list of kernel module dependencies and their associated map files inorder to load the dependiencies first, in this case module B first and then module A to have module A work correctly. 
+
+DONT USE insmod and rmmod to insert and remove modules, THESE ARE used by modprobe automatically, using them directly is unsafe, modprobe is way safer and does it all very well, modprobe loads dependencies automatically.
+
+	MODPROBE
+
+sudo modprobe <module_name> #Load a module , and -v flag for Loading a module verbosely, showing what it's doing.
+
+sudo modprobe -r <module_name> #Unload a module
+
+Important: You generally cannot unload a module if it's currently in use by a process or another loaded module. modprobe -r will attempt to unload its dependencies too, but if it's in use, it will fail. You can check lsmod to see if a module has any Used by count greater than 0
+
+
+
+
+
+
+
+
+
+	CPU
+
+man ps #so many good options!!! check !
+
+ps #(Process Status)ps is essentially a powerful parser and formatter for the data held in /proc. It reads this raw data and presents it to you in a clean, tabular format. /proc/PID directories.
+
+ps axjf #shows you the process hierarchy, which is invaluable for diagnostics ,The Family Tree View
+a: All users.
+x: Processes without a controlling terminal.
+j: Jobs format. This provides columns like PID, PPID (Parent Process ID), PGID (Process Group ID), and SID (Session ID).
+f: Forest view. This uses ASCII characters to draw a "tree" showing which processes are children of others.
+
+ps aux #provides a comprehensive view of all running processes.High CPU/Memory Usage: To quickly see which process is eating up your resources, you can pipe the output to sort
+a: All users
+u: User-oriented format
+x: Processes without a controlling terminal
+
+ps aux --sort=-%cpu | head #Sort by CPU usage
+ps aux --sort=-%mem | head #Sort by Memory usage
+
+ps aux | grep -i 'hyprland' #to know the name of a process and want to see its status or get its PID to kill it. 
+
+ps -eLf #The Thread Inspector. While the other commands show processes, this one lets you see the individual threads within a process.
+-e: Every process. This is the UNIX equivalent of a and x combined.
+-L: Show threads. This is the key option. You'll see two new columns: LWP (Light Weight Process, the kernel's term for a thread) and NLWP (Number of Light Weight Processes in the process).
+-f: Full format. This provides detailed information like UID, PPID, etc.
+when to use.If an application seems stuck or is using a lot of CPU, this command can show you if one specific thread is the culprit. For example, a web browser might have many threads, and seeing if one is spinning at 100% CPU can help diagnose a problem with a specific tab or extension.
+
+pstree #The Process Genealogist, While ps axjf gives you a functional process tree, pstree is a specialist. Its sole purpose is to visualize the process hierarchy as a clean, easy-to-read tree, making it the superior tool for understanding process lineage.
+
+pstree -pau #Combining these flags gives you the most diagnostically useful output: the process tree with PIDs and full command-line arguments.
+
+pstree -a #Show Command-Line Arguments, This is the second most crucial flag. It shows the full command, including arguments, that was used to launch the process. This helps you distinguish between multiple instances of the same program or understand exactly what a process is doing.
+
+lscpu #prints details about CPU architecture: cores, threads, sockets, CPU family, cache sizes, NUMA nodes, etc. (It gathers info from /proc/cpuinfo and sysfs
+
+perf #very powerful Linux performance analysis tool. It can access CPU hardware performance counters (like cycles, instructions retired, cache misses, branch mispredictions) and trace software events (like system calls, scheduler events). It helps you understand why something is slow or how a program is interacting with the system at a deep level
+
+#Think of your CPU as having built-in, highly precise sensors (Performance Monitoring Units - PMUs). perf is the tool that reads these sensors. It can either take snapshots (sampling) of what your system/program is doing very frequently or count specific events (like every time a cache miss occurs). It's like having a high-speed camera and event logger for your system's performance.
+
+perf stat <your_command> #Get overall performance counter statistics for a command, tests why a specified command is slow. 
+
+perf record -g <your_command> #Then run 'perf report' to view, Record performance data (including call graphs) for later analysis.
+
+perf report #Analyze the recorded data from perf record.
+
+sudo perf trace -p <PID> #Trace system calls for a specific process (similar to strace but using perf infrastructure.
+
+perf list #List available performance events you can trace/count
+
+perf top #provides a live, real-time view of the functions that are currently consuming the most CPU cycles across the system or for a specific process. It's like the top command, but for functions instead of processes.Continuing the perf analogy, perf top is like having a live dashboard connected to the CPU's activity sensors. It continuously samples what the CPU is doing and updates a display showing which functions are the "hottest" (using the most CPU time) right now.
+
+sudo perf top #See system-wide, real-time function-level CPU usage
+
+sudo perf top -p <PID> #Monitor a specific process
+
+sudo perf top -K #To hide kernel symbols and focus on user-space
+
+sudo perf top -U #To hide user-space symbols and focus on kernel
+
+	TIME
+
+time #The time command runs another command and, once it completes, reports how long it took to execute. It breaks down the time into real time, user CPU time, and system CPU time.
+Real: Total time passed on the wall clock.
+User: How much time the CPU spent running your command's own code (in user mode).
+Sys: How much time the CPU spent running kernel code on behalf of your command (e.g., reading files, network operations)
+
+time <your_command>
+
+#Interpreting output:
+#If real is much larger than user + sys, the command spent a lot of time waiting (e.g., for I/O like disk or network, or for other processes).
+#If user is high, the command is CPU-intensive with its own calculations.
+#If sys is high, the command is making many system calls or heavily interacting with the kernel.
+
+	MEMORY
+
+free -h #to show ram usage in human redable format.
+
+	DISKS
+	
+smartctl #(from smartmontools)talks to disk firmware’s SMART monitoring, eg smartctl -a /dev/sda gives detailed attributes. SMART can predict drive failure by tracking reallocated sectors, read errors, etc
+	
+lsblk #lists all block devices (drives, partitions, LVM, RAID) in a tree format	
+
+to list all disks and there controller names.
+
+nvme list #lists all disks
+lspci | grep -i "Non-Volatile memory controller" #lists their controllers
+
+remember to get the pcie bus id from the command above and place that in the <bus_id> placeholder eg 10000:e1:00.0
+sudo lspci -vvv -s <bus_id> | grep -iE "ASPM Support:|ASPM Control:|LnkCtl:|LnkSta:" #Check PCIe Link ASPM
+
+sudo nvme smart-log /dev/nvmeX -H #check logs for your nvme, i don't seem to have logs being recorded, the commadn is correct
+
+sudo nvme id-ctrl /dev/nvmeX  #find out the name of your nvme with lsblk to target it for info.
+
+sudo nvme get-feature -f 0x02 -H /dev/nvmeX #first find out your target nvme with lsblk and then this will tell you your NVME'S CURRENT POWER STATE.!!!!!!!  State 0 is typically the active/full power state. Higher numbers represent deeper sleep states
+
+sudo nvme id-ctrl /dev/nvmeX | grep -i apsta # check if NVMe controller supports Autonomous Power State Transition (APSTA)
+sudo nvme get-feature  -H /dev/nvmeX #tells you a bunch of stuff about powersavings for a specidifed nvme
+sudo nvme get-feature -f 0x0c -H /dev/nvmeX #does the same thing as above i guess. 
+
+	ALL SENSORS
+sensors #(from lm_sensors) reads onboard sensor chips (CPU temperature, GPU temp if supported, voltages, fan speeds)
+	
+sudo sensors-detect #ONLY needs to be ran once.
+
+watch sensors #continous monitoring
+	
+	POWER USAGE
+
+powertop #Intel utility to profile power usage. shows which processes or devices draw the most power.can report how many wakeups per second, or mW drawn by a device
+	
+lspci #has so many flags. check -h 
+	
+sudo lspci -vvv | grep 'ASPM .*abled' #lists all components Active State Power Management for whom aspm is currently disabled or enabled. 
+
+sudo lspci -vvv | grep ASPM # lists everything with aspm in it. 
+---------
+usb autosuspend state
+
+for devpath in /sys/bus/usb/devices/*-* ; do \
+    if [ -f "$devpath/power/control" ]; then \
+        printf "%s: %s\n" "$devpath/power/control" "$(cat "$devpath/power/control")"; \
+    fi; \
+done
+
+check autodelay time
+
+for devpath in /sys/bus/usb/devices/*-* ; do \
+    if [ -f "$devpath/power/autosuspend_delay_ms" ]; then \
+        printf "%s: %s ms\n" "$devpath/power/autosuspend_delay_ms" "$(cat "$devpath/power/autosuspend_delay_ms")"; \
+    fi; \
+done
+
+-------------
+
+cat /sys/module/pcie_aspm/parameters/policy #check all aspm states supported and which one is currently active indicated by being in brackets
+cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor #cpu governner state for each core 
+cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_available_governors #cpu availlable governer for each core
+cat /sys/bus/pci/devices/*/power/control #Check PCIe Device Runtime Power Management is auto or on (auto is enabled, on is off)
+
+
+
+	POWER MANAGEMENT TERMINOLOGY
+ASPM (Active State Power Management)
+Imagine your computer is a busy office building. Inside this building, there are many different departments (like the CPU, GPU, Wi-Fi card, SSD, etc.) that communicate with each other through a network of super-fast hallways called PCI Express (PCIe) lanes.
+Normally, these hallways are always "on" and ready for traffic, consuming power even if no data is currently being sent. ASPM is like a smart energy-saving feature for these hallways. It allows the devices connected to these PCIe lanes to go into a low-power "sleep" state when they are not actively sending or receiving data.
+There are two main levels of ASPM:
+L0s (L0 Substate): This is a very light "napping" state. Devices can quickly wake up from L0s when needed. Think of it like someone briefly closing their eyes at their desk, ready to open them immediately if a phone rings.
+L1 (L1 Substate): This is a deeper "sleep" state. Devices take a bit longer to wake up from L1, but they save more power. This is like someone taking a short power nap in a break room – it takes a moment to fully wake up and get back to work
+
+
+ACPI (Advanced Configuration and Power Interface)
+#It's a fundamental industry standard that defines how the operating system (OS) interacts with and controls the hardware's power states. Before ACPI, the BIOS (Basic Input/Output System) handled power, but it was often less flexible and OS-independent. ACPI shifts this control to the OS, allowing for more intelligent and dynamic power management
+OS-Directed Power Management (OSPM): Allows the OS to decide when to put components to sleep or wake them up, adjust CPU speeds
+D0 (Fully On): The device is fully operational.
+D1/D2 (Intermediate Power States): Device-specific low-power states, generally with faster wake-up times than D3.
+D3 (Off): The device is mostly powered off. D3 is further divided into D3hot (auxiliary power still present, allows for remote wake-up) and D3cold (no power, device completely off).
+
+APM (Advanced Power Management)
+#APM is like the older, less sophisticated manager of the office building before ACPI came along. It was a standard developed earlier (mid-1990s) that allowed the BIOS to manage power. The OS could make requests to the BIOS, but the BIOS retained ultimate control.
+Purpose: Provided basic power management functions like turning off the monitor, spinning down hard drives, and putting the system into standby.
+Key takeaway: APM was largely superseded by ACPI. Modern systems primarily use ACPI for power management. You won't typically see APM in use on contemporary hardware.
+
+Linux Kernel's Runtime Power Management (Runtime PM)
+#The Linux kernel has a dedicated "efficiency manager" (the Runtime PM framework). This manager constantly watches individual devices. If a device has been idle for a while (no one is using it, no data is flowing to or from it), the efficiency manager might decide to tell that device to take a nap (enter a low-power state). When someone needs the device again, the manager quickly wakes it up. This happens seamlessly in the background, without the entire factory having to go to sleep.
+
+to check the runtime state of all pci buses
+-------
+for device_path in /sys/bus/pci/devices/*; do
+    device_id=$(basename "$device_path")
+    if [ -f "$device_path/power/runtime_status" ]; then
+        status=$(cat "$device_path/power/runtime_status")
+        device_name=$(lspci -s "$device_id" | awk -F': ' '{print $2}')
+        echo "Device $device_id ($device_name): $status"
+    else
+        device_name=$(lspci -s "$device_id" | awk -F': ' '{print $2}')
+        echo "Device $device_id ($device_name): runtime_status not available or not applicable."
+    fi
+done
+-------
+
+CPU Power Management
+C0: This is the "awake" state – the CPU is actively working. (Like you, fully awake and working).
+C1 (Halt): A very light nap. The CPU stops its main clock but can wake up almost instantly. (Like you, pausing work for a moment, ready to resume immediately).
+C2 (Stop-Clock): A slightly deeper nap. More parts of the CPU are powered down, taking a bit longer to wake up. (Like you, leaning back in your chair, eyes closed for a few seconds).
+C3 (Deep Sleep): Deeper still. Caches might be flushed, and more power is cut. Waking up takes longer. (Like a quick power nap at your desk).
+C4, C5, C6, etc.: Progressively deeper sleep states, saving more power but incurring longer wake-up times. (Like you going to a break room for a longer nap).
+Purpose: To save power when the CPU is idle (not performing computations). The deeper the C-state, the more power is saved, but the longer it takes for the CPU to become fully responsive again. The OS (via ACPI) determines which C-state to enter based on how long it expects the CPU to be idle.
+
+P-States (CPU Performance States)
+If C-states are about napping, P-states are about how fast your CPU works when it is awake. Imagine your CPU has a "speed dial" (frequency) and a "power dial" (voltage).
+P0: Maximum performance, highest frequency, highest voltage. (Like you working at full speed, full energy).
+P1, P2, ... Pn: Progressively lower performance states, where both the CPU frequency (speed) and voltage (power) are reduced. Lowering voltage significantly reduces power consumption. (Like you doing less intensive tasks, so you slow down and use less energy).
+Purpose: To adjust the CPU's performance and power consumption while it is active. If a task doesn't require full CPU power, the OS can switch to a lower P-state to save energy without sacrificing noticeable performance
+	
+DVFS (Dynamic Voltage and Frequency Scaling)
+This is the underlying technology that makes P-states possible. It's the mechanism that actually allows your CPU to change its speed (frequency) and the amount of electricity it receives (voltage) on the fly.
+Purpose: To fine-tune power consumption by dynamically adjusting both voltage and frequency. Since power consumption is roughly proportional to voltage squared and frequency, even small voltage reductions can lead to significant power savings.
+
+DPM (Dynamic Power Management)
+Analogy: This is a broader, more general term. Think of it as the overall strategy of dynamically adjusting power usage based on workload. Both P-states, C-states, and ASPM fall under the umbrella of DPM. It's not a single standard but a concept applied across various components.
+Purpose: To optimize power consumption in real-time by adapting to the current system load and activity. It's about making power decisions "on-the-fly."
+	
+
+
+
+SMM (System Management Mode)
+Analogy: SMM is like a hidden, ultra-privileged "secret service" for your computer's firmware (BIOS/UEFI). It runs at a higher privilege level than even the operating system kernel and can execute code without the OS knowing.
+Purpose: Historically used for power management (before ACPI was widespread), but now mostly for low-level system functions like thermal management, fan control, hardware initialization, and system diagnostics, usually triggered by System Management Interrupts (SMIs).
+Relationship to ACPI: While SMM predates ACPI, firmware can use SMM to implement parts of ACPI's functionality or to handle events that the OS isn't directly configured to manage. However, modern systems aim to let the OS handle as much power management as possible via ACPI, reducing the need for SMM to intervene frequently.
+	
+PMIC (Power Management Integrated Circuit)
+Analogy: This is the literal hardware component. Think of the PMIC as the "power distribution board" within your laptop. It's a specialized chip that handles various power supply functions.
+Purpose: Provides voltage regulation, power sequencing (turning components on/off in the correct order), battery charging management, and overall power supply control for different parts of the system.
+
+TPM (Trusted Platform Module)
+Analogy: Not directly related to power consumption, but often found alongside power management features. Think of it as a secure vault for cryptographic keys and measurements.
+Purpose: Provides hardware-based security functions like secure boot, disk encryption key storage, and platform integrity checks. It's about trust and security, not energy saving.
+
+
+
+	LIST ALL HARDWARE
+
+lspci #
+
+lshw #(list hardware) utility reads from /proc and reports all hardware details: CPU, memory modules, motherboard, BIOS/firmware version, bus speeds, etc
+
+sudo lshw -short # great command to list all hardware This is a deep scan of your system’s internals (you need root for full info). You can think of it as inspecting the VIN and specs of your PC
+
+	List Open Files
+	
+lsof # In Linux, "everything is a file" – regular files, directories, network sockets, pipes, devices, etc. lsof shows you what's using what.
+
+sudo lsof /path/to/your/file_or_directory #Find which process is using a specific file/directory(eg preventing unmount) lists information about files opened by processes.
+
+sudo lsof -i :<port_number> #See what process is using a network port
+
+sudo lsof -p <PID> #List files opened by a specific process ID (PID)
+
+sudo lsof | grep '(deleted)' #Find deleted files still held open (can consume disk space invisibly)
+
+
+systemd-analyze #Show total boot time (kernel + userspace) used to investigate your system's boot-up performance. It can show you how long the boot took, which services (units) took the most time to start, and the chain of dependencies.
+
+systemd-analyze blame #startup services sorted by how long they took
+
+
+systemd-analyze critical-chain # Show the critical chain of units that impacted boot time most, shows the dependency chain and timing of services that delayed boot
+
+systemd-analyze critical-chain <some_unit.service> #Show the critical chain for a specific service
+
+	User-Space Application Diagnostics
+
+strace #intercepts and logs every system call a program makes.eg <strace -o trace.out myapp> runs <myapp> and logs calls like open("file.txt", O_RDONLY) = 3
+
+	DECOMPRESS DIFFRENT FILES WITH THERE FLAGS. 
+
+zstd -d, gunzip, bunzip2, unxz, unzip, unrar x, 7z x
+
+
+
+	
+	NVIDIA
+
+nvidia-smi #(NVIDIA System Management Interface) reports GPU load, memory usage, temperature and the list of processes using the GPU
+
+nvidia-smi -q -d POWER #to Get specific power information, including limits.
+
+sudo nvidia-smi -pl 90 #set the power limit to 90 watts
+Set a Power Limit: You can temporarily cap the GPU's maximum power draw in watts. This is useful for reducing heat or noise. This change is not persistent and will be reset on reboot
+
+	Control Persistence Mode: This is a crucial setting. 
+sudo nvidia-smi -pm 0 #Disabled (Default/Good for Laptops): When no applications are using the GPU, the driver is allowed to be unloaded, which is required for the RTD3 sleep state to engage. This is what you want for power savings.
+
+sudo nvidia-smi -pm 1 #Enabled: This forces the NVIDIA driver to stay loaded in the kernel at all times, even with no GPU clients. This prevents the GPU from entering the RTD3 sleep state. Its main use is for developers using CUDA who need to reduce driver load latency between computations. For general use, ensure this is disabled.
+
+-------------
+System-Wide Power Features
+nvidia-powerd #Dynamic Boost, Your laptop supports Dynamic Boost, a feature that intelligently shifts the power budget between the CPU and GPU to maximize performance. If a game is GPU-bound, it allocates more power to the GPU; if a task is CPU-bound, it allocates more to the CPU. This is managed by a background service (daemon)
+
+sudo systemctl enable --now nvidia-powerd.service #Enable and start the nvidia-powerd service:
+------------------
+Deep, Persistent Kernel Control
+#This is where you control the fundamental, persistent behavior of the driver. These settings are applied when the kernel module is first loaded at boot. You configure this by creating a .conf file in /etc/modprobe.d/
+
+sudo nvim /etc/modprobe.d/nvidia-power.conf #Create a configuration file. The name doesn't matter, but it must end in .conf
+Add <options> lines to this file.
+Rebuild your initial ramdisk (initramfs) for the changes to be included at early boot.
+Reboot.
+
+NVreg_DynamicPowerManagement #The Most Important Kernel Parameter: This parameter controls the RTD3 sleep state.
+ 
+File: /etc/modprobe.d/nvidia-power.conf
+Recommended Content:
+# Enable Fine-Grained Runtime D3 Power Management
+options nvidia "NVreg_DynamicPowerManagement=0x02"
+
+explination: 
+0x00: Disabled. The GPU will never power off. High power consumption.
+0x01: Coarse-Grained. The GPU powers down only when there are zero applications using it.
+0x02: Fine-Grained. The GPU can power down even when an application (like a web browser or window manager) is running, as long as the GPU itself has been idle for a short period. This is the setting you want for maximum battery life.
+0x03: Default. On your Ampere-generation GPU, this defaults to 0x02. Setting it explicitly to 0x02 is clearer and safer across driver updates.
+--------------------------
+
+Automating Power Management with udev
+
+You need to tell the system that it is allowed to automatically manage the GPU's power state. You do this with a udev rule, which is a set of rules the system follows when devices are connected or discovered.
+RESEARCH IT..
+
+
+--------------------------
+dmesg or journalctl -k) for lines mentioning “nvidia” or “nouveau”. These logs often appear in dmesg as the NVIDIA kernel driver starts or fails.
+
+
+lsmod | grep -i nvidia #to show all nvidia related modules lodaded in the ram. this is checked though /proc/modules (it's a virtual file and a repreisentation of all the kernal modules currently loaded into memory)
+
+/etc/modprobe.d/ #this is the path to .conf files where modules are blacklisted from loading during boot. need to remake initramfs after changing this. by running <sudo mkinitcpio -P>
+
+sudo dmesg | grep -i nvidia #shows all the logs for nvidia since boot. 
+
+lspci | grep VGA #to find out the pcie bus and currently usable grapchics cards . 
+lspci | grep -E 'VGA|3D' #same thing as above command
+
+ls -l /dev/dri/by-path/*-card #VERY IMPORTANT TO CHECK, THIS CHANGES, AND SO DOES PCIE BUS SO CHECK BOTH EVERYTIME. this shows you the card0/card1/card2 and there corrosponding gpu's to see which card is which gpu
+ls -l /dev/dri/by-path/ #same as above but shows the renderer as well. 
+
+
+lspci -k | grep -EA3 'VGA|3D|Display' #to check which particular driver/ module your graphics cards are using, eg mesa, i915, nouveau, nvidia
+or
+lspci -nnk | grep -EA3 '\[03(00|01|02|80)\]' #does the same thing as the above command but this is more robust sometimes for checking which driver your gpus are using.
+
+
+lsmod | grep -E "bbswitch|nouveau|nvidia|mesa|intel|prime" #this checks all the modules that the kernal has loaded. you can add more things to this or remove the ones you don't need.  
+
+vulkaninfo --summary #to check which gpu's are currently loaded and can be used. On systems with multiple GPUs vulkaninfo --summary quickly shows all Vulkan-capable devices and their assigned "GPU number,"
+
+journalctl -k | grep -E -i "bbswitch|nouveau|nvidia|01:00.0" #to check kernal logs for specified keywords/errors
+
+journalctl | grep -E -i "bbswitch|nouveau|nvidia|01:00.0" #to check all logs for specified keywords/errros
+
+
+	LOADING NVIDIA MODULE INTO THE KERNAL
+	
+depmod to update the dependecy list for modules. so it know all the right depeendencys for a module before loading it. 
+
+sudo modprobe <module_name> #Load a module, and -v flag for Loading a module verbosely, showing what it's doing.
+
+sudo modprobe -r <module_name> #Unload a module
+
+Important: You generally cannot unload a module if it's currently in use by a process or another loaded module. modprobe -r will attempt to unload its dependencies too, but if it's in use, it will fail. You can check lsmod to see if a module has any Used by count greater than 0
+
+modinfo <module_name> #to know information about a module
+
+sudo cat /sys/module/nvidia_drm/parameters/modeset #to check if nvidia-drm.modeset=1 is set or not should say Y or N yes or no
+
+---------------
+	to check the PM runtime (power managermetn runtime for a specific pci bus eg nvidia)
+	first find out the pci bus number for the device with lspci
+
+sudo lspci
+
+	then introduce backward slash in the pci bus number right before the colon and enter the following command
+	this is for nvidia gpu from the lspci - 0000:01:00.0
+
+0000\:01\:00.0	
+
+	then type out the full command with the addes backward slashes, the second one is to check the power state, the third is to check some auto thing 
+	
+sudo cat /sys/bus/pci/devices/0000\:01\:00.0/power/runtime_status
+sudo cat /sys/bus/pci/devices/0000:01:00.0/power_state
+sudo cat /sys/bus/pci/devices/0000:01:00.0/power/control
+
+ls -l /usr/lib/systemd/system/nvidia-*.service #to check all exisitng services related to nvidia on the system. 
+
+-------------
+
+	HARDWARE DECODERS FOR ALL GPUs
+
+vainfo #displays information about your system's VA-API (Video Acceleration API) capabilities. It tells you which video codecs your hardware can accelerate for decoding and encoding.
+
+nvtop #displays GPU utilization, memory usage (VRAM), temperature, power draw, and processes running on the GPU in a user-friendly, curses-based interface.leverages the NVIDIA Management Library (NVML) to retrieve real-time GPU statistics.
+
+nvidia-smi #its built on top of the NVIDIA Management Library (NVML). It directly queries NVML for a wide range of GPU attributes, including usage, memory, temperature, power, clock speeds, and active processes
+
+sudo intel_gpu_top #directly queries the Intel graphics driver (i915 kernel module) to get detailed performance counters and engine utilization statistics.
+
+sudo btop #collects information from various system files and kernel interfaces (e.g., /proc, /sys) to gather data on CPU usage, memory allocation, disk I/O, network traffic, and running processes.
+
+----------------------
+THIS IS A VERY IMPORTANT PART OF POWERMANAGEMETN FOR THE NVIDIA GPU
+
+sudo nvim /proc/driver/nvidia/gpus/0000:01:00.0/power
+
+#/proc/driver/nvidia/gpus/0000:01:00.0/power: This is the full path to a special file that acts as a direct interface to your NVIDIA driver's power management features.
+
+The /proc directory is not a real directory on your hard drive or SSD. It's a virtual filesystem created in memory by the Linux kernel when your system boots. Think of it like a live dashboard or control panel for the kernel.
+
+The power file is an interface provided by the NVIDIA kernel driver to view and control some of its power management features. When you open this file, you are directly interacting with the driver.
+
+This file is primarily used to inspect the current power state of the GPU and, in some cases, to manually set a specific power limit or performance level. It's a low-level tool often used for:
+Debugging: System administrators and developers might use it to diagnose power-related issues with the GPU.
+Fine-tuning: Advanced users might use it to manually cap the GPU's power consumption to reduce heat or fan noise, especially on laptops.
+Understanding Power States: Reading the file provides detailed information about the GPU's current power management state, supported power levels, and more.
+
+When you cat (read) the /proc/driver/nvidia/gpus/0000:01:00.0/power file, the NVIDIA kernel driver intercepts this request. It doesn't fetch data from a disk. Instead, it queries the GPU's firmware and its own internal state to gather real-time power management information and then formats it as text for you to see.
+
+When you use echo or a text editor like nvim to write a value to this file, the kernel driver again intercepts it. It parses the string you sent (e.g., "power_limit=100") and translates it into a command that is sent directly to the GPU's power management controller. This changes the hardware's behavior in real-time.
+
+Is it Safe to Modify Values? Caution is Advised.
+
+Modifying values in this file is a powerful but potentially risky operation.
+
+    Is it safe? Generally, yes, if you know what you are doing and use valid parameters. The NVIDIA driver is designed to reject invalid or dangerous values. For example, setting a power limit far outside the Min and Max range shown in the file will likely fail.
+    What are the risks?
+        Instability: Setting an inappropriate power limit (either too low or too high, if the driver even allows it) could cause system instability, graphics artifacts, or application crashes. For instance, setting a power limit that is too low might prevent the GPU from reaching the necessary performance level to run a demanding application, leading to a crash.
+        Performance Loss: Limiting the power will directly limit the GPU's performance.
+        Not Persistent: Any changes made to files in /proc are temporary and will be reset upon reboot. This is actually a safety feature. If you make a change that destabilizes your system, a simple reboot will fix it.
+
+DON'T CHANGE VALUES ABOVE IN TEH FILE, USE NVIDIA-SMI INSTEAD!!!
+
+nvidia-smi (NVIDIA System Management Interface)
+
+This is the preferred and standard command-line tool for managing and monitoring your NVIDIA GPU. It provides most of the functionality of the /proc interface and much more in a safer, more structured way.
+
+To see power information with nvidia-smi:
+Shell
+
+nvidia-smi
+
+To set a persistent power limit (e.g., to 100 watts):
+Shell
+
+sudo nvidia-smi -pl 100
+
+nvidia-smi is the recommended tool for tasks like setting power limits, monitoring temperature and usage, and changing GPU clock speeds. It's more robust and provides clearer feedback than writing directly to /proc files.
+
+	DIFFRENECT BETWEEN nvidia-smi and editing it driectly. 
+
+nvidia-smi
+High-level command-line utility
+General monitoring, setting power limits, clock speeds, and other settings.
+Recommended and safer. Has built-in error checking and clear syntax.
+Yes. Can set persistent configurations.
+The car's official diagnostic and tuning computer.
+Use this for all your GPU management tasks.
+
+sudo nvim /proc/.../power
+Low-level kernel interface
+Debugging, deep system inspection, specific low-level tweaks.
+Use with caution. Changes are temporary. Mistakes can cause instability until reboot.
+No. Changes are lost on reboot.
+A mechanic directly adjusting a single screw on the engine.
+Use it to learn and observe. Avoid writing to it unless you have a very specific goal.
+
+
+Performance Levels (P-States): These are the GPU's active states. They range from P0 (maximum performance, maximum power draw) down to P8 or P12 (idle, minimum power draw while still being on). The NVIDIA driver automatically and rapidly switches between these P-states based on the current workload. You generally do not need to, and should not, manage these manually.
+Runtime D3 (RTD3) Sleep State: This is the off state. On a hybrid graphics laptop like yours, the driver can completely power off the NVIDIA GPU when it's not in use, resulting in massive power savings. This is the most important power management feature for a laptop. When the GPU is in this state, it is often referred to as being in D3cold
+
+If your GPU is correctly powered down (in RTD3), nvtop will show "No GPU to monitor." This is good news—it means you're saving power. When you launch a GPU-intensive application, nvtop will instantly show its stats.
+----------------------
+
+
+
+intel, nvidia driver names:
+i915 -intel open
+mesa -intel open
+nouveau -nvidia open source
+
+
+Display Power Management Signaling (DPMS) #
+Direct Rendering Manager (DRM)
+Kernal Module Setting (KMS)

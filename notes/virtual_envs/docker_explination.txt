@@ -1,0 +1,358 @@
+Of course. It is a formidable, yet entirely attainable, aspiration to achieve a doctoral-level comprehension of Docker from first principles. We shall embark upon this intellectual expedition, leaving no conceptual stone unturned. The ensuing dissertation will meticulously deconstruct the entire Docker ecosystem, from its philosophical underpinnings to its most intricate technical implementations, tailored specifically for a practitioner operating within the Arch Linux environment.
+A Dissertation on the Theory and Praxis of Docker Containerization for the Arch Linux Practitioner
+Abstract:
+This document presents a comprehensive exegesis of the Docker platform, elucidating its historical context, fundamental principles, underlying kernel-level technologies, and practical applications. Beginning with the primordial challenges of software deployment that precipitated Docker's invention, we will dissect the limitations of preceding paradigms, such as hardware virtualization. The core of this work is a deep dive into the Linux kernel features—specifically, namespaces and control groups—that constitute the technological bedrock of containerization. Subsequently, a pragmatic guide will be furnished for the installation, configuration, and quotidian use of Docker on an Arch Linux system. We will explore a panoply of use cases, ranging from the creation of hermetically sealed development environments and the ephemeral testing of software to the self-hosting of complex, multi-service applications. Advanced topics, including Docker networking, persistent data management via volumes, and the orchestration of containers with Docker Compose, will be thoroughly examined. The ultimate objective is to transmute a novice user into an erudite practitioner, capable of leveraging Docker to its fullest potential for both mundane tasks and sophisticated workflows.
+Table of Contents
+ * Chapter 1: The Pre-Containerization Epoch: A World of Incompatibility
+   1.1. The Primordial Problem: "But It Works on My Machine!"
+   1.2. The First Great Leap: Hardware Virtualization and the Virtual Machine (VM)
+   1.3. The Shortcomings of the VM Paradigm: The Weight of Emulation
+ * Chapter 2: The Platonic Ideal of a Container: First Principles
+   2.1. An Analogy: The Intermodal Shipping Container
+   2.2. Translating the Analogy to Software
+   2.3. The Core Lexicon of Docker
+   2.3.1. Image: The Blueprint
+   2.3.2. Container: The Runtime Instance
+   2.3.3. Dockerfile: The Architectural Plan
+   2.3.4. Registry: The Universal Warehouse
+ * Chapter 3: Under the Hood: The Kernel-Level Artifice
+   3.1. The Illusion of Isolation: A Tale of Two Technologies
+   3.2. Pillar I: Namespaces - Segmenting Perception
+   3.2.1. PID (Process ID) Namespace
+   3.2.2. NET (Network) Namespace
+   3.2.3. MNT (Mount) Namespace
+   3.2.4. UTS (UNIX Timesharing System) Namespace
+   3.2.5. IPC (Inter-Process Communication) Namespace
+   3.2.6. USER Namespace
+   3.3. Pillar II: Control Groups (cgroups) - Rationing Resources
+   3.4. Docker vs. VMs: A Recapitulation of the Architectural Divergence
+   3.5. The Filesystem Chimera: Union File Systems and Copy-on-Write (CoW)
+   3.5.1. A Note on Your BTRFS Filesystem
+ * Chapter 4: The Practitioner's Toolkit: Installation and Core Tenets on Arch Linux
+   4.1. Installation and Configuration
+   4.2. The Docker Daemon and Client
+   4.3. The Foundational Trinity of Docker Commands
+   4.3.1. docker build: From Blueprint to Image
+   4.3.2. docker run: From Image to Living Container
+   4.3.3. docker pull & docker push: Interacting with the Registry
+ * Chapter 5: Quotidian Use Cases for the Arch Linux Postulant
+   5.1. Scenario 1: The Pristine, Isolated Development Environment
+   5.2. Scenario 2: The Art of Ephemeral Software Experimentation
+   5.3. Scenario 3: Encapsulating GUI Applications
+   5.4. Scenario 4: The Self-Hosting Aficionado's Sanctum Sanctorum
+ * Chapter 6: Advanced Docker Cartography: Networking and Volumes
+   6.1. The Docker Networking Model
+   6.1.1. bridge (Default)
+   6.1.2. host
+   6.1.3. none
+   6.2. The Imperative of Data Persistence: Volumes
+   6.2.1. Volumes vs. Bind Mounts: A Critical Distinction
+   6.2.2. Managing Docker Volumes
+ * Chapter 7: The Docker Compose Symphony: Orchestrating Multi-Container Applications
+   7.1. The Rationale for Docker Compose
+   7.2. The docker-compose.yml File: A Declarative Manifest
+   7.3. A Practical Example: WordPress with a MariaDB Database
+   7.4. Core docker-compose Commands
+ * Chapter 8: Conclusion: A Synopsis and Philosophical Coda
+Chapter 1: The Pre-Containerization Epoch: A World of Incompatibility
+1.1. The Primordial Problem: "But It Works on My Machine!"
+In the annals of software development, no phrase is more infamous, more frustrating, or more emblematic of a fundamental problem than, "But it works on my machine!" This statement captures a ubiquitous challenge: a piece of software functions perfectly in the developer's controlled environment but fails spectacularly when deployed to a testing server, a production server, or another developer's computer.
+The root cause of this dissonance lies in the environment's heterogeneity. Your Arch Linux machine is a unique artifact. Its state is a product of every pacman -Syu you have ever run, every configuration file in /etc you have ever edited, every library and dependency you have ever installed. The version of the C standard library (glibc), the Python interpreter, the system's SSL certificates—all these variables and a thousand more constitute your machine's unique "fingerprint." When you attempt to run an application on a different machine, say, a Debian server, that server has its own distinct fingerprint. A minute difference—a slightly older version of a critical library, a missing dependency, a different filesystem structure—is all it takes for the application to break.
+1.2. The First Great Leap: Hardware Virtualization and the Virtual Machine (VM)
+For decades, the most robust solution to this problem was the Virtual Machine (VM). The concept is powerful: using a piece of software called a hypervisor (like VirtualBox, QEMU/KVM, or VMware), one can emulate an entire computer—CPU, RAM, storage, network card, and all—in software.
+On top of this emulated hardware, you can install a complete, isolated Guest Operating System (e.g., a full installation of Ubuntu Server). Inside this Guest OS, you install your application and all its dependencies. To deploy the application, you simply clone or move the entire VM. Because the application is bundled with its entire operating system, the "works on my machine" problem is largely solved. The environment is no longer just the application and its libraries; it is the whole OS, perfectly preserved.
+1.3. The Shortcomings of the VM Paradigm: The Weight of Emulation
+While revolutionary, the VM approach carries a substantial, often prohibitive, cost. This cost is one of overhead.
+ * Resource Profligacy: Each VM requires its own full-blown operating system, complete with its own kernel, system processes, libraries, and binaries. If you have ten applications to run, you might have ten separate VMs, each consuming gigabytes of disk space for its OS. Each VM must be allocated a dedicated chunk of your host machine's RAM and CPU cores. Running several VMs on your ASUS laptop, even with its generous 64 GB of RAM, would be a noticeable burden.
+ * Performance Degradation: The hypervisor introduces a layer of abstraction between the Guest OS and the host's physical hardware. While modern virtualization technology is incredibly efficient, this translation layer inevitably consumes CPU cycles and introduces latency.
+ * Lethargic Instantiation: Booting a VM is tantamount to booting a physical computer. It involves initializing a virtual BIOS, running a bootloader (like GRUB), loading a kernel, and starting a multitude of system services. This process can take minutes. In a world that demands agility, this is an eternity.
+The VM solves the consistency problem by shipping an entire house for a single piece of furniture. It is effective but colossally inefficient. This inefficiency created a technological vacuum, a yearning for a lighter, faster, more elegant solution. Into this vacuum, Docker was born.
+Chapter 2: The Platonic Ideal of a Container: First Principles
+2.1. An Analogy: The Intermodal Shipping Container
+Before 1956, global shipping was a logistical nightmare. Goods were packed in disparate sacks, barrels, and crates of varying sizes. Loading and unloading a ship was a slow, labor-intensive, and precarious process. Then, the standardized intermodal shipping container was introduced.
+The genius of the shipping container is its standard interface. It matters not whether it contains bananas, car parts, or fine silks. Its exterior dimensions are fixed. It has standard corner castings that can be attached to any compatible crane, truck, or train car on Earth. This standardization revolutionized global trade by abstracting away the contents from the logistics of transport.
+2.2. Translating the Analogy to Software
+Docker applies this exact principle to software. A Docker container is the software equivalent of a shipping container. It is a standard unit that wraps up a piece of software and everything it needs to run: code, runtime, system tools, system libraries, and settings.
+This container can then be moved between environments—from your Arch laptop to a cloud server—and it will run identically in every location. Docker provides the standardized "cranes and trucks" (the Docker Engine) to lift, move, and run these containers on any compatible machine (any modern Linux, Windows, or macOS system). It achieves the isolation of a VM without the overhead of running a separate Guest OS.
+2.3. The Core Lexicon of Docker
+To speak the language of Docker, one must master four foundational concepts.
+2.3.1. Image: The Blueprint
+A Docker Image is a read-only template used to create containers. It is the architectural blueprint. An image contains the application code, a runtime (like the Java Virtual Machine or a Python interpreter), necessary libraries, environment variables, and configuration files. It is a static, inert artifact. You can think of it as a class in object-oriented programming or, more simply, a stopped VM template. Images are constructed in layers, a crucial point we will revisit.
+2.3.2. Container: The Runtime Instance
+A Container is a runnable instance of an image. If the image is the blueprint, the container is the actual house built from that blueprint. You can create, start, stop, move, and delete a container. It is a live, running process (or group of processes) on your host machine, but one that is completely isolated from all other processes, including the host system itself. You can have many containers running simultaneously from the same single image.
+2.3.3. Dockerfile: The Architectural Plan
+A Dockerfile is a simple text file that contains the step-by-step instructions for building a Docker image. It is the recipe. You specify a base image to start from (e.g., an official Arch Linux base image), then add instructions to COPY your application files into the image, RUN commands to install dependencies, EXPOSE network ports, and define the default CMD (command) to execute when a container is started from the image. It is a form of "infrastructure as code," providing a reproducible and version-controllable method for defining an application's environment.
+2.3.4. Registry: The Universal Warehouse
+A Registry is a storage and distribution system for Docker images. It is the warehouse for the blueprints. The default, public registry is Docker Hub, which hosts tens of thousands of official and community-contributed images. When you execute a command like docker run httpd, Docker first checks if you have the httpd (Apache web server) image locally. If not, it automatically downloads it from Docker Hub. You can also run your own private registries to store proprietary images.
+In summary: You write a Dockerfile (the plan) to build an Image (the blueprint). You run the Image to create a Container (the running instance). You push and pull Images from a Registry (the warehouse).
+Chapter 3: Under the Hood: The Kernel-Level Artifice
+How does a container achieve the isolation of a VM without emulating an entire operating system? The answer is not magic, but rather the ingenious application of features that have existed within the Linux kernel for many years. Docker did not invent container technology; it masterfully packaged and standardized it, making it accessible to all.
+Containers run directly on the host machine's kernel. Your Arch Linux kernel is the only kernel running. All containers share this same kernel. This is the source of their efficiency. The "magic" of isolation is a carefully constructed illusion created by two primary kernel technologies: Namespaces and Control Groups (cgroups).
+3.1. The Illusion of Isolation: A Tale of Two Technologies
+ * Namespaces answer the question: "What can a process see?" They virtualize the system's resources, giving a process inside a container its own private view of the system.
+ * Cgroups answer the question: "What can a process use?" They govern the allocation and limitation of system resources like CPU, memory, and disk I/O.
+3.2. Pillar I: Namespaces - Segmenting Perception
+Imagine giving a process a special pair of glasses. Through these glasses, the world looks different. It appears to be the only process running, to have its own private network card, its own filesystem root, and so on. This is precisely what namespaces do.
+3.2.1. PID (Process ID) Namespace
+Outside the container, on your host system, your processes have unique Process IDs (PIDs). Inside a container, a new PID namespace is created. The very first process started inside the container is assigned PID 1, just like the init or systemd process on your host. The container believes it is the sole master of its own process tree. It cannot see or signal any processes outside of its namespace.
+3.2.2. NET (Network) Namespace
+Each container gets its own private network stack: its own IP address, its own routing table, its own localhost interface, and its own set of iptables rules. From inside the container, it looks like it has its own dedicated Ethernet card. This allows you to run a web server in a container on port 80 without conflicting with another web server in a different container also on port 80. Docker creates a virtual bridge on the host to route traffic to these isolated network spaces.
+3.2.3. MNT (Mount) Namespace
+A container gets its own private view of the filesystem hierarchy. It has its own root directory (/). The contents of this root are derived from the Docker image. This is why a container based on an Ubuntu image has a /etc/apt/ directory, while your Arch host does not. The container is effectively "chrooted" into its own world, unable to see or access files on your host's filesystem unless you explicitly map them in (a process called a bind mount).
+3.2.4. UTS (UNIX Timesharing System) Namespace
+This allows each container to have its own unique hostname and domain name. When you run hostname inside a container, you will see the container's ID or a name you've assigned, not your host's hostname (archlinux).
+3.2.5. IPC (Inter-Process Communication) Namespace
+This isolates traditional UNIX IPC mechanisms like semaphores and shared memory segments. Processes within a container can use these mechanisms to communicate with each other, but they are isolated from processes (even in other containers) on the host.
+3.2.6. USER Namespace
+This is a more advanced feature that maps user and group IDs inside the container to different user and group IDs on the host. This allows a process to run as root (UID 0) inside the container, but be mapped to a non-privileged user on the host system, significantly enhancing security.
+3.3. Pillar II: Control Groups (cgroups) - Rationing Resources
+While namespaces handle isolation, cgroups handle resource management. They are a Linux kernel feature that allows you to allocate and limit the hardware resources available to a group of processes. When you start a Docker container, Docker creates a cgroup for it. You can then instruct Docker to limit that container's resource consumption.
+ * Memory: You can tell Docker to limit a container to a maximum of, say, 512 MB of RAM. If the process inside tries to exceed this limit, the kernel's Out-Of-Memory (OOM) killer will terminate it.
+ * CPU: You can restrict a container to a certain percentage of CPU time or pin it to specific CPU cores on your Intel i7-12700H. This prevents a runaway process in one container from starving all other processes on the system.
+ * Disk I/O: You can throttle the read/write bandwidth that a container can use on the storage devices.
+Cgroups are the mechanism that prevents a single misbehaving container from bringing down your entire host system.
+3.4. Docker vs. VMs: A Recapitulation of the Architectural Divergence
+Let us visualize the difference:
+Virtual Machine Architecture:
++------------------------------------------+
+|              Application                 |
++------------------------------------------+
+|            Bins/Libraries                |
++------------------------------------------+
+|             Guest OS (Kernel)            | <--- Heavyweight
++------------------------------------------+
+|                Hypervisor                |
++------------------------------------------+
+|               Host OS (Arch)             |
++------------------------------------------+
+|              Hardware (ASUS Laptop)      |
++------------------------------------------+
+
+Docker Container Architecture:
++------------------+  +------------------+
+|   Application A  |  |   Application B  |
++------------------+  +------------------+
+|  Bins/Libraries  |  |  Bins/Libraries  |
++------------------------------------------+
+|               Docker Engine              |
++------------------------------------------+  <--- Lightweight
+|       Host OS (Arch) & Its Kernel        |
++------------------------------------------+
+|              Hardware (ASUS Laptop)      |
++------------------------------------------+
+
+The key takeaway is the elimination of the Guest OS and the Hypervisor. Containers are just isolated processes running on the host kernel, making them orders of magnitude lighter, faster, and more efficient than VMs.
+3.5. The Filesystem Chimera: Union File Systems and Copy-on-Write (CoW)
+A Docker image is composed of multiple read-only layers. When you create a container from an image, Docker adds a thin, writable layer on top. This is made possible by a Union File System (like OverlayFS). It can overlay multiple directories (the layers) and present them as a single, coherent filesystem.
+When a process inside the container wants to modify a file that exists in a lower, read-only layer, the Copy-on-Write (CoW) strategy is employed. Instead of modifying the original file (which is impossible), the file system driver copies the file up to the top writable layer, and the modifications are made to this copy. The original file in the image layer remains untouched.
+This mechanism is incredibly efficient:
+ * Storage Space: Multiple containers running from the same base image share the underlying read-only layers. If you run 10 containers from a 200MB Ubuntu image, they don't consume 10 * 200MB = 2GB. They share the 200MB and each have only a tiny writable layer on top.
+ * Instantiation Speed: Creating a container is nearly instantaneous because there is nothing to copy. Docker just needs to create the new writable layer.
+3.5.1. A Note on Your BTRFS Filesystem
+Given that your system utilizes btrfs, it is noteworthy that Docker can use a btrfs storage driver. btrfs has built-in support for snapshots and subvolumes, which align philosophically with Docker's layered model. The Docker btrfs driver leverages these native features. Each image layer becomes a btrfs subvolume, and creating a new layer or a container's writable layer is as simple as creating a btrfs snapshot, which is an extremely fast and space-efficient operation. This makes Docker particularly performant on a btrfs-formatted system like yours.
+Chapter 4: The Practitioner's Toolkit: Installation and Core Tenets on Arch Linux
+Let us now transition from the theoretical to the practical.
+4.1. Installation and Configuration
+On your Arch Linux system, installation is, as is the Arch way, straightforward.
+ * Install the Docker package:
+   sudo pacman -S docker
+
+ * Start and enable the Docker service: The Docker daemon (dockerd) must be running in the background to manage images and containers.
+   sudo systemctl start docker.service
+sudo systemctl enable docker.service # To start it automatically on boot
+
+ * Add your user to the docker group (Post-Installation Step): By default, communicating with the Docker daemon requires root privileges (hence the sudo prefix). To run docker commands as your regular user without sudo, you must add your user to the docker group.
+   sudo usermod -aG docker $USER
+
+   CRITICAL: You must log out and log back in (or start a new login session) for this group membership change to take effect. This grants your user significant power, as it is equivalent to passwordless root access to the Docker socket. On a single-user personal machine, this is a common convenience. In a multi-user environment, it is a security consideration.
+4.2. The Docker Daemon and Client
+Docker operates on a client-server model.
+ * The Docker daemon (dockerd) is the persistent background service you just started. It listens for API requests and manages all Docker objects (images, containers, volumes, networks).
+ * The Docker client (docker) is the command-line tool you use to interact with the daemon. When you type docker run..., the client sends a formatted API request to the daemon, which then does the actual work.
+4.3. The Foundational Trinity of Docker Commands
+4.3.1. docker build: From Blueprint to Image
+This command builds an image from a Dockerfile.
+Let's create a trivial example. Make a new directory ~/myapp and create a file inside it named Dockerfile with the following content:
+# Use the official Alpine Linux image as a base. Alpine is very small.
+FROM alpine:latest
+
+# Define the command to run when a container is started from this image.
+CMD ["echo", "Salutations from within the container!"]
+
+Now, from within the ~/myapp directory, run the build command:
+# The -t flag "tags" (names) the image as "my-first-image"
+# The . at the end specifies the build context (the current directory)
+docker build -t my-first-image .
+
+Docker will execute the steps in your Dockerfile, downloading the alpine image if necessary, and create a new image named my-first-image.
+4.3.2. docker run: From Image to Living Container
+This is the workhorse command. It creates and starts a container from an image.
+Using the image we just built:
+docker run my-first-image
+
+You will see the output: Salutations from within the container!. The container started, executed its CMD, and then exited.
+Here are some indispensable docker run flags:
+ * -it (--interactive and --tty): Connects your terminal to the container's terminal, allowing you to interact with it. Essential for running a shell inside a container.
+ * -d (--detach): Runs the container in the background (detached mode) and prints the container ID.
+ * --rm: Automatically removes the container's writable filesystem layer when it exits. Perfect for temporary tasks.
+ * -p or --publish: Publishes a container's port to the host. For example, -p 8080:80 maps port 8080 on your laptop to port 80 inside the container.
+ * -v or --volume: Mounts a host directory or a Docker volume into the container.
+ * --name: Assigns a human-readable name to your container (e.g., --name my-web-server).
+4.3.3. docker pull & docker push: Interacting with the Registry
+ * docker pull <image_name>: Explicitly downloads an image from a registry (Docker Hub by default). docker run does this automatically if the image is not found locally.
+   docker pull debian:stable-slim
+
+ * docker push <image_name>: Uploads your locally built image to a registry. This requires you to be logged in (docker login) and have an account.
+Chapter 5: Quotidian Use Cases for the Arch Linux Postulant
+How can you, a discerning Arch user, leverage this technology on your laptop? The possibilities are legion.
+5.1. Scenario 1: The Pristine, Isolated Development Environment
+Imagine you want to develop a new project in Python, but you do not want to pollute your pristine Arch installation with a slew of Python packages via pip. You can create a self-contained development environment in Docker.
+Create a Dockerfile:
+# Start from the official Python 3.11 image
+FROM python:3.11-slim
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the requirements file into the container
+COPY requirements.txt .
+
+# Install the Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application code
+COPY . .
+
+# Command to run the application
+CMD ["python", "./your_app.py"]
+
+Now, you can build this image and run your application inside it. Your Arch system remains completely untouched by pip packages. When you are done with the project, you simply delete the image and container, leaving no trace.
+5.2. Scenario 2: The Art of Ephemeral Software Experimentation
+There is a new command-line tool you want to try, but you are hesitant to install it via pacman or build it from the AUR, as it might pull in dozens of dependencies. Docker is the perfect solution for this "software tourism."
+Want to try redis, an in-memory database?
+# Run a redis container, name it "temp-redis", and use --rm so it's deleted on exit.
+# The -it flag lets you interact with the redis-cli tool.
+docker run -it --rm --name temp-redis redis:latest redis-cli
+
+This command downloads the official redis image and immediately drops you into the Redis command-line interface. You can experiment to your heart's content. When you type exit, the container stops and is automatically removed. Your system is exactly as it was before. No installation, no configuration, no cleanup.
+5.3. Scenario 3: Encapsulating GUI Applications
+This is a more advanced but incredibly powerful use case. You can run graphical applications inside a Docker container. This can be useful for security (isolating a web browser from your main system) or compatibility (running an old application that requires specific old libraries).
+The mechanism involves sharing the host's X11 socket with the container. Given you use Hyprland (Wayland), you will likely be running X applications through XWayland. The principle remains similar.
+To run Firefox in a container:
+# This is a complex command, let's break it down.
+docker run -it --rm \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  --name isolated-firefox \
+  jess/firefox
+
+ * -e DISPLAY=$DISPLAY: This passes your host's DISPLAY environment variable into the container, telling the application where to find the X server.
+ * -v /tmp/.X11-unix:/tmp/.X11-unix: This bind-mounts the X11 socket from your host into the container, allowing the containerized application to communicate with your X server (or XWayland).
+A Firefox window will appear on your Hyprland desktop, but it is running in a sandboxed container, completely isolated from your home directory and system files.
+5.4. Scenario 4: The Self-Hosting Aficionado's Sanctum Sanctorum
+This is where you can truly get your money's worth. Your laptop, with its powerful CPU and ample RAM, can serve as a personal server for a multitude of services. Docker makes managing these services trivial.
+ * Media Server: Run a Jellyfin or Plex container to organize and stream your media.
+ * Password Manager: Run a Vaultwarden (a Bitwarden-compatible server) container for a self-hosted password management solution.
+ * Ad-Blocker: Run a Pi-hole container to block ads network-wide for all devices on your home network.
+ * Note Taking: Run a Joplin Server container to sync your notes across devices.
+For each of these, you would typically docker run the official image, using -p flags to expose the necessary ports and -v flags to mount directories from your host for persistent data storage (e.g., storing the media files for Jellyfin or the database for Vaultwarden). This leads us to the next critical topics.
+Chapter 6: Advanced Docker Cartography: Networking and Volumes
+6.1. The Docker Networking Model
+When you install Docker, it creates several virtual networks on your host. You can see them with docker network ls. The most common types are:
+6.1.1. bridge (Default)
+This is the default network for containers. Docker creates a virtual network bridge (often named docker0) on your host. Each container connected to this network gets a private IP address from an internal range (e.g., 172.17.0.0/16). Docker manages NAT (Network Address Translation) so that these containers can access the outside world. To access a service inside a container from the host or the outside world, you must explicitly publish a port using the -p flag.
+6.1.2. host
+Using --network host tells Docker to not create a network namespace for the container. The container will share the host's network stack directly. A process inside the container listening on port 80 will be listening directly on your laptop's port 80. This offers higher performance but sacrifices the network isolation that is a key benefit of containerization.
+6.1.3. none
+Using --network none places the container in its own network namespace but does not configure any network interfaces within it, aside from a localhost loopback device. The container is completely isolated from any network.
+6.2. The Imperative of Data Persistence: Volumes
+The Copy-on-Write filesystem of a container is ephemeral. If you run a database in a container and write data to it, that data is stored in the container's top writable layer. If you then remove the container (docker rm), that data is gone forever. This is unacceptable for any stateful application.
+The solution is to store persistent data outside the container, using Volumes or Bind Mounts.
+6.2.1. Volumes vs. Bind Mounts: A Critical Distinction
+ * Bind Mounts: You map a specific directory or file from your host machine into the container. For example, -v /path/on/my/arch/host:/path/inside/container. You have full control over the host path. This is useful for providing configuration files or development source code to a container.
+ * Volumes: You let Docker manage the storage. When you create a volume, Docker creates a directory for it in a dedicated area on your host's filesystem (typically /var/lib/docker/volumes/). You refer to it by name (e.g., -v my-db-data:/var/lib/postgresql/data).
+Why prefer volumes for application data?
+ * Abstraction: You don't need to worry about the specific filesystem structure of the host. The data is managed by Docker.
+ * Portability: Docker Compose files and other definitions can refer to volumes by name, making them more portable between different host machines.
+ * Tooling: Docker provides commands to manage volumes (docker volume create, ls, inspect, rm).
+ * Performance: On some platforms, volumes can offer performance benefits, especially with specific storage drivers.
+Rule of thumb: Use bind mounts for code and config files you edit on the host. Use volumes for all application-generated data that needs to persist, like databases, user uploads, etc.
+6.2.2. Managing Docker Volumes
+# Create a named volume
+docker volume create my-precious-data
+
+# List all volumes
+docker volume ls
+
+# Inspect a volume to see where it's stored on the host
+docker volume inspect my-precious-data
+
+# Remove a volume (BE CAREFUL, THIS DELETES THE DATA)
+docker volume rm my-precious-data
+
+# Remove all unused volumes (dangling volumes not attached to any container)
+docker volume prune
+
+Chapter 7: The Docker Compose Symphony: Orchestrating Multi-Container Applications
+Running a single container is useful, but most real-world applications are composed of multiple services that need to work together. For instance, a WordPress blog requires a web server (running the WordPress PHP code) and a database server (like MariaDB or MySQL).
+Managing the docker run commands for each, ensuring they can communicate with each other on a shared network, and defining all their volumes and ports manually can become exceedingly tedious and error-prone.
+Enter Docker Compose. It is a tool for defining and running multi-container Docker applications.
+7.1. The Rationale for Docker Compose
+Docker Compose allows you to use a single YAML file (by convention, docker-compose.yml) to configure all of your application's services. With a single command, you can create and start all the services from your configuration. It handles the creation of a dedicated network for your services, allowing them to discover and communicate with each other simply by using their service names.
+Installation on Arch:
+sudo pacman -S docker-compose
+
+7.2. The docker-compose.yml File: A Declarative Manifest
+The YAML file is declarative. You describe the desired end state of your application, and Compose figures out how to get there. The file defines services, networks, and volumes.
+7.3. A Practical Example: WordPress with a MariaDB Database
+Create a directory ~/my-wordpress and create a docker-compose.yml file inside it with the following content:
+# Specify the Compose file version
+version: '3.8'
+
+# Define the services (containers) that make up the application
+services:
+  # The database service
+  db:
+    image: mariadb:10.6
+    command: '--default-authentication-plugin=mysql_native_password'
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: some_incredibly_strong_password
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: another_strong_password
+
+  # The WordPress service
+  wordpress:
+    # depends_on ensures the db service is started before the wordpress service
+    depends_on:
+      - db
+    image: wordpress:latest
+    ports:
+      # Map port 8080 on your laptop to port 80 in the container
+      - "8080:80"
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db:3306 # 'db' is the service name of our database
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: another_strong_password
+      WORDPRESS_DB_NAME: wordpress
+
+# Define the named volume for persistent database storage
+volumes:
+  db_data:
+
+7.4. Core docker-compose Commands
+Navigate to the ~/my-wordpress directory in your terminal and run these commands:
+ * docker-compose up: This command reads the docker-compose.yml file, builds or pulls the necessary images, and creates and starts all the defined services. Add the -d flag (docker-compose up -d) to run them in the background.
+ * docker-compose down: This stops and removes the containers, networks, and (optionally, with the -v flag) the volumes defined in the file. It is the perfect cleanup command.
+ * docker-compose ps: Lists the running containers managed by this Compose file.
+ * docker-compose logs: Shows the aggregated logs from all services. You can view logs for a specific service with docker-compose logs <service_name>.
+With that one file and one command (docker-compose up -d), you have a fully functional, multi-container WordPress installation running. You can access it in your browser at http://localhost:8080. The database data will be safely stored in the db_data volume, surviving container restarts and recreations.
+Chapter 8: Conclusion: A Synopsis and Philosophical Coda
+We have journeyed from the conceptual genesis of containerization to its concrete implementation on an Arch Linux workstation. You now understand that Docker is not magic, but rather a masterful orchestration of Linux kernel primitives—namespaces for isolation and cgroups for resource control—that enables a lightweight, portable, and efficient alternative to traditional virtual machines.
+For the quotidian user, Docker is a passport to a world of software without commitment. It is the ultimate sandbox, allowing you to experiment, develop, and deploy applications in clean, reproducible, and disposable environments. Your meticulously curated Arch Linux system need never be sullied by the detritus of experimental installations again.
+For the aspiring power user and self-hoster, Docker, particularly when wielded in concert with Docker Compose, is a paradigm-shifting tool for systems administration. It transforms the complex art of managing multi-service applications into the declarative science of writing a single configuration file. It is the key to unlocking the full potential of your hardware, allowing you to run a personal cloud of services with unprecedented ease and robustness.
+The mastery of Docker is, in essence, the mastery of modern software logistics. It is the acquisition of a mental model that prioritizes modularity, immutability, and declarative infrastructure. By internalizing these principles, you are not merely learning a tool; you are aligning yourself with the fundamental trajectory of contemporary software engineering and operations. The journey has just begun, but you are now equipped with the map, the compass, and the foundational knowledge to explore the vast and powerful continent of containerization. You are well and truly on your way.

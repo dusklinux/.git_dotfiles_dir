@@ -1,0 +1,86 @@
+{
+    "$schema": "/etc/xdg/swaync/configSchema.json",
+    "positionX": "left",
+    "positionY": "bottom",
+    "fit-to-screen": true,
+    "layer": "overlay",
+    "control-center-layer": "top",
+    "layer-shell": true,
+    "cssPriority": "user",
+    "control-center-margin-top": 0,
+    "control-center-margin-bottom": 0,
+    "control-center-margin-right": 0,
+    "control-center-margin-left": 5,
+    "notification-window-width": 350,
+    "control-center-width": 300,
+    "hide-on-action": false,
+    "script-fail-notify": true,
+    "ignore-gtk-theme": true,
+    "widgets": [
+        "title",
+        "dnd",
+        "buttons-grid",
+        "volume",
+        "backlight",
+        "notifications"
+    ],
+    "widget-config": {
+        "title": {
+            "clear-all-button": true,
+            "button-text": "Clear"
+        },
+        "dnd": {
+            "label": ""
+        },
+        "volume": {
+            "label": ""
+        },
+        "backlight": {
+            "label": ""
+        },
+        "buttons-grid": {
+            "actions": [
+                {
+                    "label": "󰡬",
+                    "command": "bash $HOME/user_scripts/swaync/hyprsunset_slider.sh"
+                },
+                {
+                    "label": "",
+                    "command": "kitty -- bash $HOME/user_scripts/network_manager/nmcli_wifi.sh"
+                },
+                {
+                    "label": "󰂯",
+                    "command": "blueman-manager"
+                },
+                {
+                    "label": "",
+                    "command": "pavucontrol"
+                },
+                {
+                    "label": "",
+                    "command": "bash $HOME/user_scripts/waypaper/swww_change_wallpaper.sh"
+                },
+                {
+                    "label": "󰓅",
+                    "command": "kitty -- bash $HOME/user_scripts/performance/services_and_process_terminator.sh"
+                },
+                {
+                    "label": "",
+                    "command": "hyprlock -q"
+                },
+                {
+                    "label": "󰤄",
+                    "command": "systemctl suspend"
+                },
+                {
+                    "label": "",
+                    "command": "systemctl reboot"
+                },
+                {
+                    "label": "⏻",
+                    "command": "systemctl poweroff"
+                }
+            ]
+        }
+    }
+}

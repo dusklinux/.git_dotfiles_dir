@@ -1,0 +1,51 @@
+first downlaod a gguf model 
+
+import it into ollama with a modelfile 
+
+only have the FROM path in the model file and no parameters or templates
+
+FROM /mnt/media/Documents/Lmstudiodownlaods
+
+start ollama service
+sudo systemctl start ollama
+
+start the ollama server
+ollama serve
+
+create the model and import import the gguf with the help of the modelfile you just created, you can name the modelfile anything. just don't have an extention on it. 
+
+ollama create <anyname> -f /path/to/the/<modelfile>
+
+once sucessfully imported 
+ollama list 
+
+then 
+go to the hugging face model page and then go to the files section where all the diffrent quantized models are listed and then click on the one you already downlaoded eg qwen3_Q4_K_S and then there's an option on the page to "Use this model" click the drop down menu on it and then select ollama under local apps section, you'll then be provided with the ollama link to run the model,eg
+
+MAKE SURE TO SELECT THE RIGHT QUANTIZIZTION IN THE URL OR IT'LL DOWNLAOD THE WHOLE THING AGAIN. IT DOESN'T SELCT TEH RIGHT ONE AUTOMATICALLY
+
+ollama run hf.co/unsloth/DeepSeek-R1-0528-Qwen3-8B-GGUF:Q4_K_M
+
+and then just run this url whitin your ollama terminal. this will allow you to download just the parameters templates to create a new modelfile for the exiisting/already imported model.
+
+then check the name of the newly listed model with 
+ollama list
+
+ after it does this, export the perfect model file for the model to any directory with 
+
+ollama show --modelfile <new model name from (ollama list)> > Downloads/perfectmodelfileforqwen3 
+
+after the model file has exported sucessfully, check the contents of the model file with > nvim Downloads/<nameyougaveit> 
+
+then to rename the long random model list name. delete both the models from ollama list by 
+ollama rm <ollama_list_name> 
+
+then when both of these have been removed, import the model once again with the perfect template but make sure to point the path to the already downlaoded gguf model by changing just the FROM line and then save it
+
+FROM /mnt/path/to/gguf
+
+then back to ollama to import it
+ollama create qwen -f /path/to/the/<perfectmodelfile>
+
+
+THE PROCUDURE IS TEH SAME IF THERE HAS BEEN AND UPDATE TO ANY OF TEH PARAMETERS ON THE HUGGFACE PAGE FOR A MODEL. as long as the sha256sum is teh same for the modelfile. you can folllow the above steps to download just the modelfile

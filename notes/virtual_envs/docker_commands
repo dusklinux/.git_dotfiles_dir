@@ -1,0 +1,72 @@
+to download a docker image
+docker pull [image_name]
+
+to list all downlaoded images 
+docker images
+
+to run an image 
+docker run [options] [image_name] 
+
+curretnly running containers
+docker ps
+
+shows all containers 
+docker ps -a
+
+start a container
+docker start [container_id/name]
+
+stop a container
+docker stop [container_id/name]
+
+stop and starts a container
+docker restart [container_id/name]
+
+perminantely removing a stopped container
+docker rm [container_id/name]
+
+perminatnley removing a running container with the force flag
+docker rm -f [container_id/name]
+
+perminnantely removing an image
+docker rmi [image_id/name]
+
+to show the logs for a contianer
+docker logs [container_id/name]
+
+to show the logs for a continer in a follow/ live feed
+docker logs -f [container_id/name]
+
+run a command inside an already running container ((-i interactive, -t pseudo-TTY))
+docker exec -it [id] [command]
+
+
+docker run options
+-d #Starts and lets it run in the background. Your terminal is freed up.
+
+-it #(interactive + TTY): Starts and immediately let's you use the terminal
+
+-p [host_port]:[container_port] (publish)  #Connects the car's radio to an external speaker. It maps a port on your computer (the host) to a port inside the container. Essential for accessing web servers or APIs running in the container.
+
+--rm #Self-destruct feature. The container will be automatically removed (rm) as soon as it stops. Great for temporary tasks
+
+--name [your_name] #Gives your container a custom name instead of a random one like quirky_einstein
+
+-v [host_path]:[container_path] (volume) #It mounts a directory from your computer into the container's filesystem. This is how you make data persistent and share files between your host and the container.
+
+docker compose
+
+Reads the docker-compose.yml file, creates a dedicated network, pulls any missing images, and starts all the defined services in the correct order. Use docker-compose up -d to run it in the background.
+docker-compose up 
+
+Stops and removes all the containers, networks, and (optionally, with -v) the volumes created by up. It cleans up everything perfectly
+docker-compose down
+
+Lists the status of the services (containers) in your composition.
+docker-compose ps
+
+Shows the logs from all services at once, color-coded. Incredibly useful. docker-compose logs -f backend would follow the logs for just the backend service
+docker-compose logs
+
+If one of your services points to a Dockerfile instead of a pre-built image, this command will build (or rebuild) that custom image
+docker-compose build

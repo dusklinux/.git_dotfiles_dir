@@ -1,0 +1,45 @@
+Enable NetworkManager service to start on boot
+sudo systemctl enable NetworkManager.service
+
+  Start NetworkManager service immediately
+sudo systemctl start NetworkManager.service
+
+  to show all availabe devices ie wifi/ethernet/ usb tethering etc.
+nmcli device 
+
+  Scan for available Wi-Fi networks
+nmcli device wifi list
+
+   Connect to your desired Wi-Fi network
+nmcli device wifi connect <YOUR_WIFI_SSID> password <YOUR_WIFI_PASSWORD>
+
+  to show currently connected device along with remembered devices
+nmcli connection show
+
+  to delete a remembered/connected device
+nmcli connection delete "ssid"
+  
+  to connect to a remembered device
+nmcli connection up "ssid"
+
+
+  causes uncecessory boot time delay and is not required. so disable. 
+systemctl disable NetworkManager-wait-online.service
+
+
+
+
+
+
+  connman wifi connect
+systemctl status connman.service
+systemctl start connman.service
+ip link show
+iw dev
+connmanctl
+	enable wifi
+	scan wifi
+	services
+	agent on
+	connect <service_id .. long string, not ssid like Near but the string next to it>
+	state

@@ -1,0 +1,114 @@
+	asusctl fan curve
+	
+	for perfomrnace profile - GPU fan
+sudo asusctl fan-curve -E true -m performance -f gpu -D 30c:20%,55c:40%,59c:45%,62c:50%,65c:57%,67c:60%,70c:70%,72c:85% 
+
+	for perfomance profile, cpu fan
+sudo asusctl fan-curve -E true -m performance -f cpu -D 30c:20%,55c:40%,59c:45%,62c:50%,65c:57%,67c:60%,70c:70%,72c:85% 
+
+
+	MAXXING OUT gpu
+sudo asusctl fan-curve -E true -m performance -f gpu -D 30c:100%,55c:100%,59c:100%,62c:100%,65c:100%,67c:100%,70c:100%,72c:100% 
+
+	MAXXING OUT cpu
+sudo asusctl fan-curve -E true -m performance -f cpu -D 30c:100%,55c:100%,59c:100%,62c:100%,65c:100%,67c:100%,70c:100%,72c:100% 
+
+	active profile list
+sudo asusctl profile -p   
+
+
+	COLOR KEYBAORD
+
+FAV- Burnt Orange
+sudo asusctl aura static -c cc5500
+
+
+Pure White
+sudo asusctl aura static -c ffffff
+
+Crimson Red
+sudo asusctl aura static -c dc143c
+
+Blood Red
+sudo asusctl aura static -c 880808
+
+Lime Green
+sudo asusctl aura static -c 00ff00
+
+Forest Green
+sudo asusctl aura static -c 228b22
+
+Royal Blue
+sudo asusctl aura static -c 4169e1
+
+Deep Blue (Pure Blue)
+sudo asusctl aura static -c 0000ff
+
+Electric Yellow
+sudo asusctl aura static -c ffff00
+
+Gold
+sudo asusctl aura static -c ffd700
+
+Cyberpunk Cyan
+sudo asusctl aura static -c 00ffff
+
+Turquoise
+sudo asusctl aura static -c 40e0d0
+
+Shocking Magenta (Fuchsia)
+sudo asusctl aura static -c ff00ff
+
+Hot Pink
+sudo asusctl aura static -c ff69b4
+
+Vibrant Orange
+sudo asusctl aura static -c ffa500
+
+Burnt Orange
+sudo asusctl aura static -c cc5500
+
+Royal Purple
+sudo asusctl aura static -c 800080
+
+Indigo
+sudo asusctl aura static -c 4b0082
+
+Violet
+sudo asusctl aura static -c ee82ee
+
+Lavender
+sudo asusctl aura static -c e6e6fa
+
+Sky Blue
+sudo asusctl aura static -c 87ceeb
+
+Steel Blue
+sudo asusctl aura static -c 4682b4
+
+Navy Blue
+sudo asusctl aura static -c 000080
+
+Maroon
+sudo asusctl aura static -c 800000
+
+Teal
+sudo asusctl aura static -c 008080
+
+Coral
+sudo asusctl aura static -c ff7f50
+
+Mint Green
+sudo asusctl aura static -c 98ff98
+
+Chartreuse
+sudo asusctl aura static -c 7fff00
+
+Plum
+sudo asusctl aura static -c dda0dd
+
+Silver
+sudo asusctl aura static -c c0c0c0
+
+Slate Gray
+sudo asusctl aura static -c 708090

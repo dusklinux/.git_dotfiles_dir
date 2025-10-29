@@ -1,0 +1,253 @@
+/*
+ * ~/.config/waybar/style.css
+ * Radically simplified color palette — manual editing ready.
+ */
+
+/* --- MINIMAL COLOR PALETTE --- */
+@import url("../../.config/theming/current/waybar.css");
+
+/*
+ * ===================================================================
+ * I. USER CONFIGURATION - PERSONALIZE YOUR WAYBAR HERE
+ * ===================================================================
+ */
+
+* {
+    /* VARIABLE 1: Font Size. Affects the natural width of text content. */
+    font-size: 10px;
+}
+
+#workspaces button,
+#workspaces, #clock, #battery, #pulseaudio, #network, #cpu, #memory,
+#backlight, #tray, #temperature, #custom-notification, #custom-inhibit-suspend, #custom-power,
+#custom-network-unit, #custom-network-upload, #custom-network-download {
+    /* VARIABLE 2: Module Horizontal Padding. This is the primary control for the bar's width. */
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+
+/*
+ * ===================================================================
+ * II. GLOBAL STYLES & LAYOUT (Core Structure)
+ * ===================================================================
+ */
+
+* {
+    /* The font-size is now controlled in the SIZING CONFIGURATION section above */
+    font-family: "JetBrainsMono Nerd Font", "Noto Sans", sans-serif;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+    animation: none; /* Reset all animations by default */
+    transition-property: background-color, color;
+    transition-duration: 0.0s;
+    transition-timing-function: ease-in-out;
+}
+
+window#waybar {
+    background: @background;
+    color: @foreground;
+    margin: 1px;
+    border-radius: 4px;
+    padding: 5px 0; /* Vertical padding for the top/bottom of the bar */
+}
+
+window#waybar.hidden {
+    opacity: 0.5;
+}
+
+/* --- Tooltip Style --- */
+tooltip {
+    background: @background;
+    color: @foreground;
+    border: 1px solid alpha(@foreground, 0.2);
+    border-radius: 6px;
+}
+
+tooltip label {
+    padding: 8px;
+    color: @foreground;
+}
+
+/*
+ * ===================================================================
+ * III. MODULE-SPECIFIC STYLES
+ * ===================================================================
+ */
+
+/* --- Default Module Style --- */
+#workspaces,
+#clock,
+#battery,
+#pulseaudio,
+#network,
+#cpu,
+#temperature,
+#memory,
+#backlight,
+#tray,
+#custom-notification,
+#custom-power,
+#custom-inhibit-suspend,
+#custom-network-unit,
+#custom-network-upload,
+#custom-network-download {
+    /* Horizontal padding is now controlled in the SIZING CONFIGURATION section */
+    margin: 4px 3px; /* 6px vertical, 3px horizontal margin between modules */
+    padding-top: 0;
+    padding-bottom: 0;
+    border-radius: 6px;
+    background-color: transparent;
+}
+
+/* --- Custom Override for Network Module Spacing --- */
+#custom-network-unit,
+#custom-network-upload,
+#custom-network-download {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+
+/* --- Default Module Hover Style --- */
+#clock:hover,
+#battery:hover,
+#pulseaudio:hover,
+#network:hover,
+#cpu:hover,
+#memory:hover,
+#backlight:hover,
+#custom-notification:hover,
+#custom-power:hover,
+#temperature:hover,
+#custom-inhibit-suspend:hover,
+#custom-network-unit:hover,
+#custom-network-upload:hover,
+#custom-network-download:hover {
+    background-color: alpha(@foreground, 0.2);
+}
+
+/* --- Workspaces --- */
+#workspaces {
+    background-color: alpha(@foreground, 0.1);
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+#workspaces button {
+    /* Horizontal padding is now controlled in the SIZING CONFIGURATION section */
+    margin: 4px 3px;
+    padding-top: 0;
+    padding-bottom: 0;
+    color: @foreground;
+    background-color: transparent;
+    border-radius: 6px;
+}
+
+#workspaces button:hover {
+    background-color: alpha(@foreground, 0.2);
+}
+
+#workspaces button.focused,
+#workspaces button.active {
+    background-color: @accent;
+    color: @background;
+}
+
+#workspaces button.urgent {
+    background-color: @critical;
+    color: @background;
+    animation: blink-urgent 1.5s steps(1, end) infinite;
+}
+
+/* --- Clock --- */
+#clock {
+    font-weight: bold;
+    color: @foreground;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+/* --- Battery --- */
+#battery { color: @foreground; }
+#battery.warning { color: @critical; }
+#battery.critical {
+    color: @critical;
+    animation: blink-critical 1s steps(1, end) infinite;
+}
+#battery.charging, #battery.plugged { color: @foreground; }
+
+/* --- Pulseaudio --- */
+#pulseaudio { color: @foreground; }
+#pulseaudio.muted { color: @critical; }
+
+/* --- Network --- */
+#network { color: @foreground; }
+#network.disconnected { color: @critical; }
+
+/* --- Temperature --- */
+#temperature { color: @foreground; }
+#temperature.critical { color: @critical; }
+
+/* --- CPU / Memory / Backlight --- */
+#cpu { color: @foreground; }
+#memory { color: @foreground; }
+#memory.critical { color: @critical; }
+#backlight { color: @foreground; }
+
+/* --- System Tray --- */
+#tray {}
+
+/* --- Inhibit Suspend --- */
+#custom-inhibit-suspend.enabled { color: @foreground; }
+#custom-inhibit-suspend.disabled { color: @critical; }
+
+/* --- Custom Modules --- */
+#custom-power {
+    color: @critical;
+    margin-top: 0px;
+}
+
+#custom-notification.dnd-none { color: @foreground; }
+#custom-notification.dnd-notification,
+#custom-notification.dnd-all { color: @critical; }
+#custom-notification.notification {
+    color: @foreground;
+    animation: blink-info 1s steps(1, end) infinite;
+    margin-top: 2px;
+    margin-bottom: 0px;
+}
+
+/* --- Custom Network Speed Indicator --- */
+#custom-network-unit,
+#custom-network-upload,
+#custom-network-download,
+#custom-network-unit.network-kb,
+#custom-network-upload.network-kb,
+#custom-network-download.network-kb {
+    color: @foreground;
+}
+
+#custom-network-unit.network-mb,
+#custom-network-upload.network-mb,
+#custom-network-download.network-mb {
+    color: @critical;
+}
+
+
+/*
+ * ===================================================================
+ * IV. ANIMATIONS
+ * ===================================================================
+ */
+
+@keyframes blink-critical { to { color: @foreground; } }
+
+@keyframes blink-urgent {
+    to { background-color: @accent; color: @background; }
+}
+
+@keyframes blink-info {
+    to { color: @foreground; opacity: 0.5; }
+}

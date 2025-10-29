@@ -1,0 +1,14 @@
+first create a partition and mark it as linux swap under type or flag
+
+ then format it as swap
+sudo mkswap /dev/xyz
+
+	enable the swap partition and for the system to start using it immidiately
+sudo swapon /dev/xyz
+
+	get the uuid of the swap parition
+sudo blkid UUID -o value /dev/xyz
+
+	make the fstab entry
+sudo nvim /etc/fstab
+UUID=xxxxx		none	swap	defaults 0 0

@@ -1,0 +1,14 @@
+add repo
+sudo dnf config-manager addrepo --from-repofile=https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo
+
+install 
+sudo dnf install cloudflare-warp
+
+register
+warp-cli registration new
+
+connect 
+warp-cli connect
+
+disconnect
+warp-cli disconnect

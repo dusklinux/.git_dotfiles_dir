@@ -1,0 +1,3 @@
+edit this line in $HOME/.config/nvim/lua/chadrc.lua
+
+	theme = "chadracula-evondev",

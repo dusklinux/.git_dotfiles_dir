@@ -1,0 +1,8 @@
+@define-color text-color #2C3639;
+@define-color background-color #DCD7C9;
+@define-color background-alt-color #2C3639;
+@define-color accent-color #4F200D;
+@define-color urgent-color #3F4E4F;
+
+/* Derived colors (you can also customize these) */
+@define-color hover-color alpha(@accent-color, 0.4);

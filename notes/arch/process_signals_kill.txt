@@ -1,0 +1,131 @@
+Have you ever needed to stop a stuck process, pause a background job, or gracefully exit your script when someone hits Ctrl+C? That’s where Linux process signals come in.
+
+Signals let you communicate with running processes. You can tell them to stop, pause, resume, or clean up before exiting. In this guide, we’ll walk through the most useful ones—what they do and how to use them.
+Reloading a Process Configuration
+
+Sometimes, you don’t want to restart a process—you just want it to reload its configuration. That’s what the SIGHUP signal is for.
+
+You can send it using:
+
+kill -1 <PID>
+
+It’s commonly used with daemons like nginx or sshd after updating their config files.
+Interrupting a Process
+
+When you press Ctrl+C in the terminal, you’re sending a SIGINT (Interrupt) signal. It tells the process to stop—ideally, in a clean and graceful way.
+
+To send it manually:
+
+kill -2 <PID>
+
+This is useful when you need to interrupt a process from another shell or script.
+Generating a Core Dump and Exiting
+
+If you need a process to not only exit but also leave behind a core dump for debugging, use SIGQUIT. This signal is usually triggered by pressing Ctrl+\.
+
+You can also send it programmatically:
+
+kill -3 <PID>
+
+This is often used in debugging scenarios to analyze what went wrong in a running process.
+Forcefully Killing a Process
+
+Sometimes a process refuses to die. When that happens, you need SIGKILL. This signal cannot be caught or ignored—the process is terminated immediately.
+
+Use it like this:
+
+kill -9 <PID>
+
+Be careful though. This method doesn't allow the process to clean up resources, which might lead to data loss or corruption.
+Graceful Termination
+
+SIGTERM is the default signal sent by the kill command. It asks the process to shut down on its own terms—saving work, closing files, and exiting gracefully.
+
+kill -15 <PID>
+
+Use this before reaching for SIGKILL. It’s the polite way to end a process.
+Pausing a Process
+
+If you want to temporarily pause a running process, send it the SIGSTOP signal. This freezes the process in place.
+
+kill -STOP <PID>
+
+The process won’t consume any CPU until resumed. This signal can’t be caught or ignored, making it a reliable way to suspend execution.
+Resuming a Paused Process
+
+To resume a process that was paused with SIGSTOP, send it SIGCONT.
+
+kill -CONT <PID>
+
+This tells the process to pick up where it left off. It’s useful in debugging, scripting, or when managing background jobs interactively.
+Managing Foreground Jobs
+
+When running commands in a terminal, you can control foreground processes using simple key combinations:
+
+Ctrl+C   # Send SIGINT to stop the process
+Ctrl+Z   # Send SIGTSTP to pause the process
+fg       # Resume the process in the foreground
+bg       # Resume the process in the background
+
+This is especially helpful when you’re juggling multiple terminal jobs.
+Viewing Available Signals
+
+If you ever need to see the full list of signals supported on your system, run:
+
+kill -l
+
+This shows the signal names and their corresponding numbers.
+Checking If a Process Exists
+
+Sometimes you just want to verify that a process is running—without actually sending a signal. That’s where signal 0 comes in.
+
+kill -0 <PID>
+
+It doesn’t affect the process, but it returns success or failure depending on whether the process exists and can be signaled.
+Using User-Defined Signals
+
+Not all signals are predefined with strict behaviors like SIGKILL or SIGTERM. Some—like SIGUSR1 and SIGUSR2—are left up to the application developer to define.
+
+These signals are often used to trigger custom actions inside long-running processes or daemons without stopping them.
+
+Here’s how you send them:
+
+kill -USR1 <PID>
+kill -USR2 <PID>
+
+What these signals actually do depends entirely on the application. For example:
+
+    A backup daemon might use SIGUSR1 to start a manual backup.
+
+    A logging service might reload its configuration or rotate logs on SIGUSR2.
+
+    A monitoring script might dump its current status to a file when it receives SIGUSR1.
+
+You won’t always know what the signal does unless it’s documented, but when you’re working with tools like rsyslog, cron, nginx, or any custom-written daemon, it’s worth checking whether these hooks exist.
+Targeting Processes by Name with pkill
+
+If you don’t know the PID, or you want to target all processes with a specific name, pkill is a great tool.
+
+pkill -9 myprocess
+pkill -15 myprocess
+pkill -USR1 myprocess
+
+This sends the signal to all matching processes by name, instead of by ID.
+Killing All Instances with killall
+
+killall works similarly to pkill, but is sometimes more explicit in its intent. It sends the signal to all processes matching the name.
+
+killall -9 myprocess
+killall -HUP myprocess
+
+Use with caution, especially on multi-user systems where others might also be running the same process.
+Responding to Signals in Shell Scripts
+
+You can write scripts that respond to signals using the trap command. This allows you to handle cleanups when your script is interrupted or terminated.
+
+trap "echo 'Caught SIGINT'" SIGINT
+trap "echo 'Caught SIGTERM'; exit" SIGTERM
+
+The first line catches Ctrl+C events, and the second line ensures your script exits gracefully when killed.
+
+

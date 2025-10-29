@@ -1,0 +1,124 @@
+@import url("../../../../.config/theming/current/firefox.css");
+
+:root {
+  /* "toolbar": "rgb(12, 76, 125)", */
+  --toolbar-bgcolor: var(--theme-bg-toolbar) !important;
+  /* "toolbar_text": "rgb(255, 255, 255)", */
+  --toolbar-color: var(--theme-text) !important;
+  /* "frame": "rgb(7, 43, 71)", */
+  --lwt-accent-color: var(--theme-bg-frame) !important;
+  --lwt-accent-color-inactive: var(--theme-bg-frame) !important;
+  --toolbox-bgcolor: var(--theme-bg-frame) !important;
+  --toolbox-bgcolor-inactive: var(--theme-bg-frame) !important;
+  /* "tab_background_text": "rgb(255, 255, 255)", */
+  --lwt-text-color: var(--theme-text) !important;
+  /* "toolbar_field": "rgb(3, 18, 30)", (search bar) */
+  --toolbar-field-background-color: var(--theme-bg-frame) !important; /* CONSOLIDATED */
+  --toolbar-field-focus-background-color: var(--theme-bg-frame) !important; /* CONSOLIDATED */
+  /* "toolbar_field_text": "rgb(255, 255, 255)", (search text)*/
+  --toolbar-field-color: var(--theme-text) !important;
+  --toolbar-field-focus-color: var(--theme-text) !important;
+  /* "tab_line": "rgb(3, 18, 30)", */
+  --lwt-tab-line-color: var(--theme-bg-frame) !important; /* CONSOLIDATED */
+  /* "popup": "rgba(29, 29, 30, 0.99)", */
+  --arrowpanel-background: var(--popup-bg) !important;
+  /* "popup_text": "rgb(255, 255, 255)", */
+  --arrowpanel-color: var(--theme-text) !important;
+  /* "tab_loading": "rgb(3, 18, 30)" */
+  --tab-loading-fill: var(--theme-bg-frame) !important; /* CONSOLIDATED */
+  /* "button_background_active": "rgb(255, 86, 3)", */
+  --toolbarbutton-active-background: var(--theme-accent) !important;
+  /* "icons": "rgb(255, 255, 255)", */
+  --toolbarbutton-icon-fill: var(--theme-text) !important;
+  /* "ntp_text": "rgb(255, 255, 255)", */
+  --newtab-text-primary-color: var(--theme-text) !important;
+  /* "popup_highlight_text": "rgb(255, 255, 255)", */
+  --urlbarView-highlight-color: var(--theme-text) !important;
+  /* "sidebar_highlight_text": "rgb(255, 255, 255)", */
+  /* --urlbarView-highlight-color: rgb(255, 255, 255) !important; */ /* Original was commented out/duplicate */
+  /* "sidebar_text": "rgb(255, 255, 255)", */
+  --sidebar-text-color: var(--theme-text) !important;
+  /* Others*/
+  --tab-selected-textcolor: var(--theme-text) !important;
+  --tab-selected-bgcolor: var(--theme-bg-toolbar) !important;
+  --toolbar-field-border-color: var(--field-border) !important;
+  --button-background-color-hover: var(--theme-accent-hover) !important;
+  --button-background-color-active: var(--theme-accent-hover) !important;
+  --urlbarView-hover-background: var(--theme-accent-hover) !important;
+  --panel-separator-zap-gradient: linear-gradient(
+      90deg,
+      #9059ff 0%,
+      #ff4aa2 52.08%,
+      #ffbd4f 100%
+    ) !important;
+}
+/* Sidebar buttons hover */
+.button-background {
+  button:hover > & {
+    background-color: var(--theme-accent-hover) !important;
+  }
+}
+/* Buttons colors */
+#urlbar {
+  --urlbar-box-bgcolor: var(--theme-accent) !important;
+  --urlbar-box-focus-bgcolor: var(--theme-accent) !important;
+  --urlbar-box-hover-bgcolor: var(--theme-accent-hover) !important;
+}
+/* Round elements */
+:root {
+  --urlbar-icon-border-radius: 20px !important;
+}
+#urlbar-background,
+#urlbar {
+  border-radius: 20px !important;
+}
+.menupopup-arrowscrollbox {
+  border-radius: 16px !important;
+}
+/* Remove top space in the browser */
+.titlebar-spacer {
+  display: none !important;
+}
+/* Hide bookmark folder icon */
+.bookmark-item[container="true"] .toolbarbutton-icon {
+  display: none !important;
+}
+/* Line beneath bookmark folder icon */
+.bookmark-item[container="true"] {
+  border-bottom: 2px solid var(--theme-accent) !important;
+  border-bottom-right-radius: 0% !important;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 60px 90%, 0 100%);
+}
+/* Clean context menu /
+/ Remove Email Image/Video */
+#context-sendimage,
+#context-sendvideo {
+  display: none !important;
+}
+/* Remove Inspect Accessibility Properties */
+#context-inspect-a11y {
+  display: none !important;
+}
+/* Remove Print Selection */
+#context-print-selection {
+  display: none !important;
+}
+/* Remove Set Image as Desktop Background */
+#context-setDesktopBackground,
+#context-sep-setbackground {
+  display: none !important;
+}
+/* Remove Save Link to Pocket */
+#context-savelinktopocket,
+#context-pocket {
+  display: none !imporant;
+}
+/* Hide the main sidebar container */
+#sidebar-main {
+  display: none !important;
+}
+
+/* Also hide the sidebar header for a clean look */
+#sidebar-panel-header {
+  display: none !important;
+}

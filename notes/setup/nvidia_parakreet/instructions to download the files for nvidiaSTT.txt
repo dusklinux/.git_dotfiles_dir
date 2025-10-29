@@ -1,0 +1,32 @@
+mkdir -p /mnt/ramdisk/offline_asr_setup/python_packages
+mkdir -p /mnt/ramdisk/offline_asr_setup/nemo_models
+mkdir -p /mnt/ramdisk/offline_asr_setup/arch_packages
+--------------
+
+to get the python and python-pip pacman files and place them in there dedicated folders like python-pip and python
+
+sudo pacman -Sw python python-pip --cachedir /mnt/ramdisk/offline_asr_setup/arch_packages/xyz
+----------
+
+to downlaod pytorch for either the nvidia gpu or cpu use the appropriate command and put them in there forlders for orginizatianal purposes. nvidia_cuda_128 and cpu_only
+
+pip download torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 --resume-retries 5 --dest /mnt/ramdisk/offline_asr_setup/python_packages/xyz
+
+pip download torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --resume-retries 5 --dest /mnt/ramdisk/offline_asr_setup/python_packages/xyz
+---------------
+
+to download nemo for nvidia and put it in it's dedicated folder like NeMo
+
+pip download nemo_toolkit["asr"] --dest /mnt/ramdisk/offline_asr_setup/python_packages/xyz
+--------------
+to download cython and other additional dependencies for NeMo, place it in the NeMo folder
+
+pip download "Cython<3.1,>=0.29.34" "meson-python<0.16.0,>=0.15.0" cmake pdm-backend "patchelf>=0.11.0" --dest /mnt/ramdisk/offline_asr_setup/python_packages/xyz
+
+if you get an error with sentencepiece, it's because it's not installed, install it from the AUR
+
+paru -S sentencepiece
+--------------
+to downlaod the model parakreet nvidia model file and place it in the models folder. 
+
+https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2/tree/main

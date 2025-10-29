@@ -1,0 +1,218 @@
+/*
+ * ROFI THEME
+ * A clean, manually-configured theme.
+ *
+ * You can easily change the color scheme by editing the variables
+ * in the 'Colors' section below.
+ */
+
+configuration {
+    /* Modi (modes) */
+    modi:               "drun,run,clipboard:~/user_scripts/rofi/rofi_cliphist.sh";
+
+    /* Display & Font */
+    show-icons:         true;
+    icon-theme:         "Papirus-Dark";
+    font:               "JetBrainsMono Nerd Font 11";
+
+    /* Modi Display Text */
+    display-drun:       " Apps";
+    display-run:        " Run";
+    display-clipboard:  " Clipboard";
+
+    /* Keybindings */
+    kb-cancel:          "Escape";
+}
+
+/*
+ * =====================================================================
+ * Colors
+ * =====================================================================
+ * The color variables have been renamed to be self-explanatory.
+ */
+/* --- Importing the theme file ---- */
+
+@import "../../.config/theming/current/rofi.rasi"
+
+* {
+
+
+    /* --- Rofi Variable Assignments --- */
+    /* This section connects your palette to Rofi's internal states. */
+    transparent:    rgba(0, 0, 0, 0);
+
+    /* Base States */
+    background-color:   @transparent;
+    text-color:         @default-text;
+
+    /* Element States */
+    normal-background:          transparent;
+    normal-foreground:          @default-text;
+
+    selected-normal-background:     @highlight-background;
+    selected-normal-foreground:     @highlight-text;
+
+    /* For simplicity, 'active' and 'urgent' states will look the same as 'selected' */
+    active-background:          @highlight-background;
+    active-foreground:          @highlight-text;
+    urgent-background:          @highlight-background;
+    urgent-foreground:          @highlight-text;
+
+    alternate-normal-background:    transparent;
+    alternate-normal-foreground:    @default-text;
+    alternate-active-background:    @highlight-background;
+    alternate-active-foreground:    @highlight-text;
+    alternate-urgent-background:    @highlight-background;
+    alternate-urgent-foreground:    @highlight-text;
+
+    selected-active-background:     @highlight-background;
+    selected-active-foreground:     @highlight-text;
+    selected-urgent-background:     @highlight-background;
+    selected-urgent-foreground:     @highlight-text;
+}
+
+
+/*
+ * =====================================================================
+ * General Layout
+ * =====================================================================
+ */
+
+window {
+    /* Positioning & Sizing */
+    location:           center;
+    anchor:             center;
+    width:              40%;
+
+    /* Appearance */
+    background-color:   @window-background;
+    border:             2px;
+    border-radius:      12px;
+    border-color:       @default-text;
+    padding:            20px;
+}
+
+mainbox {
+    children:           [ inputbar, listview ];
+    spacing:            15px;
+    border:             0;
+    padding:            0;
+}
+
+
+/*
+ * =====================================================================
+ * Input Bar
+ * =====================================================================
+ */
+
+inputbar {
+    children:           [ prompt, entry ];
+    spacing:            10px;
+    padding:            12px;
+    border-radius:      8px;
+    background-color:   @input-bar-background;
+    text-color:         @input-bar-text;
+}
+
+prompt {
+    enabled:            true;
+    background-color:   inherit;
+    text-color:         inherit;
+}
+
+entry {
+    placeholder:        "Search...";
+    background-color:   inherit;
+    text-color:         inherit;
+}
+
+textbox-prompt-colon {
+    expand:             false;
+    str:                ":";
+    margin:             0px 0.3em 0em 0em;
+    text-color:         inherit;
+}
+
+
+/*
+ * =====================================================================
+ * List View
+ * =====================================================================
+ */
+
+listview {
+    columns:            1;
+    lines:              8;
+    cycle:              true;
+    scrollbar:          false;
+    spacing:            10px;
+    fixed-height:       0;
+    border:             0;
+}
+
+element {
+    padding:            10px 12px;
+    border-radius:      8px;
+    cursor:             pointer;
+    border:             0;
+}
+
+element-icon {
+    size:               1.5em;
+    vertical-align:     0.5;
+    margin:             0 15px 0 0;
+}
+
+element-text {
+    vertical-align:     0.5;
+    background-color:   inherit;
+    text-color:         inherit;
+}
+
+
+/*
+ * =====================================================================
+ * Element States
+ * =====================================================================
+ * Defines the appearance of list items based on their state.
+ */
+
+element.normal.normal {
+    background-color: @normal-background;
+    text-color:       @normal-foreground;
+}
+element.normal.urgent {
+    background-color: @urgent-background;
+    text-color:       @urgent-foreground;
+}
+element.normal.active {
+    background-color: @active-background;
+    text-color:       @active-foreground;
+}
+
+element.selected.normal {
+    background-color: @selected-normal-background;
+    text-color:       @selected-normal-foreground;
+}
+element.selected.urgent {
+    background-color: @selected-urgent-background;
+    text-color:       @selected-urgent-foreground;
+}
+element.selected.active {
+    background-color: @selected-active-background;
+    text-color:       @selected-active-foreground;
+}
+
+element.alternate.normal {
+    background-color: @alternate-normal-background;
+    text-color:       @alternate-normal-foreground;
+}
+element.alternate.urgent {
+    background-color: @alternate-urgent-background;
+    text-color:       @alternate-urgent-foreground;
+}
+element.alternate.active {
+    background-color: @alternate-active-background;
+    text-color:       @alternate-active-foreground;
+}

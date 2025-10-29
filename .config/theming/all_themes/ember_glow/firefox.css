@@ -1,0 +1,19 @@
+:root {
+  /*
+    This new variable set drives the entire theme.
+    1. --theme-text:   The main white for text and icons.
+    2. --theme-accent: The primary orange for highlights and active states.
+    3. --theme-bg-toolbar: The mid-blue for the main toolbar and selected tabs.
+    4. --theme-bg-frame: The darkest blue for the main frame, toolbox, and (now consolidated) search bar.
+  */
+  --theme-text: #FF5603;
+  --theme-accent: #232128; 
+  --theme-bg-toolbar: #E0AF68;
+  --theme-bg-frame: #0B192C; 
+
+  /* --- Derivative & Outlier Variables (Hex) --- */
+  --theme-accent-hover: #E0AF68; 
+  --popup-bg: #0b192c; 
+  --field-border: #ff7f11;
+}
+

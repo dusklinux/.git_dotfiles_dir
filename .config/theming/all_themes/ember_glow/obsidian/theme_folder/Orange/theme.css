@@ -1,0 +1,172 @@
+
+.theme-dark {
+
+  /* The accent color is used to draw attention to interactive elements, 
+  such as links and primary buttons*/
+  --accent-h: 30;
+  --accent-s: 61%;
+  --accent-l: 50%;
+
+ /* Backgrounds */
+  --background-primary: #0B192C;
+  --background-primary-alt: #101724;
+  --background-secondary: #101724;
+  --background-secondary-alt: #0B192C;
+  
+  /* All body text */
+  --text-normal: #cccccc;
+
+  /* Table styling */
+  --table-header-background: #101724;
+  --table-background: #101724;
+  --table-header-weight: bold;
+  --table-header-color: hsl(30, 61%, 50%);
+  --table-header-size: 24px;
+  --table-text-size: 18px;
+  --table-add-button-color: hsl(30, 61%, 50%);
+  --table-drag-handle-color: hsl(30, 61%, 50%);
+  --table-drag-handle-color-active: #FF6500;
+
+  /* Code blocks */
+  --code-background: #2A3D3C;
+  --code-normal: #FF6500;
+
+  /* Headers */
+  --h1-color: #FF6500;
+  --h2-color: #FF6500;
+  --h3-color: #FF6500;
+  --h4-color: #FF6500;
+  --h5-color: #FF6500;
+  --h6-color: #FF6500;
+  --h1-size: 35px;
+  --h2-size: 30px;
+  --h3-size: 24px;
+  --h4-size: 20px;
+  --h5-size: 18px;
+  --h6-size: 16px;
+
+ /* Link styling*/
+ --link-color: #0067A5;
+ --link-unresolved-color: #0067A5;
+ --link-external-color: #0067A5;
+
+ /* List styling for bullet points */
+ --list-marker-color: #FF6500;
+
+ /* Genreal User Interface */
+ --nav-heading-color: #FF6500;
+ --nav-item-color: #FF6500;
+ --nav-item-size: 14px;
+ --nav-item-color-active: #FF6500;
+ --nav-item-background-active: #333333;
+ --nav-collapse-icon-color: #FF6500;
+ --list-marker-color-collapsed: #FF6500;
+
+ --caret-color: #FF6500;
+
+/* Make folder titles bold */
+.nav-folder-title {
+  font-weight: regular;
+  color: inherit; /* Keeping the default color */
+}
+
+/* Styling for files in the sidebar */
+.nav-file-title {
+  font-weight: 300; /* Light font weight */
+  color: #FF6500; /* Off  white colour for contrasting to folder */
+  position: relative; /* Allows to use the ::before pseudo-element */
+  padding-left: 15px; /* Creates space for better readability */
+}
+
+/* Change file hover colour */
+.nav-file-title:hover {
+  background-color: #FF6500 !important;
+  color: #ffffff !important; /* Optional: changes text colour to white for better contrast */
+}
+
+.theme-light {
+
+  /* The accent color is used to draw attention to interactive elements, 
+  such as links and primary buttons*/
+  --accent-h: 30;
+  --accent-s: 61%;
+  --accent-l: 40%; /* Slightly adjusted for visibility on a lighter background */
+
+  /* Backgrounds */
+  --background-primary: #FFFFFF; /* White background for brightness */
+  --background-primary-alt: #F7F7F7; /* Light grey for subtle contrast */
+  --background-secondary: #F0F0F0; /* Light grey for secondary areas */
+  --background-secondary-alt: #FFFFFF; /* Keeping it white for consistency */
+  
+  /* All body text */
+  --text-normal: #333333; /* Dark grey for readability */
+
+  /* Table styling */
+  --table-header-background: #F0F0F0; /* Light grey for table headers */
+  --table-background: #FFFFFF; /* White for table body */
+  --table-header-weight: bold;
+  --table-header-color: hsl(30, 61%, 30%); /* Darker shade of the accent for contrast */
+  --table-header-size: 24px;
+  --table-text-size: 18px;
+  --table-add-button-color: hsl(30, 61%, 30%); /* Darker for visibility */
+  --table-drag-handle-color: hsl(30, 61%, 30%);
+  --table-drag-handle-color-active: #FF6500; /* Brighter gold for active state */
+
+  /* Code blocks */
+  --code-background: #F9F9F9; /* Light background for code blocks */
+  --code-normal: #007A33; /* Dark green for code text */
+
+  /* Headers */
+  --h1-color: #A24D00; /* Darker orange for headers */
+  --h2-color: #A24D00;
+  --h3-color: #A24D00;
+  --h4-color: #A24D00;
+  --h5-color: #A24D00;
+  --h6-color: #A24D00;
+  --h1-size: 35px;
+  --h2-size: 30px;
+  --h3-size: 24px;
+  --h4-size: 20px;
+  --h5-size: 18px;
+  --h6-size: 16px;
+
+  /* Link styling */
+  --link-color: #0067A5; /* Maintaining the blue link for consistency */
+  --link-unresolved-color: #0067A5;
+  --link-external-color: #0067A5;
+
+  /* List styling for bullet points */
+  --list-marker-color: #A24D00; /* Darker orange for list markers */
+
+  /* General User Interface */
+  --nav-heading-color: #A24D00; /* Consistent heading colour */
+  --nav-item-color: #A24D00;
+  --nav-item-size: 14px;
+  --nav-item-color-active: #A24D00;
+  --nav-item-background-active: #EAEAEA; /* Light grey for active background */
+  --nav-collapse-icon-color: #A24D00;
+  --list-marker-color-collapsed: #A24D00;
+
+  --caret-color: #A24D00;
+
+  /* Make folder titles bold */
+  .nav-folder-title {
+    font-weight: bold; /* Bold for visibility */
+    color: inherit; /* Keeping the default color */
+  }
+
+  /* Styling for files in the sidebar */
+  .nav-file-title {
+    font-weight: 300; /* Light font weight */
+    color: #A24D00; /* Darker orange for contrast */
+    position: relative; /* Allows to use the ::before pseudo-element */
+    padding-left: 15px; /* Creates space for better readability */
+  }
+
+  /* Change file hover colour */
+  .nav-file-title:hover {
+    background-color: #A24D00 !important; /* Darker orange for hover */
+    color: #FFFFFF !important; /* White text for contrast */
+  }
+}
+}
