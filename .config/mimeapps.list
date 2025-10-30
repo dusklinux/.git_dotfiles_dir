@@ -1,21 +1,24 @@
 [Added Associations]
-application/x-shellscript=featherpad.desktop;
-application/json=featherpad.desktop;
+application/x-shellscript=org.gnome.TextEditor.desktop;
+application/json=org.gnome.TextEditor.desktop;
 video/mp4=mpv.desktop;vlc.desktop;fr.handbrake.ghb.desktop;
-application/octet-stream=featherpad.desktop;
+application/octet-stream=org.gnome.TextEditor.desktop;
 audio/aac=mpv.desktop;fr.handbrake.ghb.desktop;
 audio/flac=mpv.desktop;
-video/x-matroska=vlc.desktop;
+video/x-matroska=mpv.desktop;
 
 [Default Applications]
-application/octet-stream=featherpad.desktop
-image/jpeg=swayimg.desktop
-image/png=swayimg.desktop
-image/gif=swayimg.desktop
-image/webp=swayimg.desktop
-image/svg+xml=swayimg.desktop
-image/heif=swayimg.desktop
-image/avif=swayimg.desktop
-image/tiff=swayimg.desktop
-image/bmp=swayimg.desktop
+application/octet-stream=org.gnome.TextEditor.desktop
+image/jpeg=org.gnome.Loupe.desktop;swayimg.desktop
+image/png=org.gnome.Loupe.desktop;swayimg.desktop
+image/gif=org.gnome.Loupe.desktop;swayimg.desktop
+image/webp=org.gnome.Loupe.desktop;swayimg.desktop
+image/svg+xml=org.gnome.Loupe.desktop;swayimg.desktop
+image/heif=org.gnome.Loupe.desktop;swayimg.desktop
+image/avif=org.gnome.Loupe.desktop;swayimg.desktop
+image/tiff=org.gnome.Loupe.desktop;swayimg.desktop
+image/bmp=org.gnome.Loupe.desktop;swayimg.desktop
 application/pdf=org.pwmt.zathura.desktop
+text/html=firefox.desktop
+x-scheme-handler/about=firefox.desktop
+x-scheme-handler/unknown=firefox.desktop

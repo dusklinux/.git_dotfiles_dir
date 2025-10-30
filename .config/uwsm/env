@@ -68,16 +68,16 @@ export QT_QUICK_CONTROLS_STYLE=Fusion
 #--------------------------------------------------------------------------------
 
 # Defines the default cursor theme for applications, primarily those running on XWayland.
-export XCURSOR_THEME=Papirus-Dark
+export XCURSOR_THEME=Bibata-Modern-Classic
 # Defines the default cursor size for applications, primarily those running on XWayland.
-export XCURSOR_SIZE=24
+export XCURSOR_SIZE=20
 
 # Sets the default terminal emulator to be launched by other applications.
 export TERMINAL=kitty
 # Sets the default text editor for terminal-based sessions.
 export EDITOR=nvim
 # Sets the default web browser.
-export BROWSER=firefox
+#export BROWSER=firefox
 
 #--------------------------------------------------------------------------------
 # 4. Application-Specific Wayland Flags

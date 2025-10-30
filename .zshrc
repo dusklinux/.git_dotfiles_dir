@@ -24,7 +24,7 @@ export EDITOR='nvim'
 # Set the default terminal emulator.
 export TERMINAL='kitty'
 # Set the default web browser.
-export BROWSER='firefox'
+#export BROWSER='firefox'
 
 # --- OpenMP Performance Tuning ---
 # Instructs OpenMP-aware applications to use a number of threads matching

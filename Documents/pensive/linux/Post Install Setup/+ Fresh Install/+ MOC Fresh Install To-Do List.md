@@ -247,6 +247,10 @@ hyprpm enable hyprexpo
 
 ---
 
+- [ ] **Fix Gnome apps opening two instances of nautilus** and other apps by following the following instructions [[Gnome Apps opening Twice]]
+
+---
+
 - [ ] **Reboot** 
 
 ```bash
