@@ -2,7 +2,7 @@
 - with PARU
 
 ```bash
-paru --needed -Syu wlogout acpi_call pscircle adwaita-qt6 adwaita-qt5 pacseek jdownloader2 otf-atkinson-hyperlegible-next fluent-icon-theme-git bibata-cursor-theme wordbook keypunch-git
+paru --needed -Syu wlogout acpi_call pscircle adwaita-qt6 adwaita-qt5 pacseek jdownloader2 otf-atkinson-hyperlegible-next fluent-icon-theme-git bibata-cursor-theme wordbook keypunch-git nautilus-open-any-terminal
 ```
 
 additional optional packages

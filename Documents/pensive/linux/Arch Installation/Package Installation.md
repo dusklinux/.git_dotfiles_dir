@@ -70,10 +70,10 @@ pacman -S --needed tealdeer iotop iftop ethtool httrack filezilla handbrake clip
 ```
 
 ### 10. Gnome Apps
-this is a Gnome-suite 
+this is the Gnome-suite 
 
 ```bash
-pacman -S --needed snapshot loupe gnome-text-editor blanket collision errands identity impression nautilus gnome-disk-utility gnome-calculator gnome-clocks baobab
+pacman -S --needed snapshot loupe gnome-text-editor blanket collision errands identity impression nautilus gnome-disk-utility gnome-calculator gnome-clocks baobab nautilus-python
 ```
 ### 9. Optical Character Recognition (OCR)
 Install the Tesseract OCR engine.

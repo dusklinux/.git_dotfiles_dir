@@ -98,6 +98,14 @@ sudo systemctl enable --now fwupd.service warp-svc.service asusd.service
 
 ---
 
+- [ ] **Enable right click terminal context menu for nautilus**
+
+```bash
+gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty
+```
+
+---
+
 - [ ] **Setup Cursor**  : after installing the cursor and icons, enter this command to apply the theme.  
 
 For bibata-modern-classic with 18 cursor size. (change the size to your liking)
