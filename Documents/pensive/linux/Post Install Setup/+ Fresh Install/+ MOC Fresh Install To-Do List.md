@@ -341,7 +341,7 @@ bind = $mainMod SHIFT, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst
 > bind = $mainMod, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst.sh
 >```
 
-- [ ] for changing file manager from yazi to thunar. 
+- [ ] for changing default file manager from yazi to thunar. 
 
 > [!tip]- to change yazi to thunar as default
 >replace this line `$fileManager = yazi` with 
