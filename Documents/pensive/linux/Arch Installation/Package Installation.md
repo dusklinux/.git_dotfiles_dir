@@ -45,7 +45,7 @@ pacman -S --needed waybar libdbusmenu-qt5 socat swww inotify-tools sassc file li
 Install a base set of applications: a launcher, terminal, text editor, network management tools, and system monitors.
 - [ ] Status
 ```bash
-pacman -S --needed rofi playerctl brightnessctl vsftpd fwupd featherpad networkmanager iwd nm-connection-editor compsize ncdu kitty pavucontrol unzip swayimg python-pipx arch-wiki-lite arch-wiki-docs
+pacman -S --needed rofi playerctl brightnessctl vsftpd fwupd nautilus networkmanager iwd nm-connection-editor compsize ncdu kitty pavucontrol unzip swayimg python-pipx arch-wiki-lite arch-wiki-docs
 ```
 
 ### 6. Audio (PipeWire) & Bluetooth Support
@@ -66,9 +66,15 @@ pacman -S --needed git wget curl xdg-user-dirs gvfs firewalld udisks2 udiskie tl
 Install a file manager, clipboard manager, screenshot tools, and other productivity utilities.
 - [ ] Status
 ```bash
-pacman -S --needed tealdeer iotop iftop ethtool httrack filezilla handbrake cliphist grim slurp wl-clipboard tree fzf swaync compsize clang obsidian gnome-disk-utility gnome-calculator gnome-clocks baobab qbittorrent
+pacman -S --needed tealdeer iotop iftop ethtool httrack filezilla handbrake cliphist grim slurp wl-clipboard tree fzf swaync compsize clang obsidian qbittorrent
 ```
 
+### 10. Gnome Apps
+this is a Gnome-suite 
+
+```bash
+pacman -S --needed snapshot loupe gnome-text-editor blanket collision errands identity impression nautilus gnome-disk-utility gnome-calculator gnome-clocks baobab
+```
 ### 9. Optical Character Recognition (OCR)
 Install the Tesseract OCR engine.
 - [ ] Status

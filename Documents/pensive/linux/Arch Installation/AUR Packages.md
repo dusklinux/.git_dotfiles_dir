@@ -2,7 +2,12 @@
 - with PARU
 
 ```bash
-paru --needed -Syu wlogout acpi_call qtodotxt2-git pscircle adwaita-qt6 adwaita-qt5 nordic-theme pacseek jdownloader2 otf-atkinson-hyperlegible-next waypaper hyprshade stremio fluent-icon-theme-git bibata-cursor-theme
+paru --needed -Syu wlogout acpi_call pscircle adwaita-qt6 adwaita-qt5 pacseek jdownloader2 otf-atkinson-hyperlegible-next fluent-icon-theme-git bibata-cursor-theme wordbook keypunch-git
+```
+
+additional optional packages
+```bash
+paru --needed -Syu stremio waypaper
 ```
 
 for Asus laptop
