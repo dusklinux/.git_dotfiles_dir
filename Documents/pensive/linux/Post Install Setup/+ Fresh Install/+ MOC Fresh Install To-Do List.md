@@ -364,17 +364,6 @@ bind = $mainMod SHIFT, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst
 
 ---
 
-- [ ] **Comment out Asus service for keybaord auto theme color pywal16 in :** :- 
-
-```bash
-nvim ~/user_scripts/waypaper/wallpaper_update.sh
-```
-
-> [!tip]- Comment out this part
-> "~/user_scripts/asus/asus_keyboard_color_pywal16.sh"
-
----
-
 - [ ] Comment out this line from mpv's config if you don't have an av1 decoder. can be checked by running `vainfo`
 
 ```bash
@@ -449,16 +438,6 @@ nvim ~/.config/uwsm/env
 
 ### 4. Theming & Desktop Customization
 
-This section covers the visual setup of your desktop, from dynamic colors to fonts and terminal appearance.
-
-- [ ] **Install `pywal16`:** Install the dynamic theming engine. [[pywal16]]
-
-```bash
-pipx install pywal16
-```
-
----
-
 - [ ] **Create a symlink** for the service file in user_scripts/waybar/network so the service works. , this is done because service files are looked for in .config/systemd/user/.
 
 ```bash
@@ -472,15 +451,7 @@ systemctl --user enable --now network_meter
 
 ---
 
-- [ ] **Generate Initial Theme:** Run `wal` with your desired wallpaper to create the first color palette. Eg: command
-
-```bash
-wal -i Pictures/wallpapers/GR3bOIjWMAAFSCZ.jpg
-```
-
----
-
-- [ ] **Configure Kitty Theme:** Edit `kitty.conf` to source its colors directly from `pywal`'s cache. [[General Theming]]
+- [ ] **Toggle your theme** press `Alt + 4` and pick your theme
 
 ---
 

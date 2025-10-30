@@ -131,3 +131,6 @@ sudo pacman -S --needed ttf-dejavu ttf-firacode-nerd noto-fonts noto-fonts-emoji
 
 more:
 qpwgraph wikiman wev man-db man-pages
+
+thunar:
+thunar thunar-archive-plugin
