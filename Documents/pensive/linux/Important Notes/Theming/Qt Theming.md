@@ -39,3 +39,27 @@ if you want to change the file picker for qt apps. like when you need to pick a 
 ```ini
 Appearance> Standard Dialogs:> Default/ GTK3/XDG Desktop Portal
 ```
+
+
+
+## Turn off transparency
+
+to turn off translucency aka transparency aka opacity for kvantum theme just switch the values for these to false. this is the theme_name.kvconfig file obviously. 
+```ini
+translucent_windows=false
+blurring=true
+popup_blurring=true
+```
+
+and also the following to 0
+
+```ini
+reduce_window_opacity=0
+reduce_menu_opacity=0
+```
+
+
+also search for `transparent` , `translucent` and `blur` and change their values as well. (there are options/variables for these under the 'Hacks' section in the same file)
+
+## Change color
+just search for `color` in the theme_name.kvconfig file and change the values. 
