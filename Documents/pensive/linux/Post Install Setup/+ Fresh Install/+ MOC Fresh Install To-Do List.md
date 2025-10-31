@@ -154,6 +154,32 @@ sudo systemctl daemon-reload
 
 ---
 
+- [ ] block attention sucking sites. 
+
+```bash
+sudo nvim /etc/hosts
+```
+
+> [!NOTE]- Hosts file blocking
+> ```ini
+> 0.0.0.0 instagram.com
+> 0.0.0.0 www.instagram.com
+> 0.0.0.0 facebook.com
+> 0.0.0.0 www.facebook.com
+> 0.0.0.0 m.facebook.com
+> 0.0.0.0 x.com
+> 0.0.0.0 www.x.com
+> 0.0.0.0 twitter.com
+> 0.0.0.0 www.twitter.com
+> 0.0.0.0 twitch.tv
+> 0.0.0.0 www.twitch.tv
+> 0.0.0.0 kick.com
+> 0.0.0.0 www.kick.com
+> 0.0.0.0 www.reddit.com
+> ```
+
+---
+
 - [ ] **Update Drive Unlock Script:** Change the UUID in your LUKS/drive unlocking script. **Both, lock and unlock scripts require Locked UUIDs**
 
 - Test if it worked by running the unlock drive script for browser drive. There's an alias for it in the zshrc file, run this. and enter your password, Then check if it correctly mounted at /mnt/browser/
