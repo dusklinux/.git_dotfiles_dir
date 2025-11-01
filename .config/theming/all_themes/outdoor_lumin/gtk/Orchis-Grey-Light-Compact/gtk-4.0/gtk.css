@@ -82,8 +82,8 @@
 @define-color brown_4 #865e3c;
 @define-color brown_5 #63452c;
 @define-color light_1 #ffffff;
-@define-color light_2 #f6f5f4;
-@define-color light_3 #deddda;
+@define-color light_2 #DCD7C9;
+@define-color light_3 rgba(0, 0, 0, 0.12);
 @define-color light_4 #c0bfbc;
 @define-color light_5 #9a9996;
 @define-color dark_1 #77767b;
@@ -114,12 +114,12 @@
 @define-color headerbar_bg_color #DCD7C9;
 @define-color headerbar_fg_color rgba(0, 0, 0, 0.87);
 @define-color headerbar_border_color rgba(0, 0, 0, 0.12);
-@define-color headerbar_backdrop_color #FAFAFA;
+@define-color headerbar_backdrop_color #DCD7C9;
 @define-color headerbar_shade_color rgba(0, 0, 0, 0.12);
 @define-color card_bg_color #DCD7C9;
 @define-color card_fg_color rgba(0, 0, 0, 0.87);
 @define-color card_shade_color rgba(0, 0, 0, 0.12);
-@define-color dialog_bg_color #FAFAFA;
+@define-color dialog_bg_color #DCD7C9;
 @define-color dialog_fg_color rgba(0, 0, 0, 0.87);
 @define-color popover_bg_color #DCD7C9;
 @define-color popover_fg_color rgba(0, 0, 0, 0.87);
@@ -222,7 +222,7 @@ textview text {
 }
 
 textview border {
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
   color: rgba(0, 0, 0, 0.6);
 }
 
@@ -1726,7 +1726,7 @@ headerbar:disabled {
 
 headerbar:backdrop {
   color: rgba(0, 0, 0, 0.6);
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
   filter: none;
 }
 
@@ -2145,8 +2145,8 @@ headerbar .pathbar button {
  **************/
 columnview.view,
 treeview.view {
-  border-left-color: #dedede;
-  border-top-color: #dedede;
+  border-left-color: rgba(0, 0, 0, 0.12);
+  border-top-color: rgba(0, 0, 0, 0.12);
 }
 
 columnview.view:selected,
@@ -2337,7 +2337,7 @@ menubar {
 }
 
 menubar:backdrop {
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
   color: rgba(0, 0, 0, 0.6);
 }
 
@@ -2584,7 +2584,7 @@ notebook > header tab {
 }
 
 notebook > header tab:hover {
-  background-color: #dedede;
+  background-color: rgba(0, 0, 0, 0.12);
   color: rgba(0, 0, 0, 0.87);
 }
 
@@ -2596,7 +2596,7 @@ notebook > header tab:checked {
   transition: all 75ms cubic-bezier(0, 0, 0.2, 1);
   background-color: #DCD7C9;
   background-clip: padding-box;
-  border-color: #dedede;
+  border-color: rgba(0, 0, 0, 0.12);
   color: rgba(0, 0, 0, 0.87);
   box-shadow: none;
 }
@@ -2614,7 +2614,7 @@ notebook {
 }
 
 frame > paned > notebook > header, notebook.frame > header {
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
 }
 
 notebook.frame {
@@ -2657,7 +2657,7 @@ notebook > header {
 }
 
 notebook > header.top {
-  box-shadow: inset 0 -1px #dedede;
+  box-shadow: inset 0 -1px rgba(0, 0, 0, 0.12);
 }
 
 notebook > header.top > tabs {
@@ -2670,7 +2670,7 @@ notebook > header.top > tabs > tab {
 }
 
 notebook > header.bottom {
-  box-shadow: inset 0 1px #dedede;
+  box-shadow: inset 0 1px rgba(0, 0, 0, 0.12);
 }
 
 notebook > header.bottom > tabs {
@@ -2683,7 +2683,7 @@ notebook > header.bottom > tabs > tab {
 }
 
 notebook > header.left {
-  box-shadow: inset -1px 0 #dedede;
+  box-shadow: inset -1px 0 rgba(0, 0, 0, 0.12);
 }
 
 notebook > header.left > tabs {
@@ -2696,7 +2696,7 @@ notebook > header.left > tabs > tab {
 }
 
 notebook > header.right {
-  box-shadow: inset 1px 0 #dedede;
+  box-shadow: inset 1px 0 rgba(0, 0, 0, 0.12);
 }
 
 notebook > header.right > tabs {
@@ -4691,7 +4691,7 @@ window.about headerbar, window.about headerbar:backdrop {
  ***********/
 .sidebar {
   border-style: none;
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
 }
 
 .sidebar:not(separator):dir(ltr), .sidebar:not(separator).left, .sidebar:not(separator).left:dir(rtl) {
@@ -4719,7 +4719,7 @@ paned .sidebar.left, paned .sidebar.right, paned .sidebar.left:dir(rtl), paned .
 
 stacksidebar list {
   padding: 4px;
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
 }
 
 stacksidebar row {
@@ -5211,7 +5211,7 @@ window.solid-csd {
 }
 
 window.solid-csd:backdrop {
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
 }
 
 window.ssd {
@@ -5630,7 +5630,7 @@ popover.entry-completion > contents {
 .nautilus-window tabbar .box {
   padding: 0 12px;
   background-color: transparent;
-  box-shadow: inset 0 -1px #dedede;
+  box-shadow: inset 0 -1px rgba(0, 0, 0, 0.12);
 }
 
 .nautilus-window tabbar tab {
@@ -5835,7 +5835,7 @@ window > widget leaflet > box > scrolledwindow > viewport > widget > stack {
 }
 
 .tweak-titlebar-left + separator:backdrop {
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
 }
 
 .large-button {
@@ -6269,7 +6269,7 @@ monthcell {
 }
 
 monthcell:hover:not(.out-of-month):not(.today) {
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
   transition: background-color 200ms;
   color: rgba(0, 0, 0, 0.87);
 }
@@ -7974,7 +7974,7 @@ tabbar .box {
   background-color: #DCD7C9;
   color: rgba(0, 0, 0, 0.6);
   padding: 0;
-  box-shadow: inset 0 -1px #dedede;
+  box-shadow: inset 0 -1px rgba(0, 0, 0, 0.12);
   border-bottom: none;
 }
 
@@ -8017,10 +8017,10 @@ tabbar tab {
 
 tabbar tab:hover:not(:selected):not(:active):not(:checked) {
   transition: none;
-  background-color: #dedede;
+  background-color: rgba(0, 0, 0, 0.12);
   box-shadow: none;
   color: rgba(0, 0, 0, 0.87);
-  border-color: #dedede;
+  border-color: rgba(0, 0, 0, 0.12);
   border-radius: 10px 10px 0 0;
 }
 
@@ -8029,7 +8029,7 @@ tabbar tab:selected, tabbar tab:checked, tabbar tab:active {
   background-color: #DCD7C9;
   box-shadow: none;
   color: rgba(0, 0, 0, 0.87);
-  border-color: #dedede;
+  border-color: rgba(0, 0, 0, 0.12);
   border-radius: 10px 10px 0 0;
 }
 
@@ -8152,7 +8152,7 @@ navigation-view navigation-view-page .medium stack > button {
 .sidebar-pane,
 .content-pane .sidebar-pane,
 .sidebar-pane .content-pane {
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
   color: rgba(0, 0, 0, 0.87);
 }
 
@@ -8272,14 +8272,14 @@ navigation-view navigation-view-page .medium stack > button {
 .sidebar-pane banner > revealer > widget,
 .content-pane .sidebar-pane banner > revealer > widget,
 .sidebar-pane .content-pane banner > revealer > widget {
-  background-color: mix(var(--accent-bg-color),#FAFAFA,0.7);
+  background-color: mix(var(--accent-bg-color),#DCD7C9,0.7);
   color: rgba(0, 0, 0, 0.87);
 }
 
 .sidebar-pane banner > revealer > widget:backdrop,
 .content-pane .sidebar-pane banner > revealer > widget:backdrop,
 .sidebar-pane .content-pane banner > revealer > widget:backdrop {
-  background-color: mix(var(--accent-bg-color),#FAFAFA,0.7);
+  background-color: mix(var(--accent-bg-color),#DCD7C9,0.7);
 }
 
 .sidebar-pane:dir(ltr), .sidebar-pane:dir(ltr) banner > revealer > widget, .sidebar-pane.end:dir(rtl), .sidebar-pane.end:dir(rtl) banner > revealer > widget,
@@ -8516,7 +8516,7 @@ toolbarview .top-bar {
 }
 
 toolbarview .top-bar:backdrop {
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
 }
 
 .info toolbarview .top-bar, .info toolbarview .top-bar:backdrop, .about toolbarview .top-bar, .about toolbarview .top-bar:backdrop {
@@ -8539,7 +8539,7 @@ toolbarview > .bottom-bar {
   padding: 0;
   border-spacing: 0;
   box-shadow: inset 0 1px rgba(0, 0, 0, 0.12);
-  background-color: #FAFAFA;
+  background-color: #DCD7C9;
   color: rgba(0, 0, 0, 0.87);
 }
 
@@ -8631,7 +8631,7 @@ text foreground color of insensitive widgets */
 @define-color insensitive_fg_color rgba(0, 0, 0, 0.38);
 /*
 insensitive text widgets and the like base background color */
-@define-color insensitive_base_color #FAFAFA;
+@define-color insensitive_base_color #DCD7C9;
 /*
 widget text/foreground color on backdrop windows */
 @define-color theme_unfocused_fg_color rgba(0, 0, 0, 0.87);
@@ -8672,7 +8672,7 @@ read if you used those and something break with a version upgrade you're on your
 @define-color wm_highlight rgba(255, 255, 255, 0.4);
 @define-color wm_border #a6a6a6;
 @define-color wm_bg #DCD7C9;
-@define-color wm_unfocused_bg #FAFAFA;
+@define-color wm_unfocused_bg #DCD7C9;
 @define-color wm_button_icon white;
 @define-color wm_button_close_hover_bg #fd5f51;
 @define-color wm_button_close_active_bg #fc2714;
