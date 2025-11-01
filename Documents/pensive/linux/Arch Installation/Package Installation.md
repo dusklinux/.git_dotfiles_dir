@@ -69,13 +69,13 @@ Install a file manager, clipboard manager, screenshot tools, and other productiv
 pacman -S --needed tealdeer iotop iftop ethtool httrack filezilla handbrake cliphist grim slurp wl-clipboard tree fzf swaync compsize clang obsidian qbittorrent
 ```
 
-### 10. Gnome Apps
+### 9. Gnome Apps
 this is the Gnome-suite 
 
 ```bash
 pacman -S --needed snapshot loupe gnome-text-editor blanket collision errands identity impression nautilus gnome-disk-utility gnome-calculator gnome-clocks baobab nautilus-python
 ```
-### 9. Optical Character Recognition (OCR)
+### 10. Optical Character Recognition (OCR)
 Install the Tesseract OCR engine.
 - [ ] Status
 ```bash
@@ -85,7 +85,7 @@ pacman -S --needed tesseract
 > [!TIP] Installing Tesseract Language Data
 > After the command above completes, `pacman` will prompt you to select optional packages for language data. For English support, find `tesseract-data-eng` in the list, type its corresponding number, and press Enter to install it. (USUALLY 30TH)
 
-### 10. Core Applications & Shell Enhancements
+### 11. Core Applications & Shell Enhancements
 Install final applications like a web browser and media player, along with powerful shell tools like Zsh, Starship, and Bat.
 - [ ] Status
 ```bash
