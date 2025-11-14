@@ -1,0 +1,1 @@
+ACS is “Access Control Services,” a feature that can separate (“quarantine”) devices so each one can be handed off cleanly to a virtual machine (VM).

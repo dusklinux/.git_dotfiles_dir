@@ -1,0 +1,124 @@
+
+.theme-dark {
+	--accent-h:calc({{colors.primary.dark.hue}}/255*360);
+	--accent-s:calc({{colors.primary.dark.saturation}}/255*100%);
+	--accent-l:calc({{colors.primary.dark.lightness}}/255*100%);
+
+  --text-normal:{{colors.on_surface.dark.hex}};
+  --text-muted:{{colors.on_surface_variant.dark.hex}};
+  --text-faint:{{colors.outline.dark.hex}};
+
+  --background-primary:{{colors.surface.dark.hex}}; /* editor and right ribbon */
+  --background-secondary:{{colors.surface_dim.dark.hex}}; /* left ribbon */ 
+  --background-modifier-hover:{{colors.secondary_container.dark.hex}};
+  --background-modifier-active-hover:{{colors.secondary.dark.hex}};
+  --background-modifier-message:{{colors.surface_dim.dark.hex}};
+  --background-modifier-form-field:{{colors.primary_container.dark.hex}};
+
+  --ribbon-background:{{colors.surface.dark.hex}};
+  --divider-color:{{colors.secondary_container.dark.hex}};
+  --scrollbar-thumb-bg:{{colors.on_secondary_container.dark.hex}};
+  --status-bar-border-color:{{colors.secondary_container.dark.hex}};
+  --status-bar-background:{{colors.surface.dark.hex}};
+  --titlebar-background:{{colors.surface.dark.hex}};
+  --titlebar-text-color:{{colors.on_surface.dark.hex}};
+
+  --nav-item-color:{{colors.on_surface_variant.dark.hex}};
+  --nav-item-color-active:{{colors.on_primary_container.dark.hex}};
+  --nav-item-background-active:{{colors.primary_container.dark.hex}};
+  --nav-item-color-hover:{{colors.on_secondary_container.dark.hex}};
+  --nav-item-background-hover:{{colors.secondary_container.dark.hex}};
+
+  --tab-background-active:{{colors.primary_container.dark.hex}};
+  --tab-text-color-active:{{colors.on_primary_container.dark.hex}};
+  --tab-text-color:{{colors.on_surface_variant.dark.hex}};
+
+  --icon-color:{{colors.on_surface.dark.hex}};
+
+  --h1-color:{{colors.primary.dark.hex}};
+  --h2-color: color-mix(in srgb, {{colors.primary.dark.hex}}, {{colors.tertiary.dark.hex}});
+  --h3-color:{{colors.tertiary.dark.hex}};
+  --h4-color: color-mix(in srgb, {{colors.primary.dark.hex}}, {{colors.secondary.dark.hex}});
+  --h5-color:{{colors.secondary.dark.hex}};
+  --h6-color: color-mix(in srgb, {{colors.tertiary.dark.hex}}, {{colors.secondary.dark.hex}});
+
+
+  }
+
+
+/* add parts not accessible without specific selector?*/
+.theme-dark .sidebar-toggle-button.mod-left {
+  color:{{colors.on_surface.dark.hex}};
+  background:{{colors.surface.dark.hex}};
+}
+.theme-dark .sidebar-toggle-button.mod-right {
+  color:{{colors.on_surface.dark.hex}};
+  background:{{colors.surface.dark.hex}};
+}
+
+.theme-dark .workspace-tab-header-container{
+  background:{{colors.surface.dark.hex}};
+}
+
+
+/* copy for light mode */
+.theme-light {
+	--accent-h:calc({{colors.primary.light.hue}}/255*360);
+	--accent-s:calc({{colors.primary.light.saturation}}/255*100%);
+	--accent-l:calc({{colors.primary.light.lightness}}/255*100%);
+
+  --text-normal:{{colors.on_surface.light.hex}};
+  --text-muted:{{colors.on_surface_variant.light.hex}};
+  --text-faint:{{colors.outline.light.hex}};
+
+  --background-primary:{{colors.surface.light.hex}}; /* editor and right ribbon */
+  --background-secondary:{{colors.surface_dim.light.hex}}; /* left ribbon */ 
+  --background-modifier-hover:{{colors.secondary_container.light.hex}};
+  --background-modifier-active-hover:{{colors.secondary.light.hex}};
+  --background-modifier-message:{{colors.surface_dim.light.hex}};
+  --background-modifier-form-field:{{colors.primary_container.light.hex}};
+
+  --ribbon-background:{{colors.surface.light.hex}};
+  --divider-color:{{colors.secondary_container.light.hex}};
+  --scrollbar-thumb-bg:{{colors.on_secondary_container.light.hex}};
+  --status-bar-border-color:{{colors.secondary_container.light.hex}};
+  --status-bar-background:{{colors.surface.light.hex}};
+  --titlebar-background:{{colors.surface.light.hex}};
+  --titlebar-text-color:{{colors.on_surface.light.hex}};
+
+  --nav-item-color:{{colors.on_surface_variant.light.hex}};
+  --nav-item-color-active:{{colors.on_primary_container.light.hex}};
+  --nav-item-background-active:{{colors.primary_container.light.hex}};
+  --nav-item-color-hover:{{colors.on_secondary_container.light.hex}};
+  --nav-item-background-hover:{{colors.secondary_container.light.hex}};
+
+  --tab-background-active:{{colors.primary_container.light.hex}};
+  --tab-text-color-active:{{colors.on_primary_container.light.hex}};
+  --tab-text-color:{{colors.on_surface_variant.light.hex}};
+
+  --icon-color:{{colors.on_surface.light.hex}};
+
+  --h1-color:{{colors.primary.light.hex}};
+  --h2-color: color-mix(in srgb, {{colors.primary.light.hex}}, {{colors.tertiary.light.hex}});
+  --h3-color:{{colors.tertiary.light.hex}};
+  --h4-color: color-mix(in srgb, {{colors.primary.light.hex}}, {{colors.secondary.light.hex}});
+  --h5-color:{{colors.secondary.light.hex}};
+  --h6-color: color-mix(in srgb, {{colors.tertiary.light.hex}}, {{colors.secondary.light.hex}});
+
+
+  }
+
+
+/* add parts not accessible without specific selector?*/
+.theme-light .sidebar-toggle-button.mod-left {
+  color:{{colors.on_surface.light.hex}};
+  background:{{colors.surface.light.hex}};
+}
+.theme-light .sidebar-toggle-button.mod-right {
+  color:{{colors.on_surface.light.hex}};
+  background:{{colors.surface.light.hex}};
+}
+
+.theme-light .workspace-tab-header-container{
+  background:{{colors.surface.light.hex}};
+}

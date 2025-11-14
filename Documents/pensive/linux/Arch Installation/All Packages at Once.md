@@ -1,0 +1,12 @@
+This is not recommended at all, but if you're in a hurry you're can use this. this has everything including the grub packages the only thing it doesn't include are the **NVIDIA drivers** 
+
+
+```bash
+pacman -S --needed intel-media-driver mesa vulkan-intel mesa-utils intel-gpu-tools libva libva-utils vulkan-icd-loader vulkan-tools intel-ucode btrfs-progs zram-generator inetutils hyprland xorg-xwayland uwsm qt5-wayland qt6-wayland xdg-desktop-portal-gtk gtk3 gtk4 nwg-look qt5ct qt6ct qt6-svg qt6-multimedia-ffmpeg kvantum hyprpolkitagent xorg-xhost polkit xdg-desktop-portal-hyprland xdg-utils ttf-font-awesome ttf-jetbrains-mono-nerd noto-fonts-emoji adw-gtk-theme matugen waybar libdbusmenu-qt5 socat swww inotify-tools sassc file libdbusmenu-glib fastfetch hyprlock hypridle hyprsunset hyprpicker swappy rofi playerctl brightnessctl vsftpd fwupd networkmanager iwd nm-connection-editor compsize ncdu gdu kitty pavucontrol unzip swayimg python-pipx arch-wiki-lite arch-wiki-docs reflector bmon pipewire wireplumber pipewire-pulse bluez bluez-utils blueman dosfstools sof-firmware gst-plugin-pipewire guvcview bluetui git wget curl xdg-user-dirs gvfs gvfs-mtp gvfs-nfs gvfs-smb firewalld udisks2 udiskie tlp tlp-rdw thermald powertop 7zip usbutils usbmuxd gparted ntfs-3g acpid pacman-contrib nvtop btop inxi less gum man-db sysstat openssh libheif zip unrar wev cpio file-roller tealdeer iotop iftop ethtool httrack filezilla handbrake cliphist grim slurp wl-clipboard tree fzf swaync swayosd compsize clang obsidian qbittorrent thunar thunar-archive-plugin obs-studio audacity cava ttyper termusic eza fd ffmpegthumbnailer logrotate lshw ffmpeg mpv mpv-mpris firefox gnome-keyring libsecret yad yazi zellij zsh zsh-syntax-highlighting starship imagemagick bat krita uv rq jq bc zathura zathura-pdf-mupdf meson cmake wavemon tesseract luarocks ripgrep fzf viu chafa ueberzugpp snapshot loupe gnome-text-editor blanket collision errands identity impression gnome-disk-utility gnome-calculator gnome-clocks baobab chess-tui cmatrix rebels-in-the-sky 0ad openra warzone2100 wesnoth freeciv supertuxkart endless-sky wesnoth
+```
+
+
+> [!note] Only install this if you have an **intel** mobile chip between **5th gen and 11th gen** (hardware encoding/decoding)
+>```bash
+>pacman intel-media-sdk
+> ```

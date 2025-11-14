@@ -1,0 +1,1 @@
+sudo umount /mnt/fast

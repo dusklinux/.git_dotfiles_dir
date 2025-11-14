@@ -1,0 +1,12 @@
+[Unit]
+Description=Waybar network speed daemon (writes state every second)
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/user_scripts/waybar/network/network_meter_daemon.sh
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=default.target

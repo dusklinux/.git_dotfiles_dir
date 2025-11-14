@@ -1,0 +1,3 @@
+run this once from the terminal for downloads to initialize. 
+
+~/user_scripts/kokoro/kokoro.sh

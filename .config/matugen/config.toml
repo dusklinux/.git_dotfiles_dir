@@ -1,0 +1,87 @@
+[config]
+# ...
+
+[templates.gtk3]
+input_path = '~/.config/matugen/templates/gtk-colors.css'
+output_path = '~/.config/matugen/generated/gtk-3.css'
+post_hook = "gsettings set org.gnome.desktop.interface icon-theme 'Fluent-teal-dark'"
+
+[templates.gtk4]
+input_path = '~/.config/matugen/templates/gtk-colors.css'
+output_path = '~/.config/matugen/generated/gtk-4.css'
+post_hook = 'ln -nfs $HOME/.config/matugen/generated/gtk-3.css $HOME/.config/gtk-3.0/gtk.css; ln -nfs $HOME/.config/matugen/generated/gtk-4.css $HOME/.config/gtk-4.0/gtk.css; gsettings set org.gnome.desktop.interface gtk-theme "adw-gtk3"; systemctl --user restart hyprpolkitagent'
+
+[templates.qt5ct]
+input_path = '~/.config/matugen/templates/qtct-colors.conf'
+output_path = '~/.config/matugen/generated/qt5ct-colors.conf'
+
+[templates.qt6ct]
+input_path = '~/.config/matugen/templates/qtct-colors.conf'
+output_path = '~/.config/matugen/generated/qt6ct-colors.conf'
+
+[templates.waybar]
+input_path = '~/.config/matugen/templates/colors.css'
+output_path = '~/.config/matugen/generated/waybar-colors.css'
+post_hook = 'pkill -SIGUSR2 waybar' # Reloads Waybar after generation
+
+[templates.swaync]
+input_path = '~/.config/matugen/templates/colors.css'
+output_path = '~/.config/matugen/generated/swaync-colors.css'
+post_hook = 'swaync-client -rs'
+
+[templates.kitty]
+input_path = '~/.config/matugen/templates/kitty-colors.conf'
+output_path = '~/.config/matugen/generated/kitty-colors.conf'
+post_hook = 'ln -nfs $HOME/.config/matugen/generated/kitty-colors.conf $HOME/.config/kitty/kitty-colors.conf; pkill -SIGUSR1 kitty'
+
+[templates.neovim]
+input_path = '~/.config/matugen/templates/neovim/template.lua'
+output_path = '~/.config/matugen/generated/neovim-colors.lua'
+post_hook = 'pkill -SIGUSR1 nvim'
+
+[templates.yazi]
+input_path = '~/.config/matugen/templates/yazi-theme.toml'
+output_path = '~/.config/matugen/generated/yazi-theme.toml'
+post_hook = 'ln -nfs $HOME/.config/matugen/generated/yazi-theme.toml $HOME/.config/yazi/theme.toml'
+
+[templates.zathura]
+input_path = '~/.config/matugen/templates/zathura-colors'
+output_path = '~/.config/matugen/generated/zathura-colors'
+post_hook = 'ln -nfs $HOME/.config/matugen/generated/zathura-colors $HOME/.config/zathura/zathurarc'
+
+# [templates.starship]
+# input_path = '~/.config/matugen/templates/starship-colors.toml'
+# output_path = '~/.config/matugen/generated/starship-colors.toml'
+# post_hook = 'ln -nfs $HOME/.config/matugen/generated/starship-colors $HOME/.config/starship.toml'
+
+[templates.pywalfox]
+input_path = '~/.config/matugen/templates/pywalfox-colors.json'
+output_path = '~/.config/matugen/generated/pywalfox-colors.json'
+post_hook = 'ln -nfs $HOME/.config/matugen/generated/pywalfox-colors.json $HOME/.cache/wal/colors.json; pywalfox update'
+
+[templates.btop]
+input_path = '~/.config/matugen/templates/btop.theme'
+output_path = '~/.config/matugen/generated/btop-colors.theme'
+post_hook = 'ln -nfs $HOME/.config/matugen/generated/btop-colors.theme $HOME/.config/btop/themes/matugen.theme'
+
+[templates.rofi]
+input_path = '~/.config/matugen/templates/rofi-colors.rasi'
+output_path = '~/.config/matugen/generated/rofi-colors.rasi'
+
+[templates.Obsidian]
+input_path = '~/.config/matugen/templates/obsidian-theme.css'
+output_path = '~/.config/matugen/generated/obsidian-theme.css'
+post_hook = 'ln -nfs $HOME/.config/matugen/generated/obsidian-theme.css $HOME/Documents/pensive/.obsidian/snippets/matugen-theme.css'
+
+[templates.hyprland]
+input_path = '~/.config/matugen/templates/hyprland-colors.conf'
+output_path = '~/.config/matugen/generated/hyprland-colors.conf'
+post_hook = 'hyprctl reload'
+
+[templates.hyprlock]
+input_path = '~/.config/matugen/templates/hyprland-colors.conf'
+output_path = '~/.config/matugen/generated/hyprlock-colors.conf'
+
+[templates.wlogout]
+input_path = '~/.config/matugen/templates/colors.css'
+output_path = '~/.config/matugen/generated/wlogout-colors.css'

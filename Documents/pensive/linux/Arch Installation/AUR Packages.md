@@ -1,0 +1,26 @@
+(install with paru or yay)
+- with PARU
+
+```bash
+paru --needed -Syu wlogout acpi_call pscircle adwaita-qt6 adwaita-qt5 pacseek jdownloader2 otf-atkinson-hyperlegible-next fluent-icon-theme-git bibata-cursor-theme wordbook keypunch-git python-pywalfox hyprshade waypaper peaclock tray-tui wifitui-bin pinta youtube-dl-gui-bin
+```
+
+games/fun
+```bash
+paru -needed -Syyu brogue-ce pipes.sh 2048.c clidle-bin maze-tui vitetris pokete arttime-git
+```
+additional optional packages
+```bash
+paru --needed -Syu stremio
+```
+
+for Asus laptop
+
+``` bash
+paru -S wdpass resvg dislocker lazydocker asusctl miniconda3
+```
+
+for Lenovo 3000 G430's wifi card. (old laptop from 2008)
+```bash
+paru -S --needed b43-firmware
+```

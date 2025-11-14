@@ -1,0 +1,5 @@
+type into the terminal :- kitten themes
+
+then pick a theme and apply it by modifying kitty.conf (it gives you and option to do that and you have to enter `m`)
+
+then go to the config/kitty directory and you'll find the file named current-theme.conf , just copy paste that into the theme folder, you can also change the colors to your linkings. 

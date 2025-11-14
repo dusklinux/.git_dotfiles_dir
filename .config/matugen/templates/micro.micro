@@ -1,0 +1,45 @@
+color-link default "{{ colors.on_surface.default.hex }}"
+color-link comment "{{ colors.outline.default.hex }}"
+color-link selection "{{ colors.on_primary.default.hex }},{{ colors.primary_container.default.hex }}"
+color-link hlsearch "{{ colors.secondary.default.hex }}"
+
+color-link identifier "{{ colors.primary.default.hex }}"
+color-link identifier.class "{{ colors.primary.default.hex }}"
+color-link identifier.var "{{ colors.primary.default.hex }}"
+
+color-link constant "{{ colors.tertiary.default.hex }}"
+color-link constant.number "{{ colors.tertiary.default.hex }}"
+color-link constant.string "{{ colors.secondary.default.hex }}"
+
+color-link symbol "{{ colors.tertiary_container.default.hex }}"
+color-link symbol.brackets "{{ colors.on_surface_variant.default.hex }}"
+color-link symbol.tag "{{ colors.primary.default.hex }}"
+
+color-link type "{{ colors.primary.default.hex }}"
+color-link type.keyword "{{ colors.secondary.default.hex }}"
+
+color-link special "{{ colors.tertiary_container.default.hex }}"
+color-link statement "{{ colors.primary_container.default.hex }}"
+color-link preproc "{{ colors.tertiary_container.default.hex }}"
+
+color-link underlined "{{ colors.secondary.default.hex }}"
+color-link error "bold {{ colors.error.default.hex }}"
+color-link todo "bold {{ colors.tertiary.default.hex }}"
+
+color-link diff-added "{{ colors.secondary.default.hex }}"
+color-link diff-modified "{{ colors.tertiary.default.hex }}"
+color-link diff-deleted "{{ colors.error.default.hex }}"
+
+color-link gutter-error "{{ colors.error.default.hex }}"
+color-link gutter-warning "{{ colors.tertiary.default.hex }}"
+
+color-link scrollbar "{{ colors.on_surface_variant.default.hex }}"
+color-link statusline "{{ colors.on_surface.default.hex }},{{ colors.surface.default.hex }}"
+color-link tabbar "{{ colors.on_surface.default.hex }},{{ colors.surface.default.hex }}"
+color-link indent-char "{{ colors.surface_variant.default.hex }}"
+color-link line-number "{{ colors.outline_variant.default.hex }}"
+color-link current-line-number "{{ colors.primary.default.hex }}"
+
+color-link cursor-line "{{ colors.surface_variant.default.hex }},{{ colors.on_surface.default.hex }}"
+color-link color-column "{{ colors.surface_variant.default.hex }}"
+color-link type.extended "default"

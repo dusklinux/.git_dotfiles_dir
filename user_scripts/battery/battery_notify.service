@@ -1,0 +1,16 @@
+[Unit]
+Description=Battery Status Notification Service
+Documentation=Battery monitoring and notification service for laptops
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/user_scripts/battery/battery_notify.sh
+Restart=on-failure
+RestartSec=5
+Environment="DISPLAY=:0"
+Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus"
+
+[Install]
+WantedBy=default.target
