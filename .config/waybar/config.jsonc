@@ -131,7 +131,7 @@
 "custom/network-unit": {
   "return-type": "json",
   "tooltip": true,
-  "on-click": "kitty -e $HOME/user_scripts/network_manager/nmcli_wifi.sh",
+  "on-click": "kitty -e wifitui",
   "interval": 1,
   "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh unit"
 },
@@ -231,7 +231,7 @@
     "tooltip-format-ethernet": "IP: {ipaddr}\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
     "tooltip-format-disconnected": "Disconnected",
     "interval": 3,
-    "on-click": "kitty -e $HOME/user_scripts/network_manager/nmcli_wifi.sh",
+    "on-click": "kitty -e wifitui",
     "on-click-right": "nm-connection-editor"
   },
 
