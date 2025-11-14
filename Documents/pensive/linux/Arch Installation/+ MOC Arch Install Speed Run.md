@@ -337,7 +337,7 @@ echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
 ---
 
-### 22. *Setting Hostname* (replace placeholder text with your desired username)
+### 22. *Setting Hostname* **(replace placeholder text with your desired hostname)**
 
 ```bash
 echo "your-hostname" > /etc/hostname
