@@ -58,7 +58,7 @@
                 },
                 {
                     "label": "",
-                    "command": "bash $HOME/user_scripts/waypaper/swww_change_wallpaper.sh"
+                    "command": "bash $HOME/user_scripts/swww/swww_random_standalone.sh"
                 },
                 {
                     "label": "󰓅",
