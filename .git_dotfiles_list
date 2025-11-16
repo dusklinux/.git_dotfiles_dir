@@ -1,4 +1,5 @@
 .config/btop/btop.conf
+.config/fastfetch/
 .config/hypr/
 .config/kitty/
 .config/matugen/config.toml

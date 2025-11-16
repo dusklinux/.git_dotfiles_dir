@@ -29,6 +29,11 @@ input_path = '~/.config/matugen/templates/colors.css'
 output_path = '~/.config/matugen/generated/swaync-colors.css'
 post_hook = 'swaync-client -rs'
 
+[templates.swayosd]
+input_path = '~/.config/matugen/templates/swayosd-colors.css'
+output_path = '~/.config/matugen/generated/swayosd-colors.css'
+post_hook = '~/user_scripts/swayosd/restart_swayosd.sh'
+
 [templates.kitty]
 input_path = '~/.config/matugen/templates/kitty-colors.conf'
 output_path = '~/.config/matugen/generated/kitty-colors.conf'
@@ -79,7 +84,7 @@ output_path = '~/.config/matugen/generated/hyprland-colors.conf'
 post_hook = 'hyprctl reload'
 
 [templates.hyprlock]
-input_path = '~/.config/matugen/templates/hyprland-colors.conf'
+input_path = '~/.config/matugen/templates/hyprlock-colors.conf'
 output_path = '~/.config/matugen/generated/hyprlock-colors.conf'
 
 [templates.wlogout]

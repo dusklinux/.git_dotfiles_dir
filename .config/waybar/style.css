@@ -38,7 +38,7 @@
 }
 
 #workspaces button,
-#workspaces, #clock, #battery, #bluetooth, #pulseaudio, #network, #cpu, #memory,
+#workspaces, #clock, #battery, #bluetooth, #pulseaudio, #custom-app-tray, #cpu, #memory,
 #backlight, #tray, #temperature, #custom-notification, #custom-inhibit-suspend, #custom-power,
 #custom-network-unit, #custom-network-upload, #custom-network-download, #custom-theme {
     /* VARIABLE 2: Module Horizontal Padding. This is the primary control for the bar's width. */
@@ -101,7 +101,7 @@ tooltip label {
 #clock,
 #battery,
 #pulseaudio,
-#network,
+#custom-app-tray,
 #cpu,
 #bluetooth,
 #temperature,
@@ -137,7 +137,7 @@ tooltip label {
 #battery:hover,
 #pulseaudio:hover,
 #bluetooth:hover,
-#network:hover,
+#custom-app-tray:hover,
 #cpu:hover,
 #memory:hover,
 #backlight:hover,
@@ -211,9 +211,8 @@ tooltip label {
 #pulseaudio { color: @foreground; }
 #pulseaudio.muted { color: @critical; }
 
-/* --- Network --- */
-#network { color: @foreground; }
-#network.disconnected { color: @critical; }
+/* --- Custom App Tray --- */
+#custom-app-tray { color: @foreground; }
 
 /* --- Bluetooth --- */
 #bluetooth { 

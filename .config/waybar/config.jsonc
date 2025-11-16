@@ -32,7 +32,7 @@
        // "tray", //uncomment this to enable tray
         "custom/theme",
         "bluetooth",
-        "network",
+        "custom/app-tray",
         "custom/network-upload",
         "custom/network-unit",
 		    "custom/network-download",
@@ -221,19 +221,12 @@
         "on-click-middle": "waypaper"
     },
 
-"network": {
-    "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
-    "format": "{icon}",
-    "format-wifi": "{icon}\n{signalStrength}",
-    "format-ethernet": "󰈀\n{signalStrength}",
-    "format-disconnected": "󰤮",
-    "tooltip-format-wifi": "{essid} ({frequency} GHz)\nIP: {ipaddr}\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
-    "tooltip-format-ethernet": "IP: {ipaddr}\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
-    "tooltip-format-disconnected": "Disconnected",
-    "interval": 3,
-    "on-click": "kitty -e wifitui",
-    "on-click-right": "nm-connection-editor"
-  },
+"custom/app-tray": {
+    "format": "",
+    "tooltip-format": "Open Terminal App Tray!\n\nEmpty Terminal if no\nTray-App is Open.",
+    "on-click": "kitty -e tray-tui",
+    "interval": "once"
+},
 
 
 "bluetooth": {

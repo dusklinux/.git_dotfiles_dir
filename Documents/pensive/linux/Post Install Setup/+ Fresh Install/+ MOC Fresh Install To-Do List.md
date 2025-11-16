@@ -354,9 +354,7 @@ then open obsidian's settings > Appearance > Scroll to the bottom to `CSS snippe
 
 ---
 
-**OPTIONAL**
-- [ ] Firefox themeing (if you use firefox.) 
-install the extention `Pywalfox` from the mozilla store. and then open the plugin and select `Fetch Pywal colors`
+- [ ] **Sound notify when usb plugin/disconnect** [[Configure udev auditory notify usb plugin]]
 
 ---
 
@@ -413,6 +411,12 @@ This command links the `.mozilla` folder from an external drive mounted at `/mnt
 ```bash
 sudo ln -nfs /mnt/browser/.mozilla ~/.mozilla
 ```
+
+---
+
+**OPTIONAL**
+- [ ] Firefox themeing (if you use firefox.) 
+install the extention `Pywalfox` from the mozilla store. and then open the plugin and select `Fetch Pywal colors`
 
 ---
 
