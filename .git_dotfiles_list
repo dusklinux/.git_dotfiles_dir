@@ -1,4 +1,5 @@
 .config/btop/btop.conf
+.config/cava/config
 .config/fastfetch/
 .config/hypr/
 .config/kitty/
@@ -27,6 +28,7 @@
 .git_dotfiles_list
 .config/starship.toml
 .config/mimeapps.list
+.local/share/errands/data.json
 Documents/pensive/Adobe/
 Documents/pensive/ai_prompt/
 Documents/pensive/Drafts/

@@ -153,7 +153,7 @@ progressbar {
 
 .time {
   color: @text-color;
-  opacity: 0.8; /* Optional: Makes it slightly dimmer than the main text */
+  opacity: 0.8;
 }
 
 .floating-notifications.background .notification-row .notification-background .close-button {
@@ -250,9 +250,6 @@ progressbar {
     margin-right: 15px;
 }
 
-.widget-volume scale, .widget-backlight scale {
-}
-
 scale trough {
     min-height: 6px;
     border-radius: 12px;
@@ -264,14 +261,63 @@ scale trough highlight {
     background-color: @accent-color;
 }
 
-/* --- Explicit Text/Icon Color Enforcement --- */
-/* This compels all text and icon glyphs to adhere
-   to the dynamically generated @text-color variable. */
+/* --- MPRIS WIDGET --- */
+.widget-mpris {
+    background: @background-alt-color;
+    padding: 8px;
+    margin: 6px;
+    border-radius: 12px;
+}
 
+.widget-mpris > box {
+    background: transparent;
+}
+
+.widget-mpris > box > button {
+    background: transparent;
+    border-radius: 0;
+}
+
+.widget-mpris-player {
+    background: alpha(@background-color, 0.5);
+    border-radius: 12px;
+    padding: 8px;
+    margin: 4px 0;
+}
+
+.widget-mpris-player > box {
+    background: transparent;
+}
+
+.widget-mpris-album-art {
+    border-radius: 12px;
+    margin-right: 12px;
+}
+
+.widget-mpris-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: @text-color;
+}
+
+.widget-mpris-subtitle {
+    font-size: 0.9rem;
+    color: @text-color;
+    opacity: 0.8;
+}
+
+.widget-mpris > box > button:hover {
+    background: @hover-color;
+    border-radius: 8px;
+}
+
+/* --- Explicit Text/Icon Color Enforcement --- */
 .widget-title,
 .widget-dnd,
 .widget-volume label,
 .widget-backlight label,
+.widget-mpris-title,
+.widget-mpris-subtitle,
 .widget-buttons-grid > flowbox > flowboxchild > button,
 .widget-title button {
   color: @text-color;
@@ -281,5 +327,5 @@ scale trough highlight {
 .notification-placeholder,
 .notification-placeholder label {
   color: @text-color;
-  opacity: 0.7; /* Optional: Differentiates placeholder text */
+  opacity: 0.7;
 }

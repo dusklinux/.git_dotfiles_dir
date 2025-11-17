@@ -74,7 +74,7 @@
         "format": "{icon}\n{volume}",
         "format-muted": "󰖁\nX",
         "on-click": "pavucontrol",
-        "on-click-right": "swayosd-client --playerctl play-pause",
+        "on-click-right": "kitty -e cava",
         "on-scroll-up": "swayosd-client --output-volume raise",
         "on-scroll-down": "swayosd-client --output-volume lower",
         "on-click-middle": "swayosd-client --output-volume mute-toggle",
@@ -205,7 +205,7 @@
 
 "custom/inhibit-suspend": {
     "format": "{}",
-    "exec": "if pgrep -x 'hypridle' > /dev/null; then echo '{\"text\": \"\", \"tooltip\": \"Suspend is enabled. Click to disable.\", \"class\": \"enabled\"}'; else echo '{\"text\": \"\", \"tooltip\": \"Suspend is disabled. Click to enable.\", \"class\": \"disabled\"}'; fi",
+    "exec": "if pgrep -x 'hypridle' > /dev/null; then echo '{\"text\": \"󰌾\", \"tooltip\": \"Suspend is enabled. Click to disable.\", \"class\": \"enabled\"}'; else echo '{\"text\": \"\", \"tooltip\": \"Suspend is disabled. Click to enable.\", \"class\": \"disabled\"}'; fi",
     "interval": 5,
     "return-type": "json",
     "on-click": "~/user_scripts/waybar/toggle_hypridle.sh",

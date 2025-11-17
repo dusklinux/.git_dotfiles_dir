@@ -2,23 +2,33 @@
 	
 	there are files in this directory for each mitigation, opening each file will show you the mitigation status for each vulrnability. 
 		
+```bash
 ls /sys/devices/system/cpu/vulnerabilities/
+```
 	
-	Files within that directory will show one of these three things
+Files within that directory will show one of these three things
 	
-	first option is specific to the vulnability and is shown if mitigation is on and in effect. 	
-    Vulnerable: The system is vulnerable, and no mitigation is active.
-    Not affected: Your CPU is not vulnerable to this variant.
+first option is specific to the vulnability and is shown if mitigation is on and in effect. 	
+Vulnerable: The system is vulnerable, and no mitigation is active.
+Not affected: Your CPU is not vulnerable to this variant.
 
-	to list out the mitigation status for every file withing that directory, but this one doesn't tell you which one the cat is for.
+to list out the mitigation status for every file withing that directory, but this one doesn't tell you which one the cat is for.
 
+```bash
 cat /sys/devices/system/cpu/vulnerabilities/*
+```
 
-	this lists the status for each file along with naming the name of the file for each vulnability
+```bash
+grep . /sys/devices/system/cpu/vulnerabilities/*
+```
 
+this lists the status for each file along with naming the name of the file for each vulnability
+
+```bash
 for f in /sys/devices/system/cpu/vulnerabilities/*; do echo "--- $f ---"; cat "$f"; done
+```
 
-	to run a script for comprehensive analyisis of what mitigations are in place and what are not, 
+to run a script for comprehensive analyisis of what mitigations are in place and what are not, 
 
 curl -L https://meltdown.ovh -o spectre-meltdown-checker.sh
 	or
@@ -28,11 +38,11 @@ chmod +x spectre-meltdown-checker.sh
 sudo ./spectre-meltdown-checker.sh
 
 
-	to turn off all mitigations for a cpu, not recommanded for modern cpus, check individually for each vulnebality to see how much of a perfomrance improvement there is, cuz dsabling all hurts perfromancce of some cpus because of haredware implimentation os vulnebalites mitigations. 
+to turn off all mitigations for a cpu, not recommanded for modern cpus, check individually for each vulnebality to see how much of a perfomrance improvement there is, cuz dsabling all hurts perfromancce of some cpus because of haredware implimentation os vulnebalites mitigations. 
 	
 mitigations=off
 
-	list of most common boot parameters to indidivudually turn off mitigations for each vulnability.
+list of most common boot parameters to indidivudually turn off mitigations for each vulnability.
 
 	gather_data_sampling=off [X86] ()
 	indirect_target_selection=off [X86]

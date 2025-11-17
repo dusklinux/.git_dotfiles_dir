@@ -22,6 +22,7 @@
         "buttons-grid",
         "volume",
         "backlight",
+        "mpris",
         "notifications"
     ],
     "widget-config": {
@@ -30,13 +31,17 @@
             "button-text": "Clear"
         },
         "dnd": {
-            "label": ""
+            "label": "󰂛"
         },
         "volume": {
-            "label": ""
+            "label": "󰕾"
         },
         "backlight": {
             "label": ""
+        },
+        "mpris": {
+            "image-size": 96,
+            "image-radius": 12
         },
         "buttons-grid": {
             "actions": [
@@ -53,7 +58,7 @@
                     "command": "blueman-manager"
                 },
                 {
-                    "label": "",
+                    "label": "󰕾",
                     "command": "pavucontrol"
                 },
                 {
@@ -65,7 +70,7 @@
                     "command": "kitty -- bash $HOME/user_scripts/performance/services_and_process_terminator.sh"
                 },
                 {
-                    "label": "",
+                    "label": "󰌾",
                     "command": "hyprlock -q"
                 },
                 {
@@ -73,7 +78,7 @@
                     "command": "systemctl suspend"
                 },
                 {
-                    "label": "",
+                    "label": "󰜉",
                     "command": "systemctl reboot"
                 },
                 {
