@@ -47,7 +47,7 @@
             "actions": [
                 {
                     "label": "󰡬",
-                    "command": "bash $HOME/user_scripts/swaync/hyprsunset_slider.sh"
+                    "command": "bash $HOME/user_scripts/hypr/hyprsunset_slider.sh"
                 },
                 {
                     "label": "",

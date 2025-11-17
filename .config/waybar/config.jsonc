@@ -73,14 +73,15 @@
   "pulseaudio":{
         "format": "{icon}\n{volume}",
         "format-muted": "󰖁\nX",
-        "on-click": "pavucontrol",
-        "on-click-right": "kitty -e cava",
+        "on-click": "~/user_scripts/hypr/volume_slider.sh",
+        "on-click-right": "pavucontrol",
+        "on-click-middle": "kitty -e cava",
         "on-scroll-up": "swayosd-client --output-volume raise",
         "on-scroll-down": "swayosd-client --output-volume lower",
         "on-click-middle": "swayosd-client --output-volume mute-toggle",
         "format-icons": ["󰖁", "", ""],
         "tooltip": true,
-        "tooltip-format": "Volume: {volume}%\n{desc}"
+        "tooltip-format": "{desc}\n\nLMB: Volume Slider\nRMB: pavucontrol\nMMB: cava"
     },
 
     "backlight": {
@@ -88,9 +89,9 @@
         "format": "{icon}\n{percent}",
         "format-icons": ["","","","","","","","","","","","","","",""],
         "tooltip": true,
-        "tooltip-format": "Brightness: {percent}%\nLMB: Brightness -1%\nRMB: Brightness +1%",
-        "on-click": "~/user_scripts/waybar/hyprsunset1500.sh",
-        "on-click-right": "~/user_scripts/waybar/hyprsunset3500.sh",
+        "tooltip-format": "LMB: Brightness Slider\nRMB: hyprsunset Slider\nMMB: Turn OFF hyprsunset",
+        "on-click": "~/user_scripts/hypr/brightness_slider.sh",
+        "on-click-right": "~/user_scripts/hypr/hyprsunset_slider.sh",
         "on-click-middle": "~/user_scripts/waybar/hyprsunsetoff.sh",
         "on-scroll-up": "swayosd-client --brightness raise",
         "on-scroll-down": "swayosd-client --brightness lower",
