@@ -73,12 +73,11 @@
   "pulseaudio":{
         "format": "{icon}\n{volume}",
         "format-muted": "󰖁\nX",
-        "on-click": "~/user_scripts/hypr/volume_slider.sh",
-        "on-click-right": "pavucontrol",
-        "on-click-middle": "kitty -e cava",
+        "on-click": "pavucontrol",
+        "on-click-middle": "swayosd-client --output-volume mute-toggle",
+        "on-click-right": "kitty -e cava",
         "on-scroll-up": "swayosd-client --output-volume raise",
         "on-scroll-down": "swayosd-client --output-volume lower",
-        "on-click-middle": "swayosd-client --output-volume mute-toggle",
         "format-icons": ["󰖁", "", ""],
         "tooltip": true,
         "tooltip-format": "{desc}\n\nLMB: Volume Slider\nRMB: pavucontrol\nMMB: cava"
@@ -216,7 +215,7 @@
 "custom/theme": {
         "format": "",
         "tooltip": true,
-        "tooltip-format": "Switch wallpapers with waypaper \nor Super + apostrophe (') after \ntoggeling for theme uniformity.\n\nLeft Click: Dark Mode\nRight Click: Light Mode\nMiddle Click: Waypaper",
+        "tooltip-format": "Switch wallpapers with waypaper \nor Super + apostrophe (') after \ntoggeling for theme uniformity.\n\nLMB: Dark Mode\nRMB: Light Mode\nMMB: Waypaper",
         "on-click": "~/user_scripts/waybar/dark_theme_switcher.sh",
         "on-click-right": "~/user_scripts/waybar/light_theme_switcher.sh",
         "on-click-middle": "waypaper"
