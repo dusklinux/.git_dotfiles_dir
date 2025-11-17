@@ -18,6 +18,11 @@ to list out the mitigation status for every file withing that directory, but thi
 cat /sys/devices/system/cpu/vulnerabilities/*
 ```
 
+12700H grub flags for the `GRUB_CMDLINE_LINUX=""` line. 
+```ini
+reg_file_data_sampling=off spec_store_bypass_disable=off spectre_v2=off vmscape=off
+```
+
 ```bash
 grep . /sys/devices/system/cpu/vulnerabilities/*
 ```
