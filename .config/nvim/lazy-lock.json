@@ -5,7 +5,7 @@
   "cmp-nvim-lsp": { "branch": "main", "commit": "cbc7b02bb99fae35cb42f514762b89b5126651ef" },
   "cmp-path": { "branch": "main", "commit": "c642487086dbd9a93160e1679a1327be111cbc25" },
   "cmp_luasnip": { "branch": "master", "commit": "98d9cb5c2c38532bd9bdb481067b20fea8f32e90" },
-  "fzf-lua": { "branch": "main", "commit": "abad16fa530926b34413f7763cb2c202bcf5b392" },
+  "fzf-lua": { "branch": "main", "commit": "24d77b04c754c1c9ed5bb417984162be4dc5a603" },
   "lazy.nvim": { "branch": "main", "commit": "85c7ff3711b730b4030d03144f6db6375044ae82" },
   "mini.ai": { "branch": "main", "commit": "e139eb1101beb0250fea322f8c07a42f0f175688" },
   "mini.bufremove": { "branch": "main", "commit": "66019ecebdc5bc0759e04747586994e2e3f98416" },
@@ -23,6 +23,6 @@
   "nvim-tree.lua": { "branch": "master", "commit": "1eda2569394f866360e61f590f1796877388cb8a" },
   "nvim-treesitter": { "branch": "master", "commit": "42fc28ba918343ebfd5565147a42a26580579482" },
   "nvim-web-devicons": { "branch": "master", "commit": "8dcb311b0c92d460fac00eac706abd43d94d68af" },
-  "smear-cursor.nvim": { "branch": "main", "commit": "abfa5835920b1d76c0e24e1465a618ad914be90a" },
+  "smear-cursor.nvim": { "branch": "main", "commit": "ed64b7decb25e3db11befa0b76adc9073a3688b5" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" }
 }

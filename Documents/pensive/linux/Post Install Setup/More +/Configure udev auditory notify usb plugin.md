@@ -7,10 +7,10 @@ since this is a root dir/ it needs root executable permissions.
 sudo chmod 755 ~/user_scripts/external/usb_sound.sh
 ```
 
-### Copy the script to (DONT SYMLINK it wont work because parent directories dont' have requisite permission. and root can't just access user directories, for security reasons)
+### symlink the existing script to the usr/local/bin directory. 
 
 ```bash
-sudo cp ~/user_scripts/external/usb_sound.sh /usr/local/bin/
+sudo ln -nfs ~/user_scripts/external/usb_sound.sh /usr/local/bin/
 ```
 
 

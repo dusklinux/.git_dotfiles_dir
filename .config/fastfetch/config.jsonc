@@ -15,12 +15,17 @@
   "break",
   {
     "type": "os",
-    "key": " DISTRO",
+    "key": " >  ",
     "keyColor": "31",
   },
   {
     "type": "kernel",
     "key": " ├  ",
+    "keyColor": "31",
+  },
+  {
+    "type": "wm",
+    "key": " ├  ",
     "keyColor": "31",
   },
   {
@@ -35,40 +40,9 @@
   },
   "break",
   {
-    "type": "wm",
-    "key": " DE/WM",
-    "keyColor": "32",
-  },
-  {
-    "type": "wmtheme",
-    "key": " ├ 󰉼 ",
-    "keyColor": "32",
-  },
-  {
-    "type": "icons",
-    "key": " ├ 󰀻 ",
-    "keyColor": "32",
-  },
-  {
-    "type": "cursor",
-    "key": " ├  ",
-    "keyColor": "32",
-  },
-  {
-    "type": "terminal",
-    "key": " ├  ",
-    "keyColor": "32",
-  },
-  {
-    "type": "terminalfont",
-    "key": " └  ",
-    "keyColor": "32",
-  },
-  "break",
-  {
     "type": "host",
     "format": "{2}",
-    "key": "󰌢 SYSTEM",
+    "key": " > 󰌢 ",
     "keyColor": "33",
   },
   {
@@ -93,21 +67,27 @@
     "key": " ├ 󰓡 ",
     "keyColor": "33",
   },
- {
-  "type": "uptime",
-  "key": " ├ 󰅐 ",
-  "keyColor": "33"
-  },
   {
     "type": "display",
-    "key": " └  ",
+    "key": " ├  ",
     "compactType": "original-with-refresh-rate",
     "keyColor": "33",
+  },
+  {
+    "type": "uptime",
+    "key": " ├ 󱫐 ",
+    "keyColor": "33"
+  },
+  {
+    "type": "command",
+    "key": " └ 󱦟 ",
+    "keyColor": "red",
+    "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days"
   },
   "break",
   {
     "type": "disk",
-    "key": " ├ 󰋊 ",
+    "key": " + 󰋊 ",
     "keyColor": "33",
   },
   "break",

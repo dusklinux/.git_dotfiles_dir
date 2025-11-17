@@ -101,7 +101,7 @@
     "cpu": {
         "format": "\n{usage}",
         "tooltip": true,
-        "on-click": "sh -c 'kitty btop'",
+        "on-click": "kitty -e btop",
         "tooltip-format": "CPU: {usage}%\nAvg Freq: {avg_frequency}GHz",
         "interval": 2
     },
@@ -235,6 +235,7 @@
         "format-connected": "", // Icon when connected
         "tooltip-format": "Devices connected: {num_connections}",
         "on-click": "blueman-manager",
+        "on-click-right": "kitty -e bluetui",
         "interval": 5
     },
 
