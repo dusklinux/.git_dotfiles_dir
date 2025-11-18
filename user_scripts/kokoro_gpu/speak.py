@@ -1,72 +1,136 @@
 #!/usr/bin/env python
 import os
+import sys
+import re
 import onnxruntime as ort
 from kokoro_onnx import Kokoro
-import soundfile as sf
-import sys
-import io
+import numpy as np
 
 # --- Configuration ---
-# Adjust these paths if your models are located elsewhere.
 MODEL_PATH = os.path.expanduser("~/contained_apps/uv/kokoro_gpu/kokoro-v1.0.fp16-gpu.onnx")
 VOICES_PATH = os.path.expanduser("~/contained_apps/uv/kokoro_gpu/voices-v1.0.bin")
+VOICE_NAME = "af_heart"
+LANG_CODE = "en-us"
+
+# --- STRICT WHITELIST CONFIGURATION ---
+# Only characters inside this string will be spoken. Everything else is deleted.
+# a-z A-Z : Alphabets
+# 0-9     : Numbers (remove '0-9' if you don't want numbers read)
+# \s      : Spaces/Newlines (REQUIRED to separate words)
+# .,!?;:  : Punctuation (REQUIRED for the AI to know when to pause/breathe)
+# '       : Apostrophe (REQUIRED for words like "don't" or "it's")
+# -       : Hyphen (Useful for compound words)
+# if you want to include a special charactor just add another back slash followed by the special charactor. 
+ALLOWED_CHARS = r"a-zA-Z0-9\s\.\,\!\?\;\:\'\-\%"
 
 def initialize_kokoro():
-    """Initializes and returns a CUDA-enabled Kokoro instance."""
-    # print("DEBUG: Initializing Kokoro with ONNX providers:", ort.get_available_providers(), file=sys.stderr)
+    if not os.path.exists(MODEL_PATH) or not os.path.exists(VOICES_PATH):
+        print(f"FATAL: Model files not found at {MODEL_PATH}", file=sys.stderr)
+        os._exit(1)
+
     try:
+        sess_options = ort.SessionOptions()
+        sess_options.log_severity_level = 3
+        
         kokoro = Kokoro(MODEL_PATH, VOICES_PATH)
+        
         gpu_sess = ort.InferenceSession(
             MODEL_PATH,
-            sess_options=ort.SessionOptions(),
+            sess_options=sess_options,
             providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
         )
         kokoro.sess = gpu_sess
-        # print("DEBUG: Kokoro initialized with CUDA.", file=sys.stderr)
         return kokoro
     except Exception as e:
-        print(f"FATAL: Failed to initialize Kokoro or CUDA session: {e}", file=sys.stderr)
-        sys.exit(1)
+        print(f"FATAL: Failed to initialize Kokoro/CUDA: {e}", file=sys.stderr)
+        os._exit(1)
+
+def clean_text(text):
+    """
+    Sanitizes text using a Strict Whitelist approach.
+    """
+    # 1. Handle Markdown Links: [Text](URL) -> Text
+    # We do this BEFORE whitelisting so we preserve the label.
+    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+
+    # 2. Handle Raw URLs: Replace with "Link" or remove entirely
+    text = re.sub(r'http[s]?://\S+', 'Link', text)
+
+    # 3. THE NUCLEAR OPTION: Whitelist Filter
+    # Regex logic: Match any character that is NOT (^) in ALLOWED_CHARS
+    # and replace it with a space.
+    cleaning_pattern = f"[^{ALLOWED_CHARS}]"
+    text = re.sub(cleaning_pattern, ' ', text)
+
+    # 4. Collapse multiple spaces/newlines into single space
+    text = ' '.join(text.split())
+    
+    return text.strip()
+
+def smart_split(text):
+    """
+    Splits text by sentence endings while ignoring abbreviations.
+    """
+    # Regex checks for punctuation (.?!;:) NOT preceded by common abbreviations
+    pattern = r'(?<!\bMr)(?<!\bMrs)(?<!\bMs)(?<!\bDr)(?<!\bJr)(?<!\bSr)(?<!\bProf)(?<!\bVol)(?<!\bNo)(?<!\bVs)(?<!\bEtc)\s*([.?!;:]+)\s+'
+    
+    chunks = re.split(pattern, text)
+    
+    sentences = []
+    if len(chunks) == 1:
+        return chunks
+
+    for i in range(0, len(chunks) - 1, 2):
+        sentence = chunks[i].strip()
+        punctuation = chunks[i+1].strip()
+        if sentence:
+            sentences.append(f"{sentence}{punctuation}")
+            
+    if len(chunks) % 2 != 0:
+        last_chunk = chunks[-1].strip()
+        if last_chunk:
+            sentences.append(last_chunk)
+
+    return sentences
 
 def main():
-    """
-    Reads text from stdin, synthesizes it, and writes raw WAV audio to stdout.
-    """
-    # Read the full text from standard input.
-    full_text = sys.stdin.read().strip()
-
-    if not full_text:
-        print("WARNING: No text provided via stdin. Exiting.", file=sys.stderr)
-        sys.exit(0)
-
-    kokoro = initialize_kokoro()
-
-    # Synthesize the audio.
-    # Choose your preferred voice model from the available options.
-    # "af_alloy", "af_aoede", "af_bella", "af_heart", "af_jessica", "af_kore", "af_nicole", "af_nova", "af_river", "af_sarah", "af_sky", "am_adam", "am_echo", "am_eric", "am_fenrir", "am_liam", "am_michael", "am_onyx", "am_puck", "am_santa", "bf_alice", "bf_emma", "bf_isabella", "bf_lily", "bm_daniel", "bm_fable", "bm_george", "bm_lewis", "ef_dora", "em_alex", "em_santa", "ff_siwis", "hf_alpha", "hf_beta", "hm_omega", "hm_psi", "if_sara", "im_nicola", "jf_alpha", "jf_gongitsune", "jf_nezumi", "jf_tebukuro", "jm_kumo", "pf_dora", "pm_alex", "pm_santa", "zf_xiaobei", "zf_xiaoni", "zf_xiaoxiao", "zf_xiaoyi", "zm_yunjian", "zm_yunxi", "zm_yunxia", "zm_yunyang"   # print(f"DEBUG: Synthesizing text: '{full_text[:50]}...'", file=sys.stderr)
     try:
-        samples, sr = kokoro.create(
-            full_text,
-            voice="af_heart", # Or your preferred voice
-            speed=1.0,      # kokoro playback speed
-            lang="en-us"
-        )
-    except Exception as e:
-        print(f"ERROR: Kokoro failed to synthesize audio: {e}", file=sys.stderr)
-        sys.exit(1)
+        full_text = sys.stdin.read().strip()
+        if not full_text:
+            os._exit(0)
 
-    # Use an in-memory buffer to write the WAV file.
-    buffer = io.BytesIO()
-    try:
-        sf.write(buffer, samples, sr, format='WAV', subtype='PCM_16')
-    except Exception as e:
-        print(f"ERROR: Failed to write WAV data to buffer: {e}", file=sys.stderr)
-        sys.exit(1)
+        # --- CLEANUP STEP ---
+        cleaned_text = clean_text(full_text)
+        if not cleaned_text:
+            # If cleanup removes everything (e.g. input was just emoji), exit
+            os._exit(0)
 
-    # Go to the beginning of the buffer and write its content to standard output.
-    buffer.seek(0)
-    sys.stdout.buffer.write(buffer.read())
-    # print("DEBUG: Audio data written to stdout.", file=sys.stderr)
+        kokoro = initialize_kokoro()
+        sentences = smart_split(cleaned_text)
+
+        for sentence in sentences:
+            audio, sr = kokoro.create(
+                sentence,
+                voice=VOICE_NAME,
+                speed=1.0,
+                lang=LANG_CODE
+            )
+            
+            if audio is not None and len(audio) > 0:
+                if audio.dtype != np.float32:
+                    audio = audio.astype(np.float32)
+                
+                try:
+                    sys.stdout.buffer.write(audio.tobytes())
+                    sys.stdout.buffer.flush()
+                except BrokenPipeError:
+                    os._exit(0)
+                    
+    except Exception as e:
+        # print(f"Error: {e}", file=sys.stderr) 
+        os._exit(1)
+
+    os._exit(0)
 
 if __name__ == "__main__":
     main()
