@@ -1,4 +1,76 @@
 #!/usr/bin/env bash
+
+# --- single-instance guard start (volume) ---
+LOCK_KEY="volume_slider"
+XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+LOCK_BASE="$XDG_RUNTIME_DIR/yad_locks"
+mkdir -p "$LOCK_BASE"
+LOCKFILE="$LOCK_BASE/$LOCK_KEY.lock"
+LOCKDIR="$LOCK_BASE/$LOCK_KEY.lockdir"
+TITLE_HINT="Volume"    # change THIS if your yad uses a different --title
+
+_try_focus_existing() {
+  # X11
+  if command -v wmctrl >/dev/null 2>&1; then
+    wmctrl -a "$TITLE_HINT" 2>/dev/null || true
+    return 0
+  fi
+
+  # Hyprland: try hyprctl dispatch by title, then fallback to clients-json -> address
+  if command -v hyprctl >/dev/null 2>&1; then
+    # try direct title dispatcher (works if the compositor finds a match)
+    if hyprctl dispatch focuswindow "title:$TITLE_HINT" >/dev/null 2>&1; then
+      return 0
+    fi
+
+    # fallback: parse clients JSON for an exact title -> address, then focus by address
+    if command -v jq >/dev/null 2>&1; then
+      addr=$(hyprctl clients -j 2>/dev/null | jq -r --arg t "$TITLE_HINT" '.[] | select(.title == $t) | .address' | head -n1)
+      if [ -n "$addr" ] && [ "$addr" != "null" ]; then
+        hyprctl dispatch focuswindow "address:$addr" >/dev/null 2>&1 || true
+        return 0
+      fi
+    fi
+  fi
+
+  return 1
+}
+
+if command -v flock >/dev/null 2>&1; then
+  exec 9>"$LOCKFILE" || exit 0
+  if ! flock -n 9; then
+    _try_focus_existing
+    exit 0
+  fi
+  trap 'exec 9>&-; exit' INT TERM EXIT
+else
+  if mkdir "$LOCKDIR" 2>/dev/null; then
+    printf "%s\n" "$$" > "$LOCKDIR/pid"
+    trap 'if [ -f "$LOCKDIR/pid" ] && [ "$(cat "$LOCKDIR/pid")" = "$$" ]; then rm -rf "$LOCKDIR"; fi; exit' INT TERM EXIT
+  else
+    if [ -f "$LOCKDIR/pid" ]; then
+      OLDPID=$(cat "$LOCKDIR/pid" 2>/dev/null || true)
+      if [ -n "$OLDPID" ] && kill -0 "$OLDPID" 2>/dev/null; then
+        _try_focus_existing
+        exit 0
+      else
+        rm -rf "$LOCKDIR"
+        if mkdir "$LOCKDIR" 2>/dev/null; then
+          printf "%s\n" "$$" > "$LOCKDIR/pid"
+          trap 'if [ -f "$LOCKDIR/pid" ] && [ "$(cat "$LOCKDIR/pid")" = "$$" ]; then rm -rf "$LOCKDIR"; fi; exit' INT TERM EXIT
+        else
+          _try_focus_existing
+          exit 0
+        fi
+      fi
+    else
+      _try_focus_existing
+      exit 0
+    fi
+  fi
+fi
+# --- single-instance guard end ---
+
 set -euo pipefail
 
 # Real-time volume slider for PipeWire/PulseAudio using yad (labeled)
