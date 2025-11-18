@@ -49,20 +49,37 @@ is_hyprsunset_running() {
 start_hyprsunset() {
     echo "hyprsunset not running — attempting to start it..." >&2
 
-    # try systemd --user first if available
+    # Try systemd --user first (try both unit and plain name). If it returns success,
+    # wait a short while for the process to appear.
     if command -v systemctl >/dev/null 2>&1; then
-        # try starting the user service (works if the package provided a systemd unit)
-        if systemctl --user start hyprsunset.service 2>/dev/null; then
-            echo "started hyprsunset via systemctl --user" >&2
-        fi
+        for svc in hyprsunset.service hyprsunset; do
+            if systemctl --user start "$svc" 2>/dev/null; then
+                echo "requested start via systemctl --user ($svc)" >&2
+                # give systemd a small grace period for the process to spawn
+                local deadline=$((SECONDS + STARTUP_WAIT + 5))
+                while [ $SECONDS -le $deadline ]; do
+                    if is_hyprsunset_running; then
+                        echo "hyprsunset started (systemd)" >&2
+                        break
+                    fi
+                    sleep 0.2
+                done
+                break
+            fi
+        done
     fi
 
-    # if still not running, fall back to spawning the binary in background
+    # If still not running, try launching the binary directly in a detached session.
     if ! is_hyprsunset_running; then
-        if command -v hyprsunset >/dev/null 2>&1; then
-            # run in background, detach
-            nohup hyprsunset >/dev/null 2>&1 &
-            disown >/dev/null 2>&1 || true
+        if hyprpath=$(command -v hyprsunset 2>/dev/null); then
+            echo "launching hyprsunset binary ($hyprpath) with setsid" >&2
+            # use setsid to detach fully; fall back to nohup if setsid not allowed
+            if setsid "$hyprpath" >/dev/null 2>&1 < /dev/null & then
+                disown >/dev/null 2>&1 || true
+            else
+                nohup "$hyprpath" >/dev/null 2>&1 &
+                disown >/dev/null 2>&1 || true
+            fi
             echo "launched hyprsunset binary in background" >&2
         else
             echo "hyprsunset binary not found; cannot start it." >&2
@@ -70,16 +87,22 @@ start_hyprsunset() {
         fi
     fi
 
-    # wait shortly for IPC readiness
-    local deadline=$((SECONDS + STARTUP_WAIT))
+    # Wait for IPC readiness. Give a slightly longer window than before.
+    local deadline=$((SECONDS + STARTUP_WAIT + 5))
     while [ $SECONDS -le $deadline ]; do
         # try a harmless hyprctl call to probe readiness
         if hyprctl hyprsunset temperature "$CURRENT_TEMP" >/dev/null 2>&1; then
             echo "hyprsunset IPC ready" >&2
             return 0
         fi
-        sleep 0.2
+        sleep 0.25
     done
+
+    # Final check: if process exists but IPC didn't respond, don't treat as fatal.
+    if is_hyprsunset_running; then
+        echo "hyprsunset process present but IPC still not ready after timeout" >&2
+        return 0
+    fi
 
     echo "timeout waiting for hyprsunset IPC" >&2
     return 1
