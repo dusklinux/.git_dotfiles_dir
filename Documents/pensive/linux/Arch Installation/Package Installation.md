@@ -45,7 +45,7 @@ pacman -S --needed waybar libdbusmenu-qt5 socat swww inotify-tools sassc file li
 Install a base set of applications: a launcher, terminal, text editor, network management tools, and system monitors.
 - [ ] Status
 ```bash
-pacman -S --needed rofi playerctl brightnessctl vsftpd fwupd networkmanager iwd nm-connection-editor compsize ncdu gdu kitty pavucontrol unzip swayimg python-pipx arch-wiki-lite arch-wiki-docs reflector bmon
+pacman -S --needed rofi playerctl brightnessctl vsftpd fwupd networkmanager iwd nm-connection-editor compsize ncdu gdu kitty pavucontrol unzip swayimg python-pipx arch-wiki-lite arch-wiki-docs reflector bmon rsync grsync
 ```
 
 ### 6. Audio (PipeWire) & Bluetooth Support
