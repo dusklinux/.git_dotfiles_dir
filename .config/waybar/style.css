@@ -1,65 +1,29 @@
 /*
  * ~/.config/waybar/style.css
- * Radically simplified color palette — manual editing ready.
+ * Radically simplified color palette — Optimized & Organized
  */
 
 /* --- IMPORT MATUGEN PALETTE --- */
 @import url("../../.config/matugen/generated/waybar-colors.css");
 
-/*
- * ===================================================================
- * 0. COLOR PALETTE BRIDGE
- *
- * This section maps the comprehensive Matugen color palette
- * (imported from waybar-colors.css) to the simplified abstract
- * variables used throughout the rest of this file.
- * ===================================================================
- */
-
-@define-color foreground @on_surface; /* Primary text/icon color */
-@define-color accent @primary;     /* Active/focused elements */
-@define-color critical @error;     /* Warnings, errors, urgent states */
-
-/*
- * Note: @background is used directly from the imported waybar-colors.css
- * and does not require an additional definition here.
- */
-
+/* 0. COLOR PALETTE BRIDGE */
+@define-color foreground @on_surface;
+@define-color accent @primary;
+@define-color critical @error;
 
 /*
  * ===================================================================
- * I. USER CONFIGURATION - PERSONALIZE YOUR WAYBAR HERE
+ * I. GLOBAL STYLES & LAYOUT
  * ===================================================================
  */
 
 * {
-    /* VARIABLE 1: Font Size. Affects the natural width of text content. */
-    font-size: 10px;
-}
-
-#workspaces button,
-#workspaces, #clock, #battery, #bluetooth, #pulseaudio, #custom-app-tray, #cpu, #memory,
-#backlight, #tray, #temperature, #custom-notification, #custom-inhibit-suspend, #custom-power,
-#custom-network-unit, #custom-network-upload, #custom-network-download, #custom-theme {
-    /* VARIABLE 2: Module Horizontal Padding. This is the primary control for the bar's width. */
-    padding-left: 0px;
-    padding-right: 0px;
-}
-
-
-/*
- * ===================================================================
- * II. GLOBAL STYLES & LAYOUT (Core Structure)
- * ===================================================================
- */
-
-* {
-    /* The font-size is now controlled in the SIZING CONFIGURATION section above */
     font-family: "JetBrainsMono Nerd Font", "Noto Sans", sans-serif;
+    font-size: 10px; /* Consolidated from User Config */
     border: none;
     border-radius: 0;
     min-height: 0;
-    animation: none; /* Reset all animations by default */
+    animation: none;
     transition-property: color;
     transition-duration: 0.0s;
     transition-timing-function: ease-in-out;
@@ -70,14 +34,13 @@ window#waybar {
     color: @foreground;
     margin: 1px;
     border-radius: 4px;
-    padding: 5px 0; /* Vertical padding for the top/bottom of the bar */
+    padding: 5px 0;
 }
 
 window#waybar.hidden {
     opacity: 0.5;
 }
 
-/* --- Tooltip Style --- */
 tooltip {
     background: @background;
     color: @foreground;
@@ -92,38 +55,25 @@ tooltip label {
 
 /*
  * ===================================================================
- * III. MODULE-SPECIFIC STYLES
+ * II. MODULE-SPECIFIC STYLES
  * ===================================================================
  */
 
-/* --- Default Module Style --- */
-#workspaces,
-#clock,
-#battery,
-#pulseaudio,
-#custom-app-tray,
-#cpu,
-#bluetooth,
-#temperature,
-#memory,
-#backlight,
-#tray,
-#custom-notification,
-#custom-power,
-#custom-inhibit-suspend,
-#custom-theme,
-#custom-network-unit,
-#custom-network-upload,
-#custom-network-download {
-    /* Horizontal padding is now controlled in the SIZING CONFIGURATION section */
-    margin: 4px 3px; /* 6px vertical, 3px horizontal margin between modules */
+/* --- Shared Module Base --- */
+#workspaces, #clock, #battery, #bluetooth, #pulseaudio, #custom-app-tray, 
+#cpu, #memory, #backlight, #tray, #temperature, #custom-notification, 
+#custom-inhibit-suspend, #custom-power, #custom-theme,
+#custom-network-unit, #custom-network-upload, #custom-network-download {
+    padding-left: 0px;
+    padding-right: 0px;
+    margin: 4px 3px;
     padding-top: 0;
     padding-bottom: 0;
     border-radius: 6px;
     background-color: transparent;
 }
 
-/* --- Custom Override for Network Module Spacing --- */
+/* --- Exceptions: Network Module Spacing --- */
 #custom-network-unit,
 #custom-network-upload,
 #custom-network-download {
@@ -131,39 +81,23 @@ tooltip label {
     margin-bottom: 0px;
 }
 
-
-/* --- Default Module Hover Style --- */
-#clock:hover,
-#battery:hover,
-#pulseaudio:hover,
-#bluetooth:hover,
-#custom-app-tray:hover,
-#cpu:hover,
-#memory:hover,
-#backlight:hover,
-#custom-notification:hover,
-#custom-power:hover,
-#temperature:hover,
-#custom-inhibit-suspend:hover,
-#custom-theme:hover,
-#custom-network-unit:hover,
-#custom-network-upload:hover,
-#custom-network-download:hover {
+/* --- Hover Effects --- */
+#clock:hover, #battery:hover, #pulseaudio:hover, #bluetooth:hover, 
+#custom-app-tray:hover, #cpu:hover, #memory:hover, #backlight:hover, 
+#custom-notification:hover, #custom-power:hover, #temperature:hover, 
+#custom-inhibit-suspend:hover, #custom-theme:hover, #custom-network-unit:hover, 
+#custom-network-upload:hover, #custom-network-download:hover {
     background-color: alpha(@foreground, 0.2);
 }
 
 /* --- Workspaces --- */
 #workspaces {
     background-color: alpha(@foreground, 0.1);
-    padding-top: 0;
-    padding-bottom: 0;
 }
 
 #workspaces button {
-    /* Horizontal padding is now controlled in the SIZING CONFIGURATION section */
     margin: 4px 3px;
-    padding-top: 0;
-    padding-bottom: 0;
+    padding: 0;
     color: @foreground;
     background-color: transparent;
     border-radius: 6px;
@@ -184,70 +118,54 @@ tooltip label {
     color: @background;
 }
 
-/* --- Clock --- */
+/* --- Text Colors & States --- */
+#clock, #battery, #pulseaudio, #custom-app-tray, #bluetooth, 
+#temperature, #cpu, #memory, #backlight {
+    color: @foreground;
+}
+
 #clock {
     font-weight: bold;
-    color: @foreground;
     margin-top: 0px;
     margin-bottom: 0px;
 }
 
-/* --- Battery --- */
-#battery { color: @foreground; }
+/* Battery States */
 #battery.warning { color: @critical; }
-
-#battery.critical:not(.charging) {
-    color: @error_container;         /* This makes the text visible on the red background */
-	animation-name: blink-critical;
-  animation-duration: 1.0s;
-	animation-timing-function: steps(18);
-	animation-iteration-count: infinite;
-	animation-direction: alternate;
-   }
-
 #battery.charging, #battery.plugged { color: @foreground; }
+#battery.critical:not(.charging) {
+    color: @error_container;
+    animation-name: blink-critical;
+    animation-duration: 1.0s;
+    animation-timing-function: steps(18);
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
 
-/* --- Pulseaudio --- */
-#pulseaudio { color: @foreground; }
+/* Audio States */
 #pulseaudio.muted { color: @critical; }
 
-/* --- Custom App Tray --- */
-#custom-app-tray { color: @foreground; }
+/* Bluetooth States */
+#bluetooth.disabled { color: @error; }
+#bluetooth.connected { color: @foreground; }
 
-/* --- Bluetooth --- */
-#bluetooth { 
-    color: @foreground; 
-}
-#bluetooth.disabled { 
-    color: @error; /* Matches your 'disconnected' state color */
-}
-#bluetooth.connected { 
-    color: @foreground; /* Makes it use the 'accent' color when a device is connected */
-}
-
-/* --- Temperature --- */
-#temperature { color: @foreground; }
+/* Temperature States */
 #temperature.critical { color: @critical; }
 
-/* --- CPU / Memory / Backlight --- */
-#cpu { color: @foreground; }
-#memory { color: @foreground; }
+/* Memory States */
 #memory.critical { color: @critical; }
-#backlight { color: @foreground; }
 
-/* --- System Tray --- */
-#tray {}
-
-/* --- Inhibit Susend --- */
+/* Inhibit Suspend States */
 #custom-inhibit-suspend.enabled { color: @foreground; }
 #custom-inhibit-suspend.disabled { color: @critical; }
 
-/* --- Custom Modules --- */
+/* Custom Power */
 #custom-power {
     color: @critical;
     margin-top: 0px;
 }
 
+/* Notifications */
 #custom-notification.dnd-none { color: @foreground; }
 #custom-notification.dnd-notification,
 #custom-notification.dnd-all { color: @critical; }
@@ -258,7 +176,7 @@ tooltip label {
     margin-bottom: 0px;
 }
 
-/* --- Custom Network Speed Indicator --- */
+/* Network Speed Colors */
 #custom-network-unit,
 #custom-network-upload,
 #custom-network-download,
@@ -274,18 +192,13 @@ tooltip label {
     color: @surface_tint;
 }
 
-
 /*
  * ===================================================================
- * IV. ANIMATIONS
+ * III. ANIMATIONS
  * ===================================================================
  */
-
 @keyframes blink-critical {
-    to {
-        background-color: transparent; /* This is the "off" state of the blink */
-        color: @foreground;
-    }
+    to { background-color: transparent; color: @foreground; }
 }
 
 @keyframes blink-urgent {

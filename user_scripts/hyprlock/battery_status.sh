@@ -1,29 +1,40 @@
 #!/usr/bin/env bash
 
-############ Variables ############
-enable_battery=false
-battery_charging=false
-
-####### Check availability ########
-for battery in /sys/class/power_supply/*BAT*; do
-  if [[ -f "$battery/uevent" ]]; then
-    enable_battery=true
-    if [[ $(cat /sys/class/power_supply/*/status | head -1) == "Charging" ]]; then
-      battery_charging=true
+# 1. Find the battery path. 
+# We pick the first power_supply that starts with BAT or CW (Chromebooks).
+# We ensure it is actually present (-e).
+BAT_PATH=""
+for bat in /sys/class/power_supply/BAT* /sys/class/power_supply/CW201*; do
+    if [ -e "$bat/status" ]; then
+        BAT_PATH="$bat"
+        break
     fi
-    break
-  fi
 done
 
-############# Output #############
-if [[ $enable_battery == true ]]; then
-  if [[ $battery_charging == true ]]; then
-    echo -n "(+) "
-  fi
-  echo -n "$(cat /sys/class/power_supply/*/capacity | head -1)"%
-  if [[ $battery_charging == false ]]; then
-    echo -n " remaining"
-  fi
+# If no battery is found (desktop PC), exit silently.
+if [ -z "$BAT_PATH" ]; then
+    echo ""
+    exit 0
 fi
 
-echo ''
+# 2. Get the raw data from the specific battery found.
+STATUS=$(cat "$BAT_PATH/status")
+CAPACITY=$(cat "$BAT_PATH/capacity")
+
+# 3. Logic for Icons and Output
+# Using Nerd Fonts is highly recommended for Hyprlock.
+# Icons: Charging=⚡, Discharging=Removed, Full=Filled
+
+if [ "$STATUS" == "Charging" ]; then
+    echo "⚡ $CAPACITY%"
+elif [ "$STATUS" == "Discharging" ]; then
+    echo "$CAPACITY%"
+elif [ "$STATUS" == "Full" ]; then
+    echo "Full"
+elif [ "$STATUS" == "Not charging" ]; then
+    # Plugged in but threshold limit reached (common on ThinkPads/Asus)
+    echo " $CAPACITY%"
+else
+    # Fallback for unknown states
+    echo "$CAPACITY%"
+fi

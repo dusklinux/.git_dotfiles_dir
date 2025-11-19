@@ -1,163 +1,134 @@
 /*
- * ROFI THEME
- * A clean, manually-configured theme.
- *
- * This theme imports colors from 'rofi-colors.rasi'
- * and maps them to semantic variables for use in the layout.
+ * ROFI THEME - ARCH LINUX / HYPRLAND
+ * Mode: Opaque / Solid Background
  */
 
 configuration {
-    /* Modi (modes) */
-    modi:               "drun,run,clipboard:~/user_scripts/rofi/rofi_cliphist.sh";
-
+    /* Modi */
+    modi: "drun,run,clipboard:~/user_scripts/rofi/rofi_cliphist.sh";
+    
     /* Display & Font */
-    show-icons:         true;
-    icon-theme:         "Papirus-Dark";
-    font:               "JetBrainsMono Nerd Font 11";
+    show-icons:     true;
+    icon-theme:     "Papirus-Dark";
+    font:           "JetBrainsMono Nerd Font 11";
 
-    /* Modi Display Text */
+    /* Text Layout */
     display-drun:       " Apps";
     display-run:        " Run";
-    display-clipboard:  " Clipboard";
-
-    /* Keybindings */
-    kb-cancel:          "Escape";
+    display-clipboard:  " Clip";
+    
+    /* Interaction */
+    kb-cancel:      "Escape";
 }
 
-/*
- * =====================================================================
- * Colors
- * =====================================================================
- * Imports the matugen-generated color palette and maps them
- * to semantic and Rofi-internal variables.
- */
-
-/* --- 1. Importing the theme file ---- */
+/* --- Import Colors --- */
 @import "../../.config/matugen/generated/rofi-colors.rasi"
 
 * {
-    /* --- 2. Semantic Variable Definitions --- */
-    /* Map matugen colors to simple, reusable names */
-    transparent:            rgba(0, 0, 0, 0);
-    window-background:      @surface-container;
-    input-bar-background:   @surface-container-high;
-    border-color:           @outline;
-
-    default-text:           @on-surface;
-    prompt-text:            @on-surface-variant; /* Dimmer text for prompts */
+    /* =====================================================================
+       1. SEMANTIC VARIABLES (Renamed to avoid recursion loop)
+       ===================================================================== */
     
-    highlight-background:   @primary;
-    highlight-text:         @on-primary;
-
-    urgent-background:      @error-container;
-    urgent-text:            @on-error-container;
-
-
-    /* --- 3. Rofi Variable Assignments --- */
-    /* This section connects your palette to Rofi's internal states. */
-
-    /* Base States */
-    background-color:   @window-background;
-    text-color:         @default-text;
-
-    /* Element States */
-    normal-background:          transparent;
-    normal-foreground:          @default-text;
-
-    selected-normal-background:     @highlight-background;
-    selected-normal-foreground:     @highlight-text;
-
-    /* 'Active' states will look the same as 'selected' */
-    active-background:          @highlight-background;
-    active-foreground:          @highlight-text;
+    /* Backgrounds */
+    var-win-bg:           @surface-container;
+    var-input-bg:         @surface-container-high;
+    var-urgent-bg:        @error-container;
+    var-active-bg:        @primary;
     
-    /* 'Urgent' states will use the defined error colors */
-    urgent-background:          @urgent-background;
-    urgent-foreground:          @urgent-text;
+    /* Text Colors */
+    var-text-def:         @on-surface;
+    var-text-dim:         @on-surface-variant;
+    var-text-urgent:      @on-error-container;
+    var-text-active:      @on-primary;
+    
+    /* Borders */
+    var-border:           @outline;
 
-    /* 'Alternate' states will look the same as 'normal' */
-    alternate-normal-background:    transparent;
-    alternate-normal-foreground:    @default-text;
-    alternate-active-background:    @highlight-background;
-    alternate-active-foreground:    @highlight-text;
-    alternate-urgent-background:    @urgent-background;
-    alternate-urgent-foreground:    @urgent-text;
 
-    /* 'Selected' states */
-    selected-active-background:     @highlight-background;
-    selected-active-foreground:     @highlight-text;
-    selected-urgent-background:     @urgent-background;
-    selected-urgent-foreground:     @urgent-text;
+    /* =====================================================================
+       2. ROFI INTERNAL VARIABLES
+       ===================================================================== */
+    
+    /* Global Properties */
+    background-color:     @var-win-bg;
+    text-color:           @var-text-def;
+    border-color:         @var-border;
+
+    /* Element States (Normal) */
+    /* Transparent here means 'show the window background', not actual transparency */
+    normal-background:            transparent; 
+    normal-foreground:            @var-text-def;
+    alternate-normal-background:  transparent;
+    alternate-normal-foreground:  @var-text-def;
+
+    /* Element States (Selected/Active) */
+    selected-normal-background:   @var-active-bg;
+    selected-normal-foreground:   @var-text-active;
+    active-background:            @var-active-bg;
+    active-foreground:            @var-text-active;
+
+    /* Element States (Urgent) */
+    urgent-background:            @var-urgent-bg;
+    urgent-foreground:            @var-text-urgent;
+    selected-urgent-background:   @var-urgent-bg;
+    selected-urgent-foreground:   @var-text-urgent;
 }
 
-
-/*
- * =====================================================================
- * General Layout
- * =====================================================================
- */
+/* =====================================================================
+   Layout Structure
+   ===================================================================== */
 
 window {
-    /* Positioning & Sizing */
+    /* Removed transparency: "real" to ensure solid opaque look */
     location:           center;
     anchor:             center;
     width:              40%;
-
-    /* Appearance */
-    background-color:   @window-background;
+    
+    background-color:   @var-win-bg;
     border:             2px;
     border-radius:      12px;
-    border-color:       @border-color;
     padding:            20px;
 }
 
 mainbox {
     children:           [ inputbar, listview ];
     spacing:            15px;
+    background-color:   transparent;
     border:             0;
     padding:            0;
 }
 
-
-/*
- * =====================================================================
- * Input Bar
- * =====================================================================
- */
+/* =====================================================================
+   Input Bar
+   ===================================================================== */
 
 inputbar {
     children:           [ prompt, entry ];
     spacing:            10px;
     padding:            12px;
     border-radius:      8px;
-    background-color:   @input-bar-background;
+    background-color:   @var-input-bg;
+    text-color:         @var-text-def;
 }
 
 prompt {
     enabled:            true;
     background-color:   inherit;
-    text-color:         @prompt-text;
+    text-color:         @var-text-dim;
+    font:               "JetBrainsMono Nerd Font Bold 11";
 }
 
 entry {
     placeholder:        "Search...";
+    placeholder-color:  @var-text-dim;
     background-color:   inherit;
-    text-color:         @default-text; /* Use main text color for typed text */
+    text-color:         @var-text-def;
+    cursor:             text;
 }
 
-textbox-prompt-colon {
-    expand:             false;
-    str:                ":";
-    margin:             0px 0.3em 0em 0em;
-    text-color:         inherit;
-}
-
-
-/*
- * =====================================================================
- * List View
- * =====================================================================
- */
+/* =====================================================================
+   List View
+   ===================================================================== */
 
 listview {
     columns:            1;
@@ -165,7 +136,8 @@ listview {
     cycle:              true;
     scrollbar:          false;
     spacing:            10px;
-    fixed-height:       0;
+    fixed-height:       false;
+    background-color:   transparent;
     border:             0;
 }
 
@@ -173,65 +145,66 @@ element {
     padding:            10px 12px;
     border-radius:      8px;
     cursor:             pointer;
+    spacing:            10px;
     border:             0;
 }
 
 element-icon {
     size:               1.5em;
     vertical-align:     0.5;
-    margin:             0 15px 0 0;
+    background-color:   transparent;
+    text-color:         inherit;
+    cursor:             inherit;
 }
 
 element-text {
     vertical-align:     0.5;
-    background-color:   inherit;
+    background-color:   transparent;
     text-color:         inherit;
+    highlight:          bold underline;
+    cursor:             inherit;
 }
 
+/* =====================================================================
+   State Specific Styling
+   ===================================================================== */
 
-/*
- * =====================================================================
- * Element States
- * =====================================================================
- * Defines the appearance of list items based on their state.
- * These now correctly inherit from the '*' selector definitions.
- */
-
-element.normal.normal {
+element normal.normal {
     background-color: @normal-background;
     text-color:       @normal-foreground;
 }
-element.normal.urgent {
-    background-color: @urgent-background;
-    text-color:       @urgent-foreground;
+element alternate.normal {
+    background-color: @alternate-normal-background;
+    text-color:       @alternate-normal-foreground;
 }
-element.normal.active {
+
+element selected.normal {
+    background-color: @selected-normal-background;
+    text-color:       @selected-normal-foreground;
+}
+element selected.active {
+    background-color: @selected-normal-background;
+    text-color:       @selected-normal-foreground;
+}
+element selected.urgent {
+    background-color: @selected-urgent-background;
+    text-color:       @selected-urgent-foreground;
+}
+
+element normal.active {
+    background-color: @active-background;
+    text-color:       @active-foreground;
+}
+element alternate.active {
     background-color: @active-background;
     text-color:       @active-foreground;
 }
 
-element.selected.normal {
-    background-color: @selected-normal-background;
-    text-color:       @selected-normal-foreground;
+element normal.urgent {
+    background-color: @urgent-background;
+    text-color:       @urgent-foreground;
 }
-element.selected.urgent {
-    background-color: @selected-urgent-background;
-    text-color:       @selected-urgent-foreground;
-}
-element.selected.active {
-    background-color: @selected-active-background;
-    text-color:       @selected-active-foreground;
-}
-
-element.alternate.normal {
-    background-color: @alternate-normal-background;
-    text-color:       @alternate-normal-foreground;
-}
-element.alternate.urgent {
-    background-color: @alternate-urgent-background;
-    text-color:       @alternate-urgent-foreground;
-}
-element.alternate.active {
-    background-color: @alternate-active-background;
-    text-color:       @alternate-active-foreground;
+element alternate.urgent {
+    background-color: @urgent-background;
+    text-color:       @urgent-foreground;
 }

@@ -1,237 +1,334 @@
 #!/bin/bash
 
-# A comprehensively rewritten, robust, and user-friendly menu-driven script for
-# managing NetworkManager connections. This version uses a guaranteed-correct
-# method to identify saved networks and provides clear, distinct workflows for
-# interacting with visible networks and managing all saved profiles.
+# ==============================================================================
+#  ARCH LINUX / HYPRLAND WIFI MANAGER
+#  Powered by 'gum' and 'nmcli'
+# ==============================================================================
 
-# --- Color Definitions ---
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+# --- Configuration & Styles ---
+WIDTH=65
+COLOR_PRIMARY=212    # Pink/Magenta
+COLOR_SECONDARY=99   # Purple
+COLOR_ACCENT=50      # Cyan
+COLOR_ERROR=196      # Red
+COLOR_SUCCESS=46     # Green
+COLOR_TEXT=255       # White
 
-# --- Function to Pause and Wait for User ---
-press_enter_to_continue() {
-    echo ""
-    read -p "Press [Enter] to return..."
+# Check for gum
+if ! command -v gum &> /dev/null; then
+    echo "Error: 'gum' is not installed."
+    echo "Install it with: sudo pacman -S gum"
+    exit 1
+fi
+
+# --- Helper Functions ---
+
+# Graceful exit on Ctrl+C
+trap "echo; exit" INT
+
+notify() {
+    local title="$1"
+    local msg="$2"
+    if command -v notify-send &> /dev/null; then
+        notify-send -a "Wifi Manager" "$title" "$msg"
+    fi
 }
 
-# --- Reusable Function to Manage a Single Connection Profile ---
-# Takes one argument: the connection NAME (e.g., "HomeWiFi" or "Near").
-# This function is the single point of truth for all connection actions.
-manage_single_connection() {
-    local conn_name="$1"
-    
-    if [ -z "$conn_name" ]; then
-        echo -e "${RED}Error: No connection name provided to management function.${NC}" >&2
-        sleep 2
-        return
-    fi
-    
-    # Escape special characters for safe use in grep
-    local safe_conn_name=$(sed 's/[^^]/[&]/g; s/\^/\\^/g' <<< "$conn_name")
-
-    if nmcli -t -f NAME,DEVICE connection show --active | grep -q "^${safe_conn_name}:"; then
-        current_status="${GREEN}[Active]${NC}"
-    else
-        current_status="${RED}[Inactive]${NC}"
-    fi
-
+header() {
     clear
-    echo -e "${YELLOW}Managing Connection Profile:${NC} ${CYAN}$conn_name${NC}"
-    echo -e "Current Status:             $current_status"
-    echo "------------------------------------------------"
-    echo "  1) Connect (Bring Up)"
-    echo "  2) Disconnect (Bring Down)"
-    echo "  3) Forget (Permanently Delete this Profile)"
-    echo "  q) Go back"
-    echo ""
-    read -p "What would you like to do? " action_choice
-
-    case "$action_choice" in
-        1) sudo nmcli connection up "$conn_name" && echo -e "\n${GREEN}Activation successful.${NC}" || echo -e "\n${RED}Failed to activate.${NC}" ;;
-        2) sudo nmcli connection down "$conn_name" && echo -e "\n${GREEN}Deactivation successful.${NC}" || echo -e "\n${RED}Failed to deactivate.${NC}" ;;
-        3)
-            read -p "Are you sure you want to PERMANENTLY delete '$conn_name'? (y/n): " confirm
-            if [[ "$confirm" =~ ^[Yy]$ ]]; then
-                sudo nmcli connection delete "$conn_name" && echo -e "\n${GREEN}Profile deleted.${NC}" || echo -e "\n${RED}Failed to delete profile.${NC}"
-            else
-                echo "Deletion cancelled."
-            fi ;;
-        [qQ]) return ;;
-        *) echo -e "\n${RED}Invalid action.${NC}" ;;
-    esac
-    press_enter_to_continue
+    gum style --border double --border-foreground "$COLOR_PRIMARY" --padding "1 2" --margin "1" \
+        --align center --width "$WIDTH" "  Network Manager"
 }
 
-# --- MENU FUNCTION 1: Scan and Interact with VISIBLE Wi-Fi Networks ---
-interactive_scan_and_connect() {
+show_error() {
+    gum style --foreground "$COLOR_ERROR" --bold " $1"
+    sleep 2
+}
+
+show_success() {
+    gum style --foreground "$COLOR_SUCCESS" --bold " $1"
+    sleep 1.5
+}
+
+get_active_connection() {
+    # 2>/dev/null silences the "version mismatch" warnings
+    nmcli -t -f NAME,TYPE connection show --active 2>/dev/null | grep ':802-11-wireless' | cut -d: -f1 | head -n1
+}
+
+# --- Core Logic: Scan & Connect ---
+
+scan_and_connect() {
     while true; do
-        clear
-        echo -e "${BLUE}--- Scanning for Visible Wi-Fi Networks ---${NC}"
-        echo "Building network list... please wait."
+        header
         
-        # **THE DEFINITIVE FIX**: Build a reliable map of Saved SSID -> Saved NAME.
-        # This is done in two stages to be 100% correct, avoiding previous errors.
-        declare -A saved_ssid_map
-        # Stage 1: Get the NAMES of all saved Wi-Fi connections.
-        mapfile -t saved_conn_names < <(nmcli -t -f NAME,TYPE c s | grep ':802-11-wireless$' | cut -d: -f1)
+        echo -e "$(gum style --foreground "$COLOR_SECONDARY" " Reading saved profiles...")"
         
-        # Stage 2: For each NAME, get its specific SSID and build the map.
-        # This is the correct way, as querying 'ssid' on a general list is invalid.
-        for name in "${saved_conn_names[@]}"; do
-            # Use 'nmcli -g' (get-value) on a single connection 'id' for reliability.
-            ssid=$(nmcli -g 802-11-wireless.ssid c s id "$name")
-            if [ -n "$ssid" ]; then
-                saved_ssid_map["$ssid"]="$name"
+        # 1. ROBUST DATA MAPPING (FIXED)
+        # We cannot fetch SSID in the summary view on all nmcli versions.
+        # We must get UUIDs first, then query SSID individually.
+        # 2>/dev/null is CRITICAL to hide system warnings.
+
+        declare -A saved_connections
+        
+        # Get list of saved wifi connection UUIDs
+        local saved_uuids
+        saved_uuids=$(nmcli -t -f UUID,TYPE connection show 2>/dev/null | grep ':802-11-wireless' | cut -d: -f1)
+
+        # Loop through them to get the real SSID (Safe method)
+        for uuid in $saved_uuids; do
+            # 'nmcli -g' gets a specific field value cleanly
+            local s_ssid
+            local s_name
+            s_ssid=$(nmcli -g 802-11-wireless.ssid connection show "$uuid" 2>/dev/null)
+            s_name=$(nmcli -g connection.id connection show "$uuid" 2>/dev/null)
+            
+            if [[ -n "$s_ssid" ]]; then
+                saved_connections["$s_ssid"]="$s_name"
             fi
         done
 
-        mapfile -t visible_networks < <(nmcli -t -f IN-USE,SSID,SECURITY dev wifi list --rescan yes)
+        echo -e "$(gum style --foreground "$COLOR_SECONDARY" " Scanning networks...")"
 
-        if [ ${#visible_networks[@]} -eq 0 ]; then
-            echo -e "${RED}No Wi-Fi networks found.${NC}"; press_enter_to_continue; return;
-        fi
+        # 2. Scan Wifi List
+        local wifi_list
+        wifi_list=$(nmcli -t -f IN-USE,SSID,SECURITY,BARS device wifi list --rescan yes 2>/dev/null)
+
+        # 3. Build the Menu List
+        local menu_options=""
         
-        echo -e "${YELLOW}Please select a network:${NC}"
-        declare -a network_ssids network_names network_statuses
+        while IFS=: read -r in_use ssid security bars; do
+            [[ -z "$ssid" ]] && continue
 
-        for i in "${!visible_networks[@]}"; do
-            line="${visible_networks[$i]}"
-            in_use=$(cut -d: -f1 <<< "$line")
-            ssid=$(cut -d: -f2 <<< "$line")
-            security=$(cut -d: -f3- <<< "$line")
-
-            network_ssids[$i]=$ssid
-            local status_tag display_status
+            local display_str=""
+            local status_icon=""
+            local status_text=""
             
-            # Now, check the visible SSID against our accurately built map.
+            # Determine Status
             if [[ "$in_use" == "*" ]]; then
-                status_tag="active"
-                display_status="${GREEN}[Active]${NC}"
-                network_names[$i]=${saved_ssid_map["$ssid"]:-$ssid}
-            elif [[ -v saved_ssid_map["$ssid"] ]]; then
-                status_tag="saved"
-                display_status="${CYAN}[Saved]${NC}"
-                network_names[$i]=${saved_ssid_map["$ssid"]}
+                status_icon="" 
+                status_text="Active"
+            elif [[ -n "${saved_connections["$ssid"]}" ]]; then
+                status_icon="" 
+                status_text="Saved"
             else
-                status_tag="new"
-                display_status="${YELLOW}[New]${NC}"
-                network_names[$i]=""
+                status_icon=""
+                status_text="New"
             fi
-            network_statuses[$i]=$status_tag
-            
-            printf "  ${BLUE}%2d)${NC} %-25.25s %-18.18s %b\n" "$((i+1))" "$ssid" "$security" "$display_status"
-        done
-        
-        echo "------------------------------------------------------------"
-        echo "  r) Rescan for networks"
-        echo "  q) Back to main menu"
-        echo ""
-        read -p "Enter your choice: " choice
 
-        case "$choice" in
-            [rR]) continue ;;
-            [qQ]) return ;;
-            *)
-                if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#visible_networks[@]}" ]; then
-                    selected_ssid="${network_ssids[$((choice-1))]}"
-                    selected_name="${network_names[$((choice-1))]}"
-                    selected_status="${network_statuses[$((choice-1))]}"
-                    
-                    if [[ "$selected_status" == "active" || "$selected_status" == "saved" ]]; then
-                        manage_single_connection "$selected_name"
-                    else # This is a "new" network
-                        read -s -p "Enter password for new network '$selected_ssid': " password; echo ""
-                        if sudo nmcli device wifi connect "$selected_ssid" password "$password"; then
-                           echo -e "\n${GREEN}Successfully connected to '$selected_ssid' and saved connection!${NC}"
-                        else
-                           echo -e "\n${RED}Failed to connect. Please check password or network status.${NC}"
-                        fi
-                        press_enter_to_continue
-                    fi
-                    return
+            # Visual formatting for Gum
+            # We pack the raw data into the string using a delimiter that won't appear in SSIDs usually
+            # Using valid Nerd Fonts
+            menu_options+="$status_icon $status_text;;$ssid;;$security;;$bars"$'\n'
+
+        done <<< "$wifi_list"
+
+        # 4. Display Menu with Alignment
+        header
+        
+        # Check if we found anything
+        if [[ -z "$menu_options" ]]; then
+            show_error "No networks found"
+            return
+        fi
+
+        local selected_line
+        # We use awk to create nice columns. 
+        # $1=Status $2=SSID $3=Sec $4=Bars
+        selected_line=$(echo -e "$menu_options" | \
+            awk -F';;' '{printf "%-10s  %-25s  %-10s  %s\n", $1, $2, $3, $4}' | \
+            gum filter --placeholder "Select a network..." --height 15 --indicator="➜" --header "STATUS      SSID                       SECURITY    SIGNAL")
+
+        [[ -z "$selected_line" ]] && return
+
+        # 5. Extract SSID cleanly
+        # We rely on the robust delimiter ';;' from the raw loop, but we only have the visual line now.
+        # We must parse the visual line.
+        # Visual: " Active    MyWifi                     WPA2        ▂▄▆_"
+        # Fixed width parsing is risky if SSID is long.
+        # Better: Search the original menu_options for the line that matches the visual selection partially.
+        
+        # Actually, let's just use cut based on the spaces we injected in awk.
+        # Warning: SSIDs can contain spaces.
+        # Strategy: The SSID is the 2nd column in our visual table.
+        # The first column is 12 chars wide (Status + Icon).
+        # SSID starts at char 13. Length 25.
+        local selected_ssid
+        selected_ssid=$(echo "$selected_line" | cut -c 13-38 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        # 6. Action Logic
+        local is_saved="${saved_connections["$selected_ssid"]}"
+        local is_active=false
+        local active_name
+        active_name=$(get_active_connection)
+
+        # Check if strictly active
+        if [[ -n "$active_name" && "$active_name" == "$is_saved" ]]; then
+            is_active=true
+        fi
+
+        handle_connection_action "$selected_ssid" "$is_saved" "$is_active"
+    done
+}
+
+handle_connection_action() {
+    local ssid="$1"
+    local conn_name="$2"
+    local is_active="$3"
+
+    local action
+    
+    # Case 1: Network is currently ACTIVE
+    if [[ "$is_active" == "true" ]]; then
+        action=$(gum choose --header "Managing: $ssid (Active)" "Disconnect" "Forget" "Cancel")
+        case "$action" in
+            "Disconnect")
+                gum spin --spinner dot --title "Disconnecting..." -- sudo nmcli con down "$conn_name" 2>/dev/null
+                notify "Wi-Fi" "Disconnected from $ssid"
+                ;;
+            "Forget")
+                if gum confirm "Permanently delete $ssid?"; then
+                    sudo nmcli con delete "$conn_name" 2>/dev/null
+                    show_success "Forgot network"
+                fi
+                ;;
+        esac
+
+    # Case 2: Network is SAVED but NOT ACTIVE
+    elif [[ -n "$conn_name" ]]; then
+        action=$(gum choose --header "Managing: $ssid (Saved)" "Connect" "Forget" "Cancel")
+        case "$action" in
+            "Connect")
+                # Use 'con up' for saved networks, NOT 'dev wifi connect'
+                if gum spin --spinner dot --title "Connecting to $ssid..." -- sudo nmcli con up "$conn_name" 2>/dev/null; then
+                    show_success "Connected"
+                    notify "Wi-Fi" "Connected to $ssid"
                 else
-                    echo -e "\n${RED}Invalid option.${NC}"; sleep 2
-                fi ;;
+                    show_error "Connection Failed"
+                fi
+                ;;
+            "Forget")
+                if gum confirm "Permanently delete $ssid?"; then
+                    sudo nmcli con delete "$conn_name" 2>/dev/null
+                    show_success "Forgot network"
+                fi
+                ;;
+        esac
+
+    # Case 3: NEW Network
+    else
+        # Prompt for password
+        local pass
+        echo -e "$(gum style --foreground "$COLOR_ACCENT" "Enter Password for: $ssid")"
+        pass=$(gum input --password --placeholder "Password (leave empty for Open)...")
+        
+        # If user hit Esc (exit code != 0), return
+        if [ $? -ne 0 ]; then return; fi
+
+        local connect_cmd
+        if [[ -z "$pass" ]]; then
+            connect_cmd="sudo nmcli device wifi connect \"$ssid\""
+        else
+            connect_cmd="sudo nmcli device wifi connect \"$ssid\" password \"$pass\""
+        fi
+
+        # Run connection
+        if gum spin --spinner points --title "Negotiating with $ssid..." -- bash -c "$connect_cmd > /dev/null 2>&1"; then
+            show_success "Connected!"
+            notify "Wi-Fi" "Successfully connected to $ssid"
+        else
+            show_error "Failed to connect"
+            notify "Wi-Fi" "Connection failed for $ssid"
+        fi
+    fi
+}
+
+# --- Manage Saved Profiles ---
+
+manage_saved() {
+    while true; do
+        header
+        echo -e "$(gum style --foreground "$COLOR_SECONDARY" "Loading profiles...")"
+
+        local profiles
+        profiles=$(nmcli -t -f NAME,TYPE connection show 2>/dev/null | grep ':802-11-wireless' | cut -d: -f1 | sort)
+
+        if [[ -z "$profiles" ]]; then
+            show_error "No saved profiles found."
+            return
+        fi
+
+        local selected_profile
+        selected_profile=$(echo "$profiles" | gum filter --header "Select Profile to Manage" --placeholder "Search profiles..." --height 10)
+
+        [[ -z "$selected_profile" ]] && return
+
+        local action
+        action=$(gum choose --header "Profile: $selected_profile" "Connect" "Edit (nmtui)" "Delete" "Back")
+
+        case "$action" in
+            "Connect")
+                gum spin --spinner dot --title "Activating..." -- sudo nmcli con up "$selected_profile" 2>/dev/null
+                ;;
+            "Edit (nmtui)")
+                nmtui-edit "$selected_profile"
+                ;;
+            "Delete")
+                if gum confirm "Delete $selected_profile?"; then
+                    sudo nmcli con delete "$selected_profile" 2>/dev/null
+                    show_success "Deleted"
+                fi
+                ;;
         esac
     done
 }
 
-# --- MENU FUNCTION 2: Manage ALL Saved Wi-Fi Networks ---
-manage_all_saved_wifi() {
-    while true; do
-        clear
-        echo -e "${BLUE}--- Manage ALL Saved Wi-Fi Networks ---${NC}"
-        mapfile -t saved_wifi_names < <(nmcli -t -f NAME,TYPE c s | grep ':802-11-wireless$' | cut -d: -f1)
-        
-        if [ ${#saved_wifi_names[@]} -eq 0 ]; then
-            echo -e "${RED}No saved Wi-Fi connections found.${NC}"; press_enter_to_continue; return;
-        fi
+# --- Main Entry Point ---
 
-        echo -e "${YELLOW}Select a saved profile to manage:${NC}"
-        for i in "${!saved_wifi_names[@]}"; do
-            printf "  ${BLUE}%2d)${NC} %s\n" "$((i+1))" "${saved_wifi_names[$i]}"
-        done
-        echo "----------------------------------------"
-        echo "  q) Back to main menu"
-        echo ""
-        read -p "Enter your choice: " choice
-
-        if [[ "$choice" =~ ^[qQ]$ ]]; then
-            return
-        elif [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#saved_wifi_names[@]}" ]; then
-            manage_single_connection "${saved_wifi_names[$((choice-1))]}"
-            return
-        else
-            echo -e "\n${RED}Invalid selection.${NC}"; sleep 2
-        fi
-    done
-}
-
-# --- Initial Prerequisite Check ---
+# Check if NM is running
 if ! systemctl is-active --quiet NetworkManager.service; then
-    clear
-    echo -e "${YELLOW}WARNING: NetworkManager service is not running.${NC}"
-    read -p "Attempt to start it now? (y/n): " choice
-    if [[ "$choice" =~ ^[Yy]$ ]]; then
-        if sudo systemctl start NetworkManager.service && sudo systemctl enable NetworkManager.service; then
-            echo -e "${GREEN}Successfully started and enabled NetworkManager.${NC}"; sleep 2
-        else
-            echo -e "${RED}ERROR: Failed to start NetworkManager.${NC}"; exit 1
-        fi
+    gum style --foreground "$COLOR_ERROR" --border double --padding "1" "NetworkManager is NOT running."
+    if gum confirm "Start NetworkManager now?"; then
+        gum spin --title "Starting service..." -- sudo systemctl start NetworkManager.service
     else
-        echo -e "${RED}Exiting. Script cannot continue without NetworkManager.${NC}"; exit 1
+        exit 1
     fi
 fi
 
-# --- Main Menu Loop ---
 while true; do
-    clear
-    echo -e "${BLUE}=========================================${NC}"
-    echo -e "${BLUE}    Network Manager Control Script       ${NC}"
-    echo -e "${BLUE}=========================================${NC}"
-    active_conn=$(nmcli -t -f NAME,DEVICE connection show --active | head -n1 | cut -d: -f1)
-    [ -n "$active_conn" ] && status_line="Status: ${GREEN}$active_conn [Active]${NC}" || status_line="Status: ${RED}Not Connected${NC}"
-    echo -e "$status_line\n"
+    header
     
-    echo -e "${YELLOW}What would you like to do?${NC}"
-    echo "  1) Scan & Interact with Visible Wi-Fi"
-    echo "  2) Manage ALL Saved Wi-Fi Networks"
-    echo "  3) Show all network devices (Wi-Fi, Ethernet, etc.)"
+    active_con=$(get_active_connection)
+    if [[ -n "$active_con" ]]; then
+        gum style --foreground "$COLOR_SUCCESS" --align center "Connected to: $active_con"
+    else
+        gum style --foreground "$COLOR_ERROR" --align center "Disconnected"
+    fi
     echo ""
-    echo "  q) Quit"
-    echo ""
-    read -p "Enter your choice: " main_choice
 
-    case "$main_choice" in
-        1) interactive_scan_and_connect ;;
-        2) manage_all_saved_wifi ;;
-        3) clear; echo -e "${BLUE}--- Available Network Devices ---${NC}"; nmcli device; press_enter_to_continue ;;
-        q|Q) clear; echo "Exiting script. Goodbye!"; exit 0 ;;
-        *) echo -e "\n${RED}Invalid option.${NC}"; sleep 2 ;;
+    CHOICE=$(gum choose --cursor-prefix "➜ " --selected.foreground "$COLOR_PRIMARY" \
+        "1. Scan & Connect" \
+        "2. Manage Saved Profiles" \
+        "3. Toggle Radio (On/Off)" \
+        "Exit")
+
+    case "$CHOICE" in
+        "1. Scan & Connect")
+            scan_and_connect
+            ;;
+        "2. Manage Saved Profiles")
+            manage_saved
+            ;;
+        "3. Toggle Radio (On/Off)")
+            status=$(nmcli radio wifi)
+            if [[ "$status" == "enabled" ]]; then
+                gum spin --title "Disabling Wi-Fi..." -- nmcli radio wifi off 2>/dev/null
+            else
+                gum spin --title "Enabling Wi-Fi..." -- nmcli radio wifi on 2>/dev/null
+            fi
+            ;;
+        "Exit")
+            clear
+            exit 0
+            ;;
     esac
 done

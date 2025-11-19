@@ -1,228 +1,229 @@
 #!/usr/bin/env bash
 
-# --- single-instance guard start (hyprsunset) ---
-LOCK_KEY="hyprsunset_slider"
-XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-LOCK_BASE="$XDG_RUNTIME_DIR/yad_locks"
-mkdir -p "$LOCK_BASE"
-LOCKFILE="$LOCK_BASE/$LOCK_KEY.lock"
-LOCKDIR="$LOCK_BASE/$LOCK_KEY.lockdir"
-TITLE_HINT="Hyprsunset"    # change THIS if your yad uses a different --title
+# ==============================================================================
+# Hyprsunset Slider (Optimized)
+# ==============================================================================
+# - Real-time temperature adjustment for Hyprland
+# - Auto-launches hyprsunset if missing
+# - Single-instance enforcement with window focus
+# - Crash protection and efficient IPC handling
+# ==============================================================================
 
-_try_focus_existing() {
-  if command -v wmctrl >/dev/null 2>&1; then
-    wmctrl -a "$TITLE_HINT" 2>/dev/null || true
-    return 0
-  fi
+set -u # Error on unset variables (safety)
 
-  if command -v hyprctl >/dev/null 2>&1; then
-    if hyprctl dispatch focuswindow "title:$TITLE_HINT" >/dev/null 2>&1; then
-      return 0
+# --- Constants ---
+readonly APP_NAME="hyprsunset"
+readonly TITLE_HINT="Hyprsunset"
+readonly LOCK_KEY="hyprsunset_slider"
+
+# Use XDG_RUNTIME_DIR for security/isolation (falls back to /tmp if unset)
+readonly RUN_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+readonly STATE_FILE="$RUN_DIR/hyprsunset_last_temp"
+readonly LOCK_BASE="$RUN_DIR/yad_locks"
+readonly LOCK_FILE="$LOCK_BASE/$LOCK_KEY.lock"
+readonly LOCK_DIR="$LOCK_BASE/$LOCK_KEY.lockdir"
+
+readonly DEFAULT_TEMP=4500
+readonly MIN_TEMP=1000
+readonly MAX_TEMP=6000
+readonly STARTUP_WAIT=5
+
+# --- Dependency Check ---
+for cmd in yad hyprctl pgrep; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        notify-send -u critical "$TITLE_HINT Error" "Missing dependency: $cmd"
+        echo "Error: Missing dependency '$cmd'" >&2
+        exit 1
+    fi
+done
+
+# ==============================================================================
+# 1. Single Instance & Focus Logic
+# ==============================================================================
+
+_focus_existing_window() {
+    # Method 1: wmctrl (fastest if available)
+    if command -v wmctrl >/dev/null 2>&1; then
+        if wmctrl -a "$TITLE_HINT" 2>/dev/null; then return 0; fi
     fi
 
+    # Method 2: hyprctl direct dispatch
+    if hyprctl dispatch focuswindow "title:^${TITLE_HINT}$" >/dev/null 2>&1; then
+        return 0
+    fi
+
+    # Method 3: Manual address lookup (robust fallback)
     if command -v jq >/dev/null 2>&1; then
-      addr=$(hyprctl clients -j 2>/dev/null | jq -r --arg t "$TITLE_HINT" '.[] | select(.title == $t) | .address' | head -n1)
-      if [ -n "$addr" ] && [ "$addr" != "null" ]; then
-        hyprctl dispatch focuswindow "address:$addr" >/dev/null 2>&1 || true
-        return 0
-      fi
-    fi
-  fi
-
-  return 1
-}
-
-if command -v flock >/dev/null 2>&1; then
-  exec 9>"$LOCKFILE" || exit 0
-  if ! flock -n 9; then
-    _try_focus_existing
-    exit 0
-  fi
-  trap 'exec 9>&-; exit' INT TERM EXIT
-else
-  if mkdir "$LOCKDIR" 2>/dev/null; then
-    printf "%s\n" "$$" > "$LOCKDIR/pid"
-    trap 'if [ -f "$LOCKDIR/pid" ] && [ "$(cat "$LOCKDIR/pid")" = "$$" ]; then rm -rf "$LOCKDIR"; fi; exit' INT TERM EXIT
-  else
-    if [ -f "$LOCKDIR/pid" ]; then
-      OLDPID=$(cat "$LOCKDIR/pid" 2>/dev/null || true)
-      if [ -n "$OLDPID" ] && kill -0 "$OLDPID" 2>/dev/null; then
-        _try_focus_existing
-        exit 0
-      else
-        rm -rf "$LOCKDIR"
-        if mkdir "$LOCKDIR" 2>/dev/null; then
-          printf "%s\n" "$$" > "$LOCKDIR/pid"
-          trap 'if [ -f "$LOCKDIR/pid" ] && [ "$(cat "$LOCKDIR/pid")" = "$$" ]; then rm -rf "$LOCKDIR"; fi; exit' INT TERM EXIT
-        else
-          _try_focus_existing
-          exit 0
+        local addr
+        addr=$(hyprctl clients -j | jq -r --arg t "$TITLE_HINT" '.[] | select(.title == $t) | .address' | head -n1)
+        if [[ -n "$addr" && "$addr" != "null" ]]; then
+            hyprctl dispatch focuswindow "address:$addr" >/dev/null 2>&1
+            return 0
         fi
-      fi
-    else
-      _try_focus_existing
-      exit 0
-    fi
-  fi
-fi
-# --- single-instance guard end ---
-
-set -euo pipefail
-
-# hyprsunset real-time slider for Hyprland (improved)
-# - updates `hyprctl hyprsunset temperature` as you move the slider (uses yad --print-partial)
-# - will start hyprsunset if it's not already running (tries systemd --user first, falls back to launching binary)
-# - keeps the last value in /tmp/hyprsunset.temp
-# - title is "hyprsunset" (useful for Hyprland window rules)
-# - more robust error handling and a short wait for hyprsunset IPC readiness
-
-TEMP_FILE="/tmp/hyprsunset.temp"
-DEFAULT_TEMP=4500
-MIN_TEMP=1000
-MAX_TEMP=5000
-
-# how long to wait (seconds) after starting hyprsunset for IPC to be available
-STARTUP_WAIT=5
-
-# check dependencies
-if ! command -v yad >/dev/null 2>&1; then
-    echo "This script requires 'yad'. Install it (e.g. sudo pacman -S yad)" >&2
-    exit 1
-fi
-if ! command -v hyprctl >/dev/null 2>&1; then
-    echo "hyprctl not found in PATH. This script must run on a system with Hyprland." >&2
-    exit 1
-fi
-
-# Initialize temp file if missing
-if [ ! -f "$TEMP_FILE" ]; then
-    echo "$DEFAULT_TEMP" > "$TEMP_FILE"
-fi
-
-# Read last value (fallback to default on failure)
-CURRENT_TEMP=$(cat "$TEMP_FILE" 2>/dev/null || echo "$DEFAULT_TEMP")
-# keep only integer part
-CURRENT_TEMP=${CURRENT_TEMP%.*}
-
-# helper: check if hyprsunset process exists
-is_hyprsunset_running() {
-    # if systemd service is used, the process may still be named 'hyprsunset'
-    if pgrep -x hyprsunset >/dev/null 2>&1; then
-        return 0
     fi
     return 1
 }
 
-# helper: try to start hyprsunset
-start_hyprsunset() {
-    echo "hyprsunset not running — attempting to start it..." >&2
+# Ensure lock directory exists
+mkdir -p "$LOCK_BASE"
 
-    # Try systemd --user first (try both unit and plain name). If it returns success,
-    # wait a short while for the process to appear.
-    if command -v systemctl >/dev/null 2>&1; then
-        for svc in hyprsunset.service hyprsunset; do
-            if systemctl --user start "$svc" 2>/dev/null; then
-                echo "requested start via systemctl --user ($svc)" >&2
-                # give systemd a small grace period for the process to spawn
-                local deadline=$((SECONDS + STARTUP_WAIT + 5))
-                while [ $SECONDS -le $deadline ]; do
-                    if is_hyprsunset_running; then
-                        echo "hyprsunset started (systemd)" >&2
-                        break
-                    fi
-                    sleep 0.2
-                done
-                break
+# Try to acquire lock
+if command -v flock >/dev/null 2>&1; then
+    exec 9>"$LOCK_FILE"
+    if ! flock -n 9; then
+        _focus_existing_window
+        exit 0
+    fi
+    # Lock acquired, cleanup on exit
+    trap 'exec 9>&-; rm -f "$LOCK_FILE"; exit' INT TERM EXIT
+else
+    # Fallback for systems without flock (rare, but safe)
+    if mkdir "$LOCK_DIR" 2>/dev/null; then
+        echo "$$" > "$LOCK_DIR/pid"
+        trap 'rm -rf "$LOCK_DIR"; exit' INT TERM EXIT
+    else
+        if [ -f "$LOCK_DIR/pid" ]; then
+            old_pid=$(cat "$LOCK_DIR/pid" 2>/dev/null || echo "")
+            if [ -n "$old_pid" ] && kill -0 "$old_pid" 2>/dev/null; then
+                _focus_existing_window
+                exit 0
+            else
+                # Stale lock detected
+                rm -rf "$LOCK_DIR"
+                mkdir "$LOCK_DIR"
+                echo "$$" > "$LOCK_DIR/pid"
+                trap 'rm -rf "$LOCK_DIR"; exit' INT TERM EXIT
             fi
-        done
+        fi
+    fi
+fi
+
+# ==============================================================================
+# 2. Service Management Functions
+# ==============================================================================
+
+# Initialize state file if missing
+if [ ! -f "$STATE_FILE" ]; then
+    echo "$DEFAULT_TEMP" > "$STATE_FILE"
+fi
+
+get_current_temp() {
+    local val
+    val=$(cat "$STATE_FILE" 2>/dev/null || echo "$DEFAULT_TEMP")
+    echo "${val%.*}" # Integer only
+}
+
+is_daemon_running() {
+    # Check for process belonging to current user only
+    pgrep -u "$(id -u)" -x "$APP_NAME" >/dev/null 2>&1
+}
+
+start_daemon() {
+    echo "Starting $APP_NAME..." >&2
+
+    # 1. Try systemd --user
+    if command -v systemctl >/dev/null 2>&1; then
+        if systemctl --user start "$APP_NAME" 2>/dev/null; then
+            # Wait for process to appear
+            local deadline=$((SECONDS + STARTUP_WAIT))
+            while [ $SECONDS -le $deadline ]; do
+                is_daemon_running && return 0
+                sleep 0.2
+            done
+        fi
     fi
 
-    # If still not running, try launching the binary directly in a detached session.
-    if ! is_hyprsunset_running; then
-        if hyprpath=$(command -v hyprsunset 2>/dev/null); then
-            echo "launching hyprsunset binary ($hyprpath) with setsid" >&2
-            # use setsid to detach fully; fall back to nohup if setsid not allowed
-            if setsid "$hyprpath" >/dev/null 2>&1 < /dev/null & then
-                disown >/dev/null 2>&1 || true
-            else
-                nohup "$hyprpath" >/dev/null 2>&1 &
-                disown >/dev/null 2>&1 || true
-            fi
-            echo "launched hyprsunset binary in background" >&2
+    # 2. Fallback: Direct Binary Launch
+    if ! is_daemon_running; then
+        local bin_path
+        bin_path=$(command -v "$APP_NAME" 2>/dev/null)
+        
+        if [ -n "$bin_path" ]; then
+            # Use setsid to detach completely
+            setsid "$bin_path" >/dev/null 2>&1 &
+            disown $! 2>/dev/null || true
         else
-            echo "hyprsunset binary not found; cannot start it." >&2
+            notify-send -u critical "Hyprsunset Error" "Binary not found."
             return 1
         fi
     fi
 
-    # Wait for IPC readiness. Give a slightly longer window than before.
-    local deadline=$((SECONDS + STARTUP_WAIT + 5))
+    # 3. Wait for IPC Readiness (Critical for preventing lag)
+    local deadline=$((SECONDS + STARTUP_WAIT))
+    local current=$(get_current_temp)
     while [ $SECONDS -le $deadline ]; do
-        # try a harmless hyprctl call to probe readiness
-        if hyprctl hyprsunset temperature "$CURRENT_TEMP" >/dev/null 2>&1; then
-            echo "hyprsunset IPC ready" >&2
+        if hyprctl hyprsunset temperature "$current" >/dev/null 2>&1; then
             return 0
         fi
-        sleep 0.25
+        sleep 0.2
     done
-
-    # Final check: if process exists but IPC didn't respond, don't treat as fatal.
-    if is_hyprsunset_running; then
-        echo "hyprsunset process present but IPC still not ready after timeout" >&2
-        return 0
-    fi
-
-    echo "timeout waiting for hyprsunset IPC" >&2
+    
     return 1
 }
 
-# Build YAD arguments
-YAD_ARGS=(
-    --title="hyprsunset"
-    --text="hyprsunset"
+# ==============================================================================
+# 3. Main Logic Loop
+# ==============================================================================
+
+CURRENT_TEMP=$(get_current_temp)
+LAST_RESTART_ATTEMPT=0
+
+# Ensure it's running before showing UI
+if ! is_daemon_running; then
+    start_daemon || true
+fi
+
+# YAD UI Definition
+YAD_CMD=(
+    yad
+    --title="$TITLE_HINT"
+    --class="$TITLE_HINT"
     --scale
+    --text="Temperature (K)"
     --min-value="$MIN_TEMP"
     --max-value="$MAX_TEMP"
     --value="$CURRENT_TEMP"
-    --step=1
+    --step=50
     --show-value
     --print-partial
-    --width=420
-    --height=90
-    --button=OK:0
-    --buttons-layout=center
+    --width=400
+    --height=50
+    --window-icon="preferences-system"
+    --button="Close":1
+    --buttons-layout=end
 )
 
-# Launch YAD and read partial values as they come out
-"yad" "${YAD_ARGS[@]}" | while IFS= read -r NEW_TEMP; do
-    # normalize to integer (yad may emit floats)
-    NEW_TEMP_INT=${NEW_TEMP%.*}
-
-    # skip if empty or unchanged
-    if [ -z "$NEW_TEMP_INT" ] || [ "$NEW_TEMP_INT" = "$CURRENT_TEMP" ]; then
+# Loop using Process Substitution to avoid subshell issues
+while IFS= read -r NEW_TEMP; do
+    # Sanitize input (integer only)
+    NEW_TEMP=${NEW_TEMP%.*}
+    
+    # Ignore empty or unchanged values
+    if [[ -z "$NEW_TEMP" || "$NEW_TEMP" == "$CURRENT_TEMP" ]]; then
         continue
     fi
 
-    # attempt to set temperature via hyprctl. If it fails, try to start hyprsunset and retry once.
-    if ! hyprctl hyprsunset temperature "$NEW_TEMP_INT" >/dev/null 2>&1; then
-        # try to start hyprsunset if not running
-        if ! is_hyprsunset_running; then
-            start_hyprsunset || true
+    # Try to apply temperature
+    if ! hyprctl hyprsunset temperature "$NEW_TEMP" >/dev/null 2>&1; then
+        # IPC Failed.
+        
+        # Check if we should attempt a restart (Rate Limit: Once every 3 seconds)
+        NOW=$(date +%s)
+        if (( NOW - LAST_RESTART_ATTEMPT > 3 )); then
+            if ! is_daemon_running; then
+                start_daemon || true
+            fi
+            LAST_RESTART_ATTEMPT=$NOW
+            
+            # Retry the command once
+            hyprctl hyprsunset temperature "$NEW_TEMP" >/dev/null 2>&1 || true
         fi
-        # retry once (don't fail loudly if it still doesn't work)
-        hyprctl hyprsunset temperature "$NEW_TEMP_INT" >/dev/null 2>&1 || true
     fi
 
-    # persist last value locally
-    echo "$NEW_TEMP_INT" > "$TEMP_FILE" || true
-    CURRENT_TEMP="$NEW_TEMP_INT"
-done
+    # Update state
+    CURRENT_TEMP="$NEW_TEMP"
+    echo "$CURRENT_TEMP" > "$STATE_FILE"
 
-YAD_EXIT=${PIPESTATUS[0]:-1}
-
-# graceful exit
-if [ "$YAD_EXIT" -ne 0 ]; then
-    exit 0
-fi
+done < <("${YAD_CMD[@]}")
 
 exit 0

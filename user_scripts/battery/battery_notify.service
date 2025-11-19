@@ -1,16 +1,22 @@
 [Unit]
 Description=Battery Status Notification Service
-Documentation=Battery monitoring and notification service for laptops
+# Ensure we start AFTER the graphical session is truly ready
 After=graphical-session.target
+# If you use UWSM, this binds the service to the UWSM session
 PartOf=graphical-session.target
 
 [Service]
 Type=simple
+# Use %h for home directory compatibility
 ExecStart=%h/user_scripts/battery/battery_notify.sh
 Restart=on-failure
 RestartSec=5
-Environment="DISPLAY=:0"
-Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus"
+
+# IMPORTANT: Do not hardcode DISPLAY or DBUS. 
+# Systemd user session should inherit these from UWSM's activation.
+# However, to be safe, we enable logging:
+StandardOutput=journal
+StandardError=journal
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session.target

@@ -1,84 +1,78 @@
 #!/bin/bash
 
-# This script is run by a udev rule (as root).
-# It MUST be placed in a system-wide path like /usr/local/bin/
-# It will NOT work from a user's home directory due to security policies.
+# --- CONFIGURATION ---
+# Set a secure path so we don't need to hardcode commands
+export PATH="/usr/bin:/usr/local/bin:/bin"
 
-# --- ABSOLUTE PATHS ---
-# udev has a minimal PATH, so we must use absolute paths for all commands.
-LOGINCTL_CMD="/usr/bin/loginctl"
-GREP_CMD="/usr/bin/grep"
-HEAD_CMD="/usr/bin/head"
-AWK_CMD="/usr/bin/awk"
-ID_CMD="/usr/bin/id"
-PAPLAY_CMD="/usr/bin/paplay"
-RUNUSER_CMD="/usr/bin/runuser"
-BASH_CMD="/usr/bin/bash"
+# Logging tag for journalctl (view logs with: journalctl -t usb-sound)
+LOG_TAG="usb-sound"
 
-# Fallback paths
-if [ ! -f "$RUNUSER_CMD" ]; then RUNUSER_CMD="/bin/runuser"; fi
-if [ ! -f "$BASH_CMD" ]; then BASH_CMD="/bin/bash"; fi
-if [ ! -f "$GREP_CMD" ]; then GREP_CMD="/bin/grep"; fi
-if [ ! -f "$AWK_CMD" ]; then AWK_CMD="/bin/awk"; fi
-if [ ! -f "$HEAD_CMD" ]; then HEAD_CMD="/bin/head"; fi
+# --- 1. ROBUST USER DETECTION ---
+# We cannot assume the session is not a TTY (Hyprland runs on TTYs).
+# We need to find the session that has a "State" of "active".
 
-# 1. Find the active graphical user
-# We query loginctl for a session that has a 'seat' (like seat0)
-# and is not a 'tty' (a text-only console).
-# We must use --no-pager to prevent it from trying to page output.
-SESSION_INFO=$($LOGINCTL_CMD --no-pager list-sessions --no-legend | $GREP_CMD 'seat' | $GREP_CMD -v 'tty' | $HEAD_CMD -n 1)
+target_user=""
+target_uid=""
 
-if [ -z "$SESSION_INFO" ]; then
-    # Fallback: if no graphical session, just find the first logged-in user
-    SESSION_INFO=$($LOGINCTL_CMD --no-pager list-sessions --no-legend | $HEAD_CMD -n 1)
+# Get list of all sessions (ID and User)
+while read -r session_id user_name; do
+    # Check the state of this session
+    session_state=$(loginctl show-session -p State --value "$session_id")
+    
+    if [[ "$session_state" == "active" ]]; then
+        target_user="$user_name"
+        target_uid=$(id -u "$user_name")
+        break
+    fi
+done < <(loginctl list-sessions --no-legend | awk '{print $1, $3}')
+
+# Exit if no active user found (e.g., sitting at login screen)
+if [[ -z "$target_user" ]]; then
+    logger -t "$LOG_TAG" "No active user session found. Exiting."
+    exit 0
 fi
 
-if [ -z "$SESSION_INFO" ]; then
-    exit 1
-fi
+# --- 2. AUDIO SETUP ---
+# Point to the user's PulseAudio/PipeWire socket
+export XDG_RUNTIME_DIR="/run/user/$target_uid"
 
-# Get the User ID and Username from the session info
-USER_ID=$(echo "$SESSION_INFO" | $AWK_CMD '{print $2}')
-USER_NAME=$($ID_CMD -un "$USER_ID")
+# --- 3. SOUND SELECTION ---
+# You requested clearer, louder sounds. 
+# using "dialog-information" (a sharp ping) for connect
+# and "service-logout" (a lower descending tone) or "dialog-warning" for disconnect.
+# These exist in the standard freedesktop/libcanberra sets.
 
-if [ -z "$USER_NAME" ] || [ -z "$USER_ID" ]; then
-    exit 1
-fi
+SOUND_CONNECT="/usr/share/sounds/freedesktop/stereo/dialog-information.oga"
+SOUND_DISCONNECT="/usr/share/sounds/freedesktop/stereo/dialog-warning.oga"
 
-# 2. Set the user's audio environment variables
-export XDG_RUNTIME_DIR="/run/user/$USER_ID"
-export PULSE_SERVER="unix:${XDG_RUNTIME_DIR}/pulse/native"
+# Fallback to standard sounds if the louder ones don't exist
+[[ ! -f "$SOUND_CONNECT" ]] && SOUND_CONNECT="/usr/share/sounds/freedesktop/stereo/device-added.oga"
+[[ ! -f "$SOUND_DISCONNECT" ]] && SOUND_DISCONNECT="/usr/share/sounds/freedesktop/stereo/device-removed.oga"
 
-# 3. Define the sound files
-SOUND_CONNECT="/usr/share/sounds/freedesktop/stereo/device-added.oga"
-SOUND_DISCONNECT="/usr/share/sounds/freedesktop/stereo/device-removed.oga"
+# --- 4. PLAYBACK FUNCTION ---
+play_sound() {
+    local file="$1"
+    
+    # Log the attempt
+    logger -t "$LOG_TAG" "Detecting $2 for user $target_user. Playing $file"
 
-# 4. Play the sound *as the user*
-play_as_user() {
-    local sound_file=$1
-    if [ -f "$sound_file" ]; then
-        
-        # We need the full command inside quotes for bash -c
-        local cmd_to_run="XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR PULSE_SERVER=$PULSE_SERVER $PAPLAY_CMD '$sound_file'"
-        
-        # Run it. Note: No trailing '&' inside the quotes.
-        # runuser will daemonize it properly.
-        $RUNUSER_CMD -u "$USER_NAME" -- $BASH_CMD -c "$cmd_to_run" &
+    if [[ -f "$file" ]]; then
+        # runuser is safer and cleaner than su. 
+        # We run paplay in the background (&) so udev doesn't hang.
+        # We set the volume explicitly to 100% (65536) just in case.
+        runuser -u "$target_user" -- paplay --volume=65536 "$file" &
     else
-        : # Do nothing if sound file not found
+        logger -t "$LOG_TAG" "Sound file not found: $file"
     fi
 }
 
-# The udev rule will pass "connect" or "disconnect" as the first argument ($1).
+# --- 5. EXECUTION ---
 case "$1" in
     connect)
-        play_as_user "$SOUND_CONNECT"
+        play_sound "$SOUND_CONNECT" "connection"
         ;;
     disconnect)
-        play_as_user "$SOUND_DISCONNECT"
-        ;;
-    *)
-        : # Do nothing for unknown action
+        play_sound "$SOUND_DISCONNECT" "disconnection"
         ;;
 esac
 

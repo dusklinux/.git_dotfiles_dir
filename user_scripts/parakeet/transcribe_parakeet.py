@@ -1,114 +1,98 @@
 import sys
 import os
+import logging
+import torch
+import gc
 
-# --- The "Big Hammer" Solution ---
-# The NeMo toolkit is very verbose and prints its setup logs directly to
-# standard output (stdout), which contaminates our desired transcription text.
-#
-# This solution solves the problem by temporarily redirecting the entire
-# stdout stream to a null device (a "black hole") during the noisy
-# import and model loading process. This effectively silences NeMo.
-#
-# 1. Save the original stdout.
-# 2. Point stdout to os.devnull.
-# 3. Import and load the model (all its logs are sent to the black hole).
-# 4. Restore the original stdout.
-# 5. Print the final transcription (this goes to the clean, original stdout).
+# --- Configuration ---
+MODEL_NAME = "nvidia/parakeet-tdt-0.6b-v2"
 
-# Temporarily silence stdout by redirecting it to a null device
-original_stdout = sys.stdout
-sys.stdout = open(os.devnull, 'w')
-
-# Now, import the noisy library. All its startup messages are discarded.
-import nemo.collections.asr as nemo_asr
-
-# Restore stdout so the rest of our script can print normally
-sys.stdout.close()
-sys.stdout = original_stdout
-# -----------------------------------
-
-
-def find_latest_audio_file(audio_dir):
+def configure_silence():
     """
-    Scans a directory for files named like 'N.wav', finds the one with the
-    highest number N, and returns its full path.
+    Configures NeMo and PyTorch logging to be as quiet as possible.
     """
-    latest_file_name = None
-    highest_index = -1
+    # Suppress NeMo Logging
+    from nemo.utils import logging as nemo_logging
+    nemo_logging.setLevel(logging.ERROR)
+    
+    # Suppress PyTorch/Lightning warnings
+    import warnings
+    warnings.filterwarnings("ignore")
+    logging.getLogger("pytorch_lightning").setLevel(logging.ERROR)
+
+def load_optimized_model():
+    """
+    Loads the model safely onto 4GB VRAM hardware.
+    1. Download/Load to CPU (System RAM) first.
+    2. Convert to FP16 (Half Precision).
+    3. Move to GPU.
+    """
+    import nemo.collections.asr as nemo_asr
 
     try:
-        if not os.path.isdir(audio_dir):
-            raise FileNotFoundError(f"The specified directory does not exist: {audio_dir}")
+        # Step 1: Load to System RAM (CPU)
+        # This triggers the download if the model is not cached.
+        model = nemo_asr.models.ASRModel.from_pretrained(
+            model_name=MODEL_NAME,
+            map_location=torch.device("cpu")
+        )
 
-        candidate_files = [f for f in os.listdir(audio_dir) if f.endswith(".wav") and f.split('.')[0].isdigit()]
+        # Step 2: Convert to Half Precision (FP16)
+        # Essential for RTX 3050 Ti (4GB)
+        if hasattr(model, 'half'):
+            model = model.half()
 
-        if not candidate_files:
-            raise FileNotFoundError(f"No correctly formatted audio files (e.g., '1.wav') were found in {audio_dir}")
+        # Step 3: Clean up System Memory
+        gc.collect()
+        torch.cuda.empty_cache()
 
-        for filename in candidate_files:
-            try:
-                index_part = int(filename.split('.')[0])
-                if index_part > highest_index:
-                    highest_index = index_part
-                    latest_file_name = filename
-            except (ValueError, IndexError):
-                print(f"Notice: Bypassing malformed filename: {filename}", file=sys.stderr)
-                continue
-
-        if latest_file_name is None:
-            raise FileNotFoundError("A valid, latest audio file could not be determined from the candidates.")
-
-        return os.path.join(audio_dir, latest_file_name)
-
-    except FileNotFoundError as e:
-        print(f"Fatal Error: {e}", file=sys.stderr)
-        return None
-
-def main():
-    """
-    Main function to find the latest audio file and transcribe it using Parakeet.
-    """
-    audio_dir = "/mnt/zram1/mic/"
-    audio_file_path = find_latest_audio_file(audio_dir)
-
-    if not audio_file_path:
-        sys.exit(1)
-
-    print(f"Processing audio file: {audio_file_path}", file=sys.stderr)
-
-    model_name = "nvidia/parakeet-tdt-0.6b-v2"
-
-    try:
-        print(f"Loading Nemo ASR model '{model_name}'...", file=sys.stderr)
-        
-        # --- Silence the model loading process ---
-        sys.stdout = open(os.devnull, 'w')
-        asr_model = nemo_asr.models.ASRModel.from_pretrained(model_name=model_name)
-        sys.stdout.close()
-        sys.stdout = original_stdout
-        # ----------------------------------------
-        
-        print("Model loaded successfully.", file=sys.stderr)
-
-        print(f"Starting transcription...", file=sys.stderr)
-        # The `verbose=False` flag here prevents the transcription progress bar
-        output = asr_model.transcribe([audio_file_path], verbose=False)
-        
-        if output and isinstance(output, list) and hasattr(output[0], 'text'):
-            final_text = output[0].text.strip()
-            # This print() is the ONLY ONE that goes to stdout and will be copied
-            print(final_text)
-            print(f"  Transcription result: {final_text}", file=sys.stderr)
+        # Step 4: Move to GPU
+        if torch.cuda.is_available():
+            model = model.cuda()
+            # Lock the model in eval mode
+            model.eval()
         else:
-            print("Warning: Transcription produced no text.", file=sys.stderr)
-            print("")
+            print("Warning: CUDA not found, running on CPU.", file=sys.stderr)
 
-        print("\nTranscription complete.", file=sys.stderr)
+        return model
 
     except Exception as e:
-        # Ensure stdout is restored even if an error occurs
-        sys.stdout = original_stdout
-        print(f"\nAn unexpected error occurred during transcription: {e}", file=sys.stderr)
+        print(f"Error loading model: {e}", file=sys.stderr)
+        sys.exit(1)
+
+def main():
+    # Ensure we have an argument
+    if len(sys.argv) < 2:
+        print("Usage: python transcribe_parakeet.py <path_to_wav>", file=sys.stderr)
+        sys.exit(1)
+
+    audio_file_path = sys.argv[1]
+
+    if not os.path.exists(audio_file_path):
+        print(f"Error: Audio file not found: {audio_file_path}", file=sys.stderr)
+        sys.exit(1)
+
+    configure_silence()
+    
+    # Load model
+    asr_model = load_optimized_model()
+
+    # Transcribe using inference_mode for maximum efficiency
+    try:
+        with torch.inference_mode(): 
+            # verbose=False prevents the progress bar
+            output = asr_model.transcribe([audio_file_path], verbose=False)
+        
+        if output and isinstance(output, list) and len(output) > 0:
+            # Handle potential TDT output differences
+            text = output[0].text.strip() if hasattr(output[0], 'text') else str(output[0]).strip()
+            print(text)
+        else:
+            # Print nothing to stdout if silence
+            pass
+
+    except Exception as e:
+        print(f"Transcription error: {e}", file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":

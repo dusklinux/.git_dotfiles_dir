@@ -1,18 +1,20 @@
-// ~/.config/waybar/config
 {
-    // General bar settings
+    // ===================================================================
+    // GENERAL SETTINGS
+    // ===================================================================
     "layer": "bottom",
     "position": "left",
     "spacing": 3,
-    "width": 10,
+    "width": 10, // Note: Ensure your font/icons fit this narrow width
     "margin-top": 0,
     "margin-bottom": 0,
     "margin-left": -2,
     "margin-right": 0,
     "fixed-center": true,
-    "modules-order": ["modules-left", "modules-center", "modules-right"],
 
-    // Modules that will appear at the top of the vertical bar
+    // ===================================================================
+    // MODULE ORDERING
+    // ===================================================================
     "modules-left": [
         "battery",
         "pulseaudio",
@@ -21,56 +23,55 @@
         "cpu",
         "temperature"
     ],
-
-    // Modules that will appear in the center of the vertical bar
+    
     "modules-center": [
         "hyprland/workspaces"
     ],
-
-    // Modules that will appear at thebottom of the vertical bar
+    
     "modules-right": [
-       // "tray", //uncomment this to enable tray
+        // "tray", 
         "custom/theme",
         "bluetooth",
         "custom/app-tray",
         "custom/network-upload",
         "custom/network-unit",
-		    "custom/network-download",
+        "custom/network-download",
         "custom/inhibit-suspend",
         "custom/notification",
         "clock",
         "custom/power"
     ],
 
-    // Module specific configurations
+    // ===================================================================
+    // HARDWARE MODULES
+    // ===================================================================
+    
+    "hyprland/workspaces": {
+        "all-outputs": true,
+        "sort-by-number": true
+    },
 
+    "tray": {
+        "icon-size": 18,
+        "show-passive-items": true,
+        "spacing": 3, 
+        "rotate": 90
+    },
 
-    "temperature": {
-        "thermal-zone":"/sys/class/thermal/thermal_zone6/type:x86_pkg_temp",
-        "hwmon-path-abs": null,
-        "critical-threshold": 65,
-        "format-critical": "🔥\n{temperatureC}",
-        "format": "°\n{temperatureC}",
-        "interval":2,
-        "tooltip-format": "Package: {temperatureC}"
-},
-
-
-"battery": {
-        "format": " {icon}\n-{capacity}\n{power:.0f}W",       // This is the default, used for "discharging"
-        "format-charging": " \n+{capacity}\n{power:.0f}W", // Explicitly show power when charging
-        "format-plugged": "\n{capacity}",          // When plugged in and full, show a hyphen
-        "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"] ,
+    "battery": {
+        "format": " {icon}\n-{capacity}\n{power:.0f}W",
+        "format-charging": " \n+{capacity}\n{power:.0f}W",
+        "format-plugged": "\n{capacity}",
+        "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
         "interval": 5,
         "states": {
             "warning": 40,
             "critical": 20
-            },
-    "tooltip-format": "{timeTo}\nHealth 󱟦 {health}%\nPower Draw {power:.2f} Watts"
-},
+        },
+        "tooltip-format": "{timeTo}\nHealth 󱟦 {health}%\nPower Draw {power:.2f} Watts"
+    },
 
-
-  "pulseaudio":{
+    "pulseaudio":{
         "format": "{icon}\n{volume}",
         "format-muted": "󰖁\nX",
         "on-click": "pavucontrol",
@@ -97,7 +98,7 @@
         "min-length": 4,
         "interval": 60
     },
-		
+
     "cpu": {
         "format": "\n{usage}",
         "tooltip": true,
@@ -111,76 +112,86 @@
         "interval": 2,
         "states": {
             "critical": 80
-		},
-		"tooltip": true,
- 		"tooltip-format":"Used {used} GiB\nAvail {avail} Gib\nSwap {swapUsed} GiB"
- 	},
-        
-    "hyprland/workspaces": {
-        "all-outputs": true,
-        "sort-by-number": true
+        },
+        "tooltip": true,
+        "tooltip-format":"Used {used} GiB\nAvail {avail} Gib\nSwap {swapUsed} GiB"
     },
 
-    "tray": {
-        "icon-size": 18,
-        "show-passive-items": true,
-        "spacing": 3, 
-        "rotate": 90
+    "temperature": {
+        "thermal-zone": "/sys/class/thermal/thermal_zone6/type:x86_pkg_temp",
+        // Removed "hwmon-path-abs": null - automatic detection is safer
+        "critical-threshold": 65,
+        "format-critical": "🔥\n{temperatureC}",
+        "format": "°\n{temperatureC}",
+        "interval": 2,
+        "tooltip-format": "Package: {temperatureC}"
     },
-     
-"custom/network-unit": {
-  "return-type": "json",
-  "tooltip": true,
-  "on-click": "kitty -e wifitui",
-  "interval": 1,
-  "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh unit"
-},
 
-"custom/network-upload": {
-  "return-type": "json",
-  "tooltip": true,
-  "tooltip-format": "Click to Turn On WiFi with:\n `nmcli radio wifi on`",
-  "on-click": "nmcli radio wifi on && notify-send 'Turned ON WiFi'",
-  "interval": 1,
-  "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh up"
-},
+    "bluetooth": {
+        "format": "",
+        "format-disabled": "󰂲",
+        "format-connected": "",
+        "tooltip-format": "Devices connected: {num_connections}",
+        "on-click": "blueman-manager",
+        "on-click-right": "kitty -e bluetui",
+        "interval": 5
+    },
 
-"custom/network-download": {
-  "return-type": "json",
-  "tooltip": true,
-  "tooltip-format": "Click to Turn OFF WiFi with:\n `nmcli radio wifi off`",
-  "on-click": "nmcli radio wifi off && notify-send 'Turned OFF WiFi'",
-  "interval": 1,
-  "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh down"
-},
-
-"clock": {
-    "format": "{:%I\n%M}",
-    "tooltip-format": "<big>{:%A, %d %B}</big>\n<tt><small>{calendar}</small></tt>",
-    "timezone": "Asia/Kolkata",
-    "interval": 60,
-    "on-click": "gnome-clocks",
-    "on-click-middle": "kitty -e peaclock",
-    "calendar": {
-        "mode": "year",
-        "mode-mon-col": 3,
-        "weeks-pos": "right",
-        "on-scroll": 1,
-        "on-click-right": "mode",
-        "format": {
-            "months": "<span color='#ffead3'><b>{}</b></span>",
-            "days": "<span color='#ecc6d9'><b>{}</b></span>",
-            "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
-            "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
-            "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+    "clock": {
+        "format": "{:%I\n%M}",
+        "tooltip-format": "<big>{:%A, %d %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "timezone": "Asia/Kolkata",
+        "interval": 60,
+        "on-click": "gnome-clocks",
+        "on-click-middle": "kitty -e peaclock",
+        "calendar": {
+            "mode": "year",
+            "mode-mon-col": 3,
+            "weeks-pos": "right",
+            "on-scroll": 1,
+            "on-click-right": "mode",
+            "format": {
+                "months": "<span color='#ffead3'><b>{}</b></span>",
+                "days": "<span color='#ecc6d9'><b>{}</b></span>",
+                "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
+                "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
+                "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+            }
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
         }
     },
-    "actions": {
-        "on-click-right": "mode",
-        "on-scroll-up": "shift_up",
-        "on-scroll-down": "shift_down"
-    }
-},
+
+    // ===================================================================
+    // CUSTOM MODULES
+    // ===================================================================
+
+    "custom/network-unit": {
+        "return-type": "json",
+        "tooltip": true,
+        "on-click": "kitty -e wifitui",
+        "interval": 1,
+        "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh unit"
+    },
+
+    "custom/network-upload": {
+        "return-type": "json",
+        "tooltip": true,
+        "on-click": "nmcli radio wifi on && notify-send 'Turned ON WiFi'",
+        "interval": 1,
+        "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh up"
+    },
+
+    "custom/network-download": {
+        "return-type": "json",
+        "tooltip": true,
+        "on-click": "nmcli radio wifi off && notify-send 'Turned OFF WiFi'",
+        "interval": 1,
+        "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh down"
+    },
 
     "custom/notification": {
         "tooltip-format": "Left: Notifications\nRight: Do not disturb",
@@ -203,43 +214,36 @@
         "escape": true
     },
 
-"custom/inhibit-suspend": {
-    "format": "{}",
-    "exec": "if pgrep -x 'hypridle' > /dev/null; then echo '{\"text\": \"󰌾\", \"tooltip\": \"Suspend is enabled. Click to disable.\", \"class\": \"enabled\"}'; else echo '{\"text\": \"\", \"tooltip\": \"Suspend is disabled. Click to enable.\", \"class\": \"disabled\"}'; fi",
-    "interval": 5,
-    "return-type": "json",
-    "on-click": "~/user_scripts/waybar/toggle_hypridle.sh",
-    "escape": true
+    "custom/inhibit-suspend": {
+        "format": "{}",
+        // Optimized script for readability. 
+        // Note: If pgrep finds hypridle, it usually means suspend is ACTIVE/ALLOWED.
+        // If pgrep fails, hypridle is dead, meaning suspend is likely DISABLED/INHIBITED.
+        "exec": "if pgrep -x 'hypridle' > /dev/null; then echo '{\"text\": \"󰌾\", \"tooltip\": \"Suspend is enabled. Click to disable.\", \"class\": \"enabled\"}'; else echo '{\"text\": \"\", \"tooltip\": \"Suspend is disabled. Click to enable.\", \"class\": \"disabled\"}'; fi",
+        "return-type": "json",
+        "interval": 5,
+        "signal": 9,
+        "on-click": "~/user_scripts/waybar/toggle_hypridle.sh",
+        "escape": true
     },
 
-"custom/theme": {
+    "custom/theme": {
         "format": "",
         "tooltip": true,
         "tooltip-format": "Switch wallpapers with waypaper \nor Super + apostrophe (') after \ntoggeling for theme uniformity.\n\nLMB: Dark Mode\nRMB: Light Mode\nMMB: Waypaper",
-        "on-click": "~/user_scripts/waybar/dark_theme_switcher.sh",
-        "on-click-right": "~/user_scripts/waybar/light_theme_switcher.sh",
+        "on-click": "~/user_scripts/waybar/theme_switcher.sh -dark",
+        "on-click-right": "~/user_scripts/waybar/theme_switcher.sh -light",
         "on-click-middle": "waypaper"
     },
 
-"custom/app-tray": {
-    "format": "",
-    "tooltip-format": "Open Terminal App Tray!\n\nEmpty Terminal if no\nTray-App is Open.",
-    "on-click": "kitty -e tray-tui",
-    "interval": "once"
-},
-
-
-"bluetooth": {
-        "format": "",
-        "format-disabled": "󰂲", // Icon when disabled
-        "format-connected": "", // Icon when connected
-        "tooltip-format": "Devices connected: {num_connections}",
-        "on-click": "blueman-manager",
-        "on-click-right": "kitty -e bluetui",
-        "interval": 5
+    "custom/app-tray": {
+        "format": "",
+        "tooltip-format": "Open Terminal App Tray!\n\nEmpty Terminal if no\nTray-App is Open.",
+        "on-click": "kitty -e tray-tui",
+        "interval": "once"
     },
 
-"custom/power": {
+    "custom/power": {
         "format": "",
         "tooltip": true,
         "tooltip-format": "Power Menu",

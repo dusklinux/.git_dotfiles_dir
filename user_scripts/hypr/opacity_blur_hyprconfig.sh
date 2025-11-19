@@ -1,69 +1,78 @@
 #!/usr/bin/env bash
 
 #==============================================================================
-# Hyprland Blur & Opacity Toggle Script
+# Hyprland Blur & Opacity Toggle Script (Optimized)
 #
-# This script atomically toggles the blur setting within the 'blur' block
-# of the specified configuration file. Concurrently, it adjusts the
-# active_opacity and inactive_opacity settings based on the new blur state.
-#
-# This script creates no backups and produces no terminal output on success.
-# It is designed to be bound to a hotkey.
+# FUNCTION:
+# 1. Detects current blur state from config.
+# 2. Atomically updates the config file (for persistence after reboot).
+# 3. Instantly applies settings via hyprctl (no reload/flicker required).
 #==============================================================================
 
-# --- User Configuration ---
-# Opacity values when blur is ENABLED
-readonly OPACITY_ACTIVE_ENABLED="0.8"
-readonly OPACITY_INACTIVE_ENABLED="0.6"
-
-# Opacity values when blur is DISABLED
-readonly OPACITY_ACTIVE_DISABLED="1.0"
-readonly OPACITY_INACTIVE_DISABLED="1.0"
-
-# --- Script Implementation ---
-
-# Resolve the configuration file path
+# --- Configuration ---
 readonly CONFIG_FILE="${HOME}/.config/hypr/source/appearance.conf"
 
-# Perform a preliminary check to ensure the config file exists.
-# If not, exit with a non-zero status without any output.
+# Opacity Constants
+readonly OP_ACTIVE_ON="0.8"
+readonly OP_INACTIVE_ON="0.6"
+
+readonly OP_ACTIVE_OFF="1.0"
+readonly OP_INACTIVE_OFF="1.0"
+
+# --- Pre-flight Checks ---
 if [ ! -f "$CONFIG_FILE" ]; then
+    notify-send "Hyprland Error" "Config file not found at $CONFIG_FILE" -u critical
     exit 1
 fi
 
-# Determine the current state of blur by searching for 'enabled = true'
-# exclusively within the '/blur {/ ... /}/' address range.
-if sed -n '/blur {/,/}/ { /enabled = / p }' "$CONFIG_FILE" | grep -q 'true'; then
-    
-    #--- STATE: Blur is ENABLED ---
-    # Action: Disable blur and disable transparency.
-    
-    # 1. Disable blur:
-    #    The address range '/blur {/,/}/' ensures this 's' command
-    #    only operates on the 'enabled' line inside the 'blur' block.
-    sed -i '/blur {/,/}/ s/enabled = true/enabled = false/' "$CONFIG_FILE"
-    
-    # 2. Disable transparency (set opacity to 1.0):
-    #    This regex captures the leading whitespace and key ('\1')
-    #    and replaces only the value, preserving indentation.
-    sed -i "s/^\([[:space:]]*active_opacity = \).*/\1${OPACITY_ACTIVE_DISABLED}/" "$CONFIG_FILE"
-    sed -i "s/^\([[:space:]]*inactive_opacity = \).*/\1${OPACITY_INACTIVE_DISABLED}/" "$CONFIG_FILE"
+# --- Logic ---
 
-else
-    
-    #--- STATE: Blur is DISABLED ---
-    # Action: Enable blur and enable transparency.
-    
-    # 1. Enable blur:
-    sed -i '/blur {/,/}/ s/enabled = false/enabled = true/' "$CONFIG_FILE"
-    
-    # 2. Enable transparency (set to configured values):
-    sed -i "s/^\([[:space:]]*active_opacity = \).*/\1${OPACITY_ACTIVE_ENABLED}/" "$CONFIG_FILE"
-    sed -i "s/^\([[:space:]]*inactive_opacity = \).*/\1${OPACITY_INACTIVE_ENABLED}/" "$CONFIG_FILE"
-
+# Check state: Look for 'enabled = true' specifically inside the blur block.
+# We use grep -q for a silent boolean check.
+IS_BLUR_ENABLED=false
+if sed -n '/blur[[:space:]]*{/,/}/ { /enabled[[:space:]]*=[[:space:]]*true/p }' "$CONFIG_FILE" | grep -q 'true'; then
+    IS_BLUR_ENABLED=true
 fi
 
-hyprctl reload
+if [ "$IS_BLUR_ENABLED" = true ]; then
+    # --- TRIGGER: DISABLE BLUR & TRANSPARENCY ---
+    NEW_BLUR="false"
+    NEW_ACTIVE="$OP_ACTIVE_OFF"
+    NEW_INACTIVE="$OP_INACTIVE_OFF"
+    STATE_MSG="Blur & Transparency: OFF"
+else
+    # --- TRIGGER: ENABLE BLUR & TRANSPARENCY ---
+    NEW_BLUR="true"
+    NEW_ACTIVE="$OP_ACTIVE_ON"
+    NEW_INACTIVE="$OP_INACTIVE_ON"
+    STATE_MSG="Blur & Transparency: ON"
+fi
 
-# Exit gracefully
+# --- Execution Phase ---
+
+# 1. Update the file (Persistence)
+# We combine all substitutions into ONE sed command for atomicity.
+# Regex explanation:
+# 's/^\s*key\s*=.*/' allows for any amount of indentation or spacing.
+sed -i \
+    -e "/blur[[:space:]]*{/,/}/ s/enabled[[:space:]]*=[[:space:]]*true/enabled = $NEW_BLUR/" \
+    -e "/blur[[:space:]]*{/,/}/ s/enabled[[:space:]]*=[[:space:]]*false/enabled = $NEW_BLUR/" \
+    -e "s/^\([[:space:]]*active_opacity[[:space:]]*=[[:space:]]*\).*/\1$NEW_ACTIVE/" \
+    -e "s/^\([[:space:]]*inactive_opacity[[:space:]]*=[[:space:]]*\).*/\1$NEW_INACTIVE/" \
+    "$CONFIG_FILE"
+
+# 2. Update Runtime (Instant Visuals)
+# Using 'hyprctl keyword' applies changes immediately without a full config reload.
+hyprctl keyword decoration:blur:enabled "$NEW_BLUR" > /dev/null
+hyprctl keyword decoration:active_opacity "$NEW_ACTIVE" > /dev/null
+hyprctl keyword decoration:inactive_opacity "$NEW_INACTIVE" > /dev/null
+
+# 3. User Feedback
+# Sends a notification if 'notify-send' is installed.
+if command -v notify-send >/dev/null 2>&1; then
+    notify-send -h string:x-canonical-private-synchronous:hypr-toggle \
+                -t 1000 \
+                "Hyprland" "$STATE_MSG"
+fi
+
 exit 0

@@ -1,5 +1,5 @@
 ```bash
-paru -S sentencepiece
+paru -S --needed sentencepiece
 ```
 
 ```bash
@@ -28,10 +28,42 @@ uv pip install Flask
 nvim modeldownload.py
 ```
 
-copy and paste this into the file
+copy and paste this into the file 
 ```ini
+import torch
 import nemo.collections.asr as nemo_asr
-asr_model = nemo_asr.models.ASRModel.from_pretrained(model_name="nvidia/parakeet-tdt-0.6b-v2")
+import gc
+
+# 1. Force the download and initial load to happen on the CPU (System RAM)
+#    This bypasses the 4GB limit of your GPU during the heavy loading phase.
+print("⏳ Loading model to CPU (this handles the memory spike)...")
+asr_model = nemo_asr.models.ASRModel.from_pretrained(
+    model_name="nvidia/parakeet-tdt-0.6b-v2",
+    map_location=torch.device("cpu")
+)
+
+# 2. Switch to Half Precision (FP16)
+#    A 0.6B model in standard FP32 is ~2.4GB. In FP16, it is ~1.2GB.
+#    This is CRITICAL for a 3050 Ti (4GB VRAM) to leave room for Hyprland.
+print("📉 Converting to Half Precision (FP16) to save VRAM...")
+asr_model = asr_model.half()
+
+# 3. Clean up system memory before the move
+gc.collect()
+torch.cuda.empty_cache()
+
+# 4. Move the streamlined model to the GPU
+print("🚀 Moving model to GPU...")
+try:
+    asr_model = asr_model.cuda()
+    print("✅ Success! Model is on GPU and ready for inference.")
+except torch.cuda.OutOfMemoryError:
+    print("❌ Still Out of Memory. Please close other GPU-heavy apps (browsers, games).")
+    exit(1)
+
+# Example Inference to verify it works
+# files = ["/path/to/your/audio.wav"]
+# asr_model.transcribe(paths2audio_files=files)
 ```
 
 ```bash
