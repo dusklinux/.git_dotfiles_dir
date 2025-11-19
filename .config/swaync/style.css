@@ -29,7 +29,7 @@
   
 /* --- CONTROL CENTER (Main Window) --- */
 .control-center {
-  background: alpha(@background-color, 1.0);
+  background: alpha(@background-color, 0.95);
   border-radius: 24px;
   border: 1px solid @accent-color;
   box-shadow: 0 0 10px 0 alpha(@shadow-color, 0.6);

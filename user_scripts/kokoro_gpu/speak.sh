@@ -1,4 +1,5 @@
 #!/bin/bash
+set -o pipefail
 
 # --- Configuration ---
 KOKORO_APP_DIR="$HOME/contained_apps/uv/kokoro_gpu"
@@ -8,7 +9,14 @@ MPV_PLAYBACK_SPEED="2.2"
 AUDIO_RATE=24000
 AUDIO_CHANNELS=1
 AUDIO_FORMAT="f32le"
-BUFFER_SIZE="512M"
+BUFFER_SIZE="512M" 
+
+# --- Safety Protocol ---
+# Ensures that if MPV is killed, the entire pipe is dismantled gracefully.
+cleanup() {
+    trap - SIGTERM && kill -- -$$ 2>/dev/null
+}
+trap cleanup EXIT INT TERM
 
 # --- Checks ---
 if [[ "$EUID" -eq 0 ]]; then
@@ -29,38 +37,33 @@ if [[ -z "$CLIPBOARD_TEXT" ]]; then
     exit 0
 fi
 
-# --- FILE NAMING & INDEXING ---
-# Logic: Split to newlines, remove punctuation, lowercase, take top 5 lines, join with underscores.
+# --- Naming Logic ---
 FILENAME_WORDS=$(echo "$CLIPBOARD_TEXT" | tr -s '[:space:]' '\n' | tr -cd '[:alnum:]\n' | tr '[:upper:]' '[:lower:]' | grep . | head -n 5 | paste -sd _)
-
-# Safety: If clipboard contained only symbols (resulting in empty string), use generic name.
 [[ -z "$FILENAME_WORDS" ]] && FILENAME_WORDS="audio"
-
 LAST_INDEX=$(find "$SAVE_DIR" -type f -name "*.wav" -print0 | xargs -0 -n 1 basename | cut -d'_' -f1 | grep '^[0-9]\+$' | sort -rn | head -n 1)
-
-# CRITICAL FIX: If directory is empty, LAST_INDEX is null, causing the math below to crash.
 [[ -z "$LAST_INDEX" ]] && LAST_INDEX=0
-
 NEXT_INDEX=$((LAST_INDEX + 1))
 FINAL_FILENAME="${NEXT_INDEX}_${FILENAME_WORDS}.wav"
 FULL_PATH="$SAVE_DIR/$FINAL_FILENAME"
 
 notify-send "Kokoro TTS" "Streaming: '${FILENAME_WORDS//_/ }...'" -u low
 
-# --- AUTO-KILL LOGIC (FIXED) ---
-# Only run cleanup on interrupt (Ctrl+C) or Termination. 
-# Do NOT run on EXIT, because that kills mpv while it's closing, crashing Hyprland.
-cleanup() {
-    kill 0 2>/dev/null
-}
-trap cleanup INT TERM
+# --- The Decoupled Pipeline ---
+cd "$KOKORO_APP_DIR" || exit 1
 
-# --- EXECUTION ---
-cd "$KOKORO_APP_DIR" && \
+# 1. Python generates raw audio at max speed.
+# 2. 'tee' splits the stream. 
+#    - Path A: Immediately writes to FFmpeg (Process Substitution). Since disk I/O is fast, this completes instantly.
+#    - Path B: Pipes to 'mbuffer'.
+# 3. 'mbuffer' absorbs the ENTIRE stream into RAM (up to 512MB), allowing 'tee' and Python to finish and exit.
+# 4. 'mpv' plays from the 'mbuffer' reservoir.
+#
+# Result: The file is fully saved on disk moments after Python finishes, even if MPV is only at 1% playback.
+
 echo "$CLIPBOARD_TEXT" | \
 uv run python "$PYTHON_SCRIPT_PATH" | \
-mbuffer -q -m "$BUFFER_SIZE" | \
 tee --output-error=exit >(ffmpeg -f "$AUDIO_FORMAT" -ar "$AUDIO_RATE" -ac "$AUDIO_CHANNELS" -i pipe:0 -y "$FULL_PATH" -loglevel quiet) | \
+mbuffer -q -m "$BUFFER_SIZE" | \
 mpv \
   --no-terminal \
   --force-window \
@@ -74,8 +77,6 @@ mpv \
   --demuxer-rawaudio-format=float \
   --cache=yes \
   --cache-secs=30 \
-  - 
+  -
 
-# When mpv closes naturally, the pipe breaks. 
-# Python and mbuffer will receive SIGPIPE and terminate on their own.
 exit 0
