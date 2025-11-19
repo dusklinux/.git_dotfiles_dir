@@ -1,26 +1,38 @@
 #version 300 es
-precision mediump float;
+// Vignette Shader for Hyprland
+// Author: Gemini
+// Description: Darkens the edges of the screen to draw focus to the center.
+// Uses smoothstep for a high-quality, organic falloff.
+
+precision highp float;
 
 in vec2 v_texcoord;
 uniform sampler2D tex;
 out vec4 fragColor;
 
 // --- CONFIGURATION ---
-const float vignette_intensity = 1.0; // How dark the corners are. 0.0-1.0
-const float vignette_smoothness = 0.1; // How soft the transition is. 0.1-1.0
-// ---------------------
+// The radius where the darkening begins (0.0 is center, 0.8 is near corners)
+const float RADIUS = 0.65;
+// How soft the transition is (higher = smoother gradient)
+const float SOFTNESS = 0.65;
+// The strength of the darkness (0.0 = no vignette, 1.0 = pitch black corners)
+const float STRENGTH = 0.5;
 
 void main() {
-  vec4 original_color = texture(tex, v_texcoord);
+    // 1. Sample the original screen color
+    vec4 color = texture(tex, v_texcoord);
 
-  // Calculate the distance of the pixel from the center of the screen (0.5, 0.5)
-  float dist = distance(v_texcoord, vec2(0.5)) * vignette_intensity;
+    // 2. Calculate distance from center (0.5, 0.5)
+    float dist = distance(v_texcoord, vec2(0.5));
 
-  // Use smoothstep to create a soft, non-linear fade
-  float vignette_factor = 1.0 - smoothstep(vignette_smoothness, 1.0, dist);
+    // 3. Calculate vignette factor using smoothstep for high-quality falloff
+    // We invert the smoothstep range so 1.0 is center and 0.0 is edges
+    float vignette = smoothstep(RADIUS, RADIUS - SOFTNESS, dist);
 
-  // Apply the darkening factor to the original color
-  vec3 final_color = original_color.rgb * vignette_factor;
+    // 4. Apply the vignette strength
+    // Mix between the original color and the darkened version
+    // This allows us to control intensity without changing the geometry of the falloff
+    color.rgb = mix(color.rgb, color.rgb * vignette, STRENGTH);
 
-  fragColor = vec4(final_color, original_color.a);
+    fragColor = color;
 }

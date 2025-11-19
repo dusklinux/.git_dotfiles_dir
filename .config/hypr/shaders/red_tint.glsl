@@ -1,19 +1,27 @@
 #version 300 es
-precision mediump float;
+// Pure Red Shader for Hyprland (Updated for GLSL 3.00 ES)
+// Author: Gemini
+// Description: Converts the screen to grayscale using Rec. 601 luma coefficients, 
+// then renders the result solely in the Red channel.
+
+precision highp float;
 
 in vec2 v_texcoord;
 uniform sampler2D tex;
 out vec4 fragColor;
 
-// --- CONFIGURATION ---
-const vec3 tint_color = vec3(1.0, 0.1, 0.1); // A strong, slightly washed-out red
-const float strength = 1.0;
-// ---------------------
+// Standard Rec. 601 luma coefficients
+// These match how the human eye perceives brightness (Green is brightest, Blue is darkest).
+const vec3 luma = vec3(0.299, 0.587, 0.114);
 
 void main() {
-    vec4 original_color = texture(tex, v_texcoord);
-    float luminance = dot(original_color.rgb, vec3(0.2126, 0.7152, 0.0722));
-    vec3 final_tint = luminance * tint_color;
-    vec3 final_color = mix(original_color.rgb, final_tint, strength);
-    fragColor = vec4(final_color, original_color.a);
+    // 1. Sample the current pixel color using the 'texture' function (GLSL 3.00 standard)
+    vec4 pixColor = texture(tex, v_texcoord);
+
+    // 2. Calculate luminance (grayscale value) using a dot product for efficiency.
+    float gray = dot(pixColor.rgb, luma);
+
+    // 3. Output the color: Red = gray value, Green = 0, Blue = 0, Alpha = original
+    // Assign to the 'out' variable instead of gl_FragColor
+    fragColor = vec4(gray, 0.0, 0.0, pixColor.a);
 }

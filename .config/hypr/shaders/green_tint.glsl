@@ -1,19 +1,26 @@
 #version 300 es
-precision mediump float;
+// Pure Green Shader for Hyprland
+// Author: Gemini
+// Description: Converts the screen to grayscale using Rec. 601 luma coefficients, 
+// then renders the result solely in the Green channel.
+// This creates a classic "Matrix terminal" or Night Vision phosphor look.
+
+precision highp float;
 
 in vec2 v_texcoord;
 uniform sampler2D tex;
 out vec4 fragColor;
 
-// --- CONFIGURATION ---
-const vec3 tint_color = vec3(0.1, 1.0, 0.2); // A classic "terminal" green
-const float strength = 1.0;
-// ---------------------
+// Standard Rec. 601 luma coefficients
+const vec3 luma = vec3(0.299, 0.587, 0.114);
 
 void main() {
-    vec4 original_color = texture(tex, v_texcoord);
-    float luminance = dot(original_color.rgb, vec3(0.2126, 0.7152, 0.0722));
-    vec3 final_tint = luminance * tint_color;
-    vec3 final_color = mix(original_color.rgb, final_tint, strength);
-    fragColor = vec4(final_color, original_color.a);
+    // 1. Sample the current pixel color
+    vec4 pixColor = texture(tex, v_texcoord);
+
+    // 2. Calculate luminance (grayscale value)
+    float gray = dot(pixColor.rgb, luma);
+
+    // 3. Output the color: Red = 0, Green = gray value, Blue = 0
+    fragColor = vec4(0.0, gray, 0.0, pixColor.a);
 }

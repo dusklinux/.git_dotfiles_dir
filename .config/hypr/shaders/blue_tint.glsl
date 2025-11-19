@@ -1,19 +1,26 @@
 #version 300 es
-precision mediump float;
+// Pure Blue Shader for Hyprland
+// Author: Gemini
+// Description: Converts the screen to grayscale using Rec. 601 luma coefficients, 
+// then renders the result solely in the Blue channel.
+
+precision highp float;
 
 in vec2 v_texcoord;
 uniform sampler2D tex;
 out vec4 fragColor;
 
-// --- CONFIGURATION ---
-const vec3 tint_color = vec3(0.2, 0.5, 1.0); // A deep but vibrant blue
-const float strength = 1.0;
-// ---------------------
+// Standard Rec. 601 luma coefficients
+// These ensure that brightness is perceived correctly by the human eye.
+const vec3 luma = vec3(0.299, 0.587, 0.114);
 
 void main() {
-    vec4 original_color = texture(tex, v_texcoord);
-    float luminance = dot(original_color.rgb, vec3(0.2126, 0.7152, 0.0722));
-    vec3 final_tint = luminance * tint_color;
-    vec3 final_color = mix(original_color.rgb, final_tint, strength);
-    fragColor = vec4(final_color, original_color.a);
+    // 1. Sample the current pixel color
+    vec4 pixColor = texture(tex, v_texcoord);
+
+    // 2. Calculate luminance (grayscale value)
+    float gray = dot(pixColor.rgb, luma);
+
+    // 3. Output the color: Red = 0, Green = 0, Blue = gray value
+    fragColor = vec4(0.0, 0.0, gray, pixColor.a);
 }
