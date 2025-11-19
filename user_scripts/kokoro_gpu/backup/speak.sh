@@ -30,15 +30,7 @@ fi
 
 # --- Setup ---
 mkdir -p "$SAVE_DIR"
-
-# ATTEMPT 1: Try standard Clipboard (Ctrl+C). 
-# We removed '--no-newline' because it causes failures with Featherpad/Terminals.
-CLIPBOARD_TEXT=$(wl-paste 2>/dev/null)
-
-# ATTEMPT 2: If Clipboard is empty, try Primary (Highlight selection).
-if [[ -z "$CLIPBOARD_TEXT" ]]; then
-    CLIPBOARD_TEXT=$(wl-paste --primary 2>/dev/null)
-fi
+CLIPBOARD_TEXT=$(wl-paste --no-newline)
 
 if [[ -z "$CLIPBOARD_TEXT" ]]; then
     notify-send "Kokoro TTS" "Clipboard empty." -u low
