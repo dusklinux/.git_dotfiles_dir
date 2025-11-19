@@ -15,7 +15,7 @@ configuration {
     /* Text Layout */
     display-drun:       " Apps";
     display-run:        " Run";
-    display-clipboard:  " Clip";
+    display-clipboard:  " Clip";
     
     /* Interaction */
     kb-cancel:      "Escape";
@@ -30,7 +30,7 @@ configuration {
        ===================================================================== */
     
     /* Backgrounds */
-    var-win-bg:           @surface-container;
+    var-win-bg:           @surface;
     var-input-bg:         @surface-container-high;
     var-urgent-bg:        @error-container;
     var-active-bg:        @primary;

@@ -6,7 +6,7 @@
 /* --- Variable Imports & Mapping --- */
 @import url("../matugen/generated/swaync-colors.css");
 
-@define-color background-color @background;
+@define-color background-color @surface;
 @define-color background-alt-color @surface_container;
 @define-color text-color @on_background;
 @define-color accent-color @primary;
@@ -29,7 +29,7 @@
   
 /* --- CONTROL CENTER (Main Window) --- */
 .control-center {
-  background: alpha(@background-color, .95);
+  background: alpha(@background-color, 1.0);
   border-radius: 24px;
   border: 1px solid @accent-color;
   box-shadow: 0 0 10px 0 alpha(@shadow-color, 0.6);
