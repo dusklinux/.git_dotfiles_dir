@@ -1,144 +1,151 @@
 #!/usr/bin/env bash
 
 # -----------------------------------------------------------------------------
-# METADATA & ERROR HANDLING
+# CONFIGURATION & ASSETS
 # -----------------------------------------------------------------------------
-# Description: Rofi Menu for Hyprshade (Toggle Shaders)
-# Dependencies: rofi, hyprshade
-# Context: Hyprland on Arch Linux (Hyprshade output sanitization added)
-
 set -u
-set -o pipefail
+# We intentionally remove pipefail to allow background disowning without grief
+set +o pipefail
 
-# -----------------------------------------------------------------------------
-# CONFIGURATION
-# -----------------------------------------------------------------------------
+# Icons
+declare -A icons=( [active]="" [inactive]="" [off]="" [shader]="" )
 
-# Visual Assets (Nerd Fonts)
-declare -A icons=(
-    [active]=""      # Eye open (Active)
-    [inactive]=""    # Eye slashed (Inactive)
-    [off]=""         # Cancel/Off
-    [shader]=""      # Generic Shader/Code icon
+# Rofi Command (Using Array for Safety)
+# -mesg: Adds a persistent message so the window size doesn't jump around
+rofi_cmd=(
+    rofi -dmenu -i -markup-rows
+    -theme-str "window {location: center; anchor: center; fullscreen: false; width: 400px;}"
+    -mesg "<span size='x-small' color='#6c7086'>Use <b>Up/Down</b> to preview. <b>Enter</b> to apply. <b>Esc</b> to cancel.</span>"
 )
 
 # -----------------------------------------------------------------------------
-# HELPER FUNCTIONS
+# INITIALIZATION (Done ONCE to save time)
 # -----------------------------------------------------------------------------
 
-# Trim leading/trailing whitespace from a string
-trim() {
-    local var="$*"
-    # Remove leading whitespace characters
-    var="${var#"${var%%[![:space:]]*}"}"
-    # Remove trailing whitespace characters
-    var="${var%"${var##*[![:space:]]}"}"
-    echo -n "$var"
-}
+# 1. Capture Original State (for Cancellation)
+raw_orig=$(hyprshade current)
+ORIGINAL_SHADER="${raw_orig#"${raw_orig%%[![:space:]]*}"}"
+ORIGINAL_SHADER="${ORIGINAL_SHADER%"${ORIGINAL_SHADER##*[![:space:]]}"}"
+[[ -z "$ORIGINAL_SHADER" ]] && ORIGINAL_SHADER="off"
 
-check_dependencies() {
-    local dependencies=(rofi hyprshade)
-    for cmd in "${dependencies[@]}"; do
-        if ! command -v "$cmd" >/dev/null 2>&1; then
-            echo "Error: Critical dependency '$cmd' is missing." >&2
-            exit 1
-        fi
-    done
-}
+# 2. Load Shaders into Memory
+mapfile -t raw_list < <(hyprshade ls)
+declare -a shaders
+shaders+=("off") 
 
-# -----------------------------------------------------------------------------
-# MAIN LOGIC
-# -----------------------------------------------------------------------------
+for raw in "${raw_list[@]}"; do
+    clean="${raw#"${raw%%[![:space:]]*}"}"
+    clean="${clean%"${clean##*[![:space:]]}"}"
+    [[ -n "$clean" ]] && shaders+=("$clean")
+done
 
-check_dependencies
-
-# Get current shader and clean it immediately
-raw_current=$(hyprshade current)
-current_shader=$(trim "$raw_current")
-
-selection="${1:-}"
-
-# --- PHASE 1: INITIAL RENDER ---
-if [[ -z "$selection" ]]; then
-    echo -e "\0prompt\x1fShaders"
-    echo -e "\0markup-rows\x1ftrue"
-    echo -e "\0use-hot-keys\x1ftrue"
-
-    # 1. Add "Turn Off" Option
-    if [[ -z "$current_shader" ]]; then
-        echo -e "<b>Turn Off (Current)</b>\0icon\x1f${icons[off]}\x1finfo\x1foff"
-    else
-        echo -e "Turn Off\0icon\x1f${icons[off]}\x1finfo\x1foff"
+# 3. Find Start Index
+current_idx=0
+for i in "${!shaders[@]}"; do
+    if [[ "${shaders[$i]}" == "$ORIGINAL_SHADER" ]]; then
+        current_idx=$i
+        break
     fi
+done
 
-    # 2. List available shaders safely
-    mapfile -t available_shaders < <(hyprshade ls)
+# 4. Pre-calculate list size
+max_idx=$((${#shaders[@]} - 1))
 
-    if [[ ${#available_shaders[@]} -eq 0 ]]; then
-        echo -e "No shaders found\0icon\x1f${icons[off]}\x1finfo\x1fcancel"
+# 5. Track "Virtual" Current State (Memory Cache)
+# We use this variable instead of querying 'hyprshade current' repeatedly
+virtual_current="$ORIGINAL_SHADER"
+
+# -----------------------------------------------------------------------------
+# THE HIGH-SPEED LOOP
+# -----------------------------------------------------------------------------
+
+while true; do
+    # A. Build Menu String (In-Memory)
+    # This is the only heavy lifting inside the loop
+    menu_content=""
+    for item in "${shaders[@]}"; do
+        if [[ "$item" == "$virtual_current" ]]; then
+            # Active Item
+            if [[ "$item" == "off" ]]; then
+                 line="<span weight='bold' color='#f38ba8'>${icons[off]}  Turn Off (Active)</span>"
+            else
+                 line="<span weight='bold' color='#a6e3a1'>${icons[active]}  ${item} (Active)</span>"
+            fi
+        else
+            # Inactive Item
+             if [[ "$item" == "off" ]]; then
+                 line="${icons[inactive]}  Turn Off"
+            else
+                 line="${icons[shader]}  ${item}"
+            fi
+        fi
+        menu_content+="${line}\n"
+    done
+
+    # B. Render Rofi
+    # We capture the exit code immediately
+    selection=$(echo -e "$menu_content" | "${rofi_cmd[@]}" \
+        -p "Shader Preview" \
+        -selected-row "$current_idx" \
+        -kb-custom-1 "Down" \
+        -kb-custom-2 "Up" \
+        -kb-row-down "" \
+        -kb-row-up "")
+    
+    exit_code=$?
+
+    # C. Handle Navigation (The Critical Path)
+    if [[ $exit_code -eq 10 ]]; then
+        # --- DOWN ARROW ---
+        ((current_idx++))
+        if [[ $current_idx -gt $max_idx ]]; then current_idx=0; fi
+        
+        target="${shaders[$current_idx]}"
+        virtual_current="$target"
+
+        # ASYNC APPLY: We run hyprshade in background (&) so Rofi can reopen INSTANTLY.
+        # We silence output to prevent buffer lag.
+        if [[ "$target" == "off" ]]; then
+            hyprshade off >/dev/null 2>&1 &
+        else
+            hyprshade on "$target" >/dev/null 2>&1 &
+        fi
+
+    elif [[ $exit_code -eq 11 ]]; then
+        # --- UP ARROW ---
+        ((current_idx--))
+        if [[ $current_idx -lt 0 ]]; then current_idx=$max_idx; fi
+        
+        target="${shaders[$current_idx]}"
+        virtual_current="$target"
+
+        # ASYNC APPLY
+        if [[ "$target" == "off" ]]; then
+            hyprshade off >/dev/null 2>&1 &
+        else
+            hyprshade on "$target" >/dev/null 2>&1 &
+        fi
+
+    elif [[ $exit_code -eq 0 ]]; then
+        # --- ENTER (CONFIRM) ---
+        # Just ensure the final state is enforced synchronously
+        target="${shaders[$current_idx]}"
+        if [[ "$target" == "off" ]]; then
+            hyprshade off
+        else
+            hyprshade on "$target"
+        fi
+        notify-send "Hyprshade" "Applied: $target" -i video-display
+        exit 0
+
+    else
+        # --- ESC (CANCEL) ---
+        # Revert to original
+        if [[ "$ORIGINAL_SHADER" == "off" ]]; then
+            hyprshade off
+        else
+            hyprshade on "$ORIGINAL_SHADER"
+        fi
         exit 0
     fi
-
-    for raw_shader in "${available_shaders[@]}"; do
-        # Clean the shader name from 'hyprshade ls' output
-        shader=$(trim "$raw_shader")
-        
-        [[ -z "$shader" ]] && continue
-
-        if [[ "$shader" == "$current_shader" ]]; then
-            label="<span weight='bold' color='#a6e3a1'>${shader} (Active)</span>"
-            icon="${icons[active]}"
-        else
-            label="${shader}"
-            icon="${icons[shader]}"
-        fi
-
-        # Pass clean 'shader' name in the info field
-        echo -e "${label}\0icon\x1f${icon}\x1finfo\x1f${shader}"
-    done
-    exit 0
-fi
-
-# --- PHASE 2: SELECTION PARSING ---
-
-# Prefer ROFI_INFO if available (it contains the clean value we passed above)
-if [[ -n "${ROFI_INFO:-}" ]]; then
-    target="$ROFI_INFO"
-else
-    # Fallback: Clean the visible text
-    # 1. Remove Pango tags
-    clean_text=$(echo "$selection" | sed 's/<[^>]*>//g')
-    # 2. Remove " (Active)" suffix if it exists
-    clean_text="${clean_text% (Active)}"
-    # 3. Trim whitespace
-    target=$(trim "$clean_text")
-fi
-
-# Handle Special Commands
-if [[ "$target" == "off" ]] || [[ "$target" == "cancel" ]]; then
-    if [[ "$target" == "off" ]]; then
-        hyprshade off
-    fi
-    exit 0
-fi
-
-# --- PHASE 3: EXECUTION ---
-
-# Final sanity clean before execution
-final_target=$(trim "$target")
-
-# Re-check current state for toggle logic
-real_current_raw=$(hyprshade current)
-real_current=$(trim "$real_current_raw")
-
-if [[ "$final_target" == "$real_current" ]]; then
-    hyprshade off
-    # Optional: Notification
-    # notify-send "Hyprshade" "Shader disabled"
-else
-    hyprshade on "$final_target"
-    # Optional: Notification
-    # notify-send "Hyprshade" "Enabled: $final_target"
-fi
-
-exit 0
+done

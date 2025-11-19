@@ -1,3 +1,7 @@
+>[!tip] **SSH vs. Manual Typing**
+> Only use the "Recommended" one-liners if you are **copy-pasting** via SSH. 
+>
+> If you are typing by hand, use the manual method instead. The automated commands are too complex and prone to typos when typed manually.
 ### **Optional** : Verify the boot mode
 
 ```bash
@@ -157,13 +161,13 @@ lsblk /dev/sdX
 *Formatting BOOT/ESP Partition*
 
 ```bash
-mkfs.fat -F32 /dev/esp_partition
+mkfs.fat -F32 -n "EFI" /dev/esp_partition
 ```
 
 *Formatting ROOT Partition*
 
 ```bash
-mkfs.btrfs -f /dev/root_partition
+mkfs.btrfs -f -L "ROOT" /dev/root_partition
 ```
 
 - [ ] Status
@@ -247,7 +251,7 @@ mount /dev/esp_partition /mnt/boot
 ### 15. *Syncing Mirrors for faster Download Speeds*
 
 ```bash
-reflector --country India --age 24 --sort rate --save /etc/pacman.d/mirrorlist
+reflector --country India --verbose --latest 20 --age 24 --sort rate --save /etc/pacman.d/mirrorlist
 ```
 
 These are old Indian mirrors, Only paste this into the file if the above command *failed*.
@@ -311,7 +315,11 @@ hwclock --systohc
 ---
 
 ### 20. *Setting System Language*
-
+**removes the hash before the mentioned line** (recommanded)
+```bash
+sed -i 's/#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
+```
+**OR** do it manually
 ```bash
 nvim /etc/locale.gen
 ```
@@ -373,8 +381,14 @@ passwd your_username
 
 ---
 
-### 25. *Allowing Wheel Group to have root rights.*
+### 25. *Allowing Wheel Group to have root rights.* 
 
+**Create a drop in file** (recommanded)
+```bash
+echo '%wheel ALL=(ALL:ALL) ALL' | EDITOR='tee' visudo -f /etc/sudoers.d/10_wheel
+```
+
+**OR** do it manually, and edit the main file instead
 ```bash
 EDITOR=nvim visudo
 ```
@@ -387,7 +401,11 @@ EDITOR=nvim visudo
 ---
 
 ### 26. *Configuring Initiramfs config*
-
+insert the required text into the file (recommanded)
+```bash
+sed -i -e 's/^MODULES=.*/MODULES=(btrfs)/' -e 's|^BINARIES=.*|BINARIES=(/usr/bin/btrfs)|' /etc/mkinitcpio.conf
+```
+**OR** do it manually. 
 ```bash
 nvim /etc/mkinitcpio.conf
 ```
@@ -428,6 +446,15 @@ pacman -S --needed grub efibootmgr grub-btrfs os-prober
 
 ### 30. *Configuring Grub Config*
 
+>[!danger] Caution! **remove** 'pcie_aspm=force' if your laptop crashes or has issues with power saving. 
+
+make the changes with just this one command (recommanded)
+```bash
+sed -i -e 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 zswap.enabled=0 rootfstype=btrfs pcie_aspm=force"/' -e 's/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/' -e 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
+```
+
+**OR** do it manually
+
 ```bash
 nvim /etc/default/grub
 ```
@@ -465,6 +492,13 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 ### 33. *Zram as Block device and Swap device (ZSTD compression)*
 
+do it all with once command (recommanded)
+
+```bash
+mkdir -p /mnt/zram1 && printf "[zram0]\nzram-size = ram - 2000\ncompression-algorithm = zstd\n\n[zram1]\nzram-size = ram - 2000\nfs-type = ext2\nmount-point = /mnt/zram1\ncompression-algorithm = zstd\noptions = rw,nosuid,nodev,discard,X-mount.mode=1777\n" > /etc/systemd/zram-generator.conf
+```
+
+**OR** do it manually. 
 ```bash
 mkdir /mnt/zram1
 ```
