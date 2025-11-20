@@ -52,7 +52,7 @@
                 },
                 {
                     "label": "",
-                    "command": "kitty -- bash $HOME/user_scripts/network_manager/nmcli_wifi.sh"
+                    "command": "kitty -e $HOME/user_scripts/network_manager/nmcli_wifi.sh"
                 },
                 {
                     "label": "󰂯",
@@ -68,7 +68,7 @@
                 },
                 {
                     "label": "󰓅",
-                    "command": "kitty -- bash $HOME/user_scripts/performance/services_and_process_terminator.sh"
+                    "command": "kitty -e $HOME/user_scripts/performance/services_and_process_terminator.sh"
                 },
                 {
                     "label": "󰌾",
@@ -81,6 +81,10 @@
                 {
                     "label": "󰜉",
                     "command": "systemctl reboot"
+                },
+                {
+                    "label": "󱫓",
+                    "command": "kitty -e $HOME/user_scripts/hypridle/timeout.sh"
                 },
                 {
                     "label": "⏻",
