@@ -53,6 +53,7 @@ max_idx=$((${#shaders[@]} - 1))
 
 # 5. Track "Virtual" Current State
 virtual_current="$ORIGINAL_SHADER"
+search_query=""
 
 # -----------------------------------------------------------------------------
 # THE LOOP
@@ -80,29 +81,54 @@ while true; do
         menu_content+="${line}\n"
     done
 
-    # B. Render Rofi
-    # Note: We rely on 'selection' to hold the text string when Enter is pressed
-    selection=$(echo -e "$menu_content" | "${rofi_cmd[@]}" \
-        -p "Shader Preview" \
-        -selected-row "$current_idx" \
-        -kb-custom-1 "Down" \
-        -kb-custom-2 "Up" \
-        -kb-row-down "" \
-        -kb-row-up "")
-    
+    # B. Prepare Rofi Flags
+    # We define dynamic flags based on whether a search is active.
+    # We MUST use -format 's|f' to capture both the selection (s) and the current filter/search (f).
+    rofi_flags=(-p "Shader Preview" -format "s|f")
+
+    if [[ -n "$search_query" ]]; then
+        # --- SEARCH MODE ---
+        # If there is a query, we restore it using -filter.
+        # We DO NOT use custom keybindings for Up/Down here. This allows standard Rofi navigation
+        # (scrolling the list) without closing Rofi, ensuring the search doesn't reset.
+        # Note: Live preview is effectively paused while searching to allow navigation.
+        rofi_flags+=(-filter "$search_query")
+    else
+        # --- PREVIEW MODE ---
+        # Standard behavior: Custom keys trigger exit (code 10/11) to reload the wallpaper.
+        rofi_flags+=(-selected-row "$current_idx")
+        rofi_flags+=(-kb-custom-1 "Down" -kb-custom-2 "Up" -kb-row-down "" -kb-row-up "")
+    fi
+
+    # C. Render Rofi
+    raw_output=$(echo -e "$menu_content" | "${rofi_cmd[@]}" "${rofi_flags[@]}")
     exit_code=$?
 
-    # C. Handle Navigation
+    # D. Parse Output (Split Selection | Filter)
+    # Rofi returns "Selection Text|User Query" due to our -format flag.
+    if [[ "$raw_output" == *"|"* ]]; then
+        selection="${raw_output%|*}"    # Take everything before the last pipe
+        returned_query="${raw_output##*|}" # Take everything after the last pipe
+    else
+        selection="$raw_output"
+        returned_query=""
+    fi
+
+    # E. Handle Navigation
     if [[ $exit_code -eq 10 ]]; then
         # --- DOWN ARROW (Preview Mode) ---
-        # Only works correctly if NOT searching. 
-        # If searching, this key binding usually breaks the search filter, 
-        # effectively acting as a "Next Shader" button.
+        # If user typed text and hit Down, we switch to Search Mode instead of previewing.
+        if [[ -n "$returned_query" ]]; then
+            search_query="$returned_query"
+            continue
+        fi
+
         ((current_idx++))
         if [[ $current_idx -gt $max_idx ]]; then current_idx=0; fi
         
         target="${shaders[$current_idx]}"
         virtual_current="$target"
+        search_query="" # Ensure search is clear
 
         if [[ "$target" == "off" ]]; then
             hyprshade off >/dev/null 2>&1 &
@@ -112,11 +138,17 @@ while true; do
 
     elif [[ $exit_code -eq 11 ]]; then
         # --- UP ARROW (Preview Mode) ---
+        if [[ -n "$returned_query" ]]; then
+            search_query="$returned_query"
+            continue
+        fi
+
         ((current_idx--))
         if [[ $current_idx -lt 0 ]]; then current_idx=$max_idx; fi
         
         target="${shaders[$current_idx]}"
         virtual_current="$target"
+        search_query="" # Ensure search is clear
 
         if [[ "$target" == "off" ]]; then
             hyprshade off >/dev/null 2>&1 &
@@ -126,17 +158,11 @@ while true; do
 
     elif [[ $exit_code -eq 0 ]]; then
         # --- ENTER (CONFIRM SELECTION) ---
-        # FIX: We must parse the $selection text because the user might have filtered 
-        # the list, rendering $current_idx useless.
-
-        # 1. Strip Pango markup tags (<b>, <span>, etc.)
+        
+        # 1. Strip Pango markup tags
         clean_selection=$(echo "$selection" | sed 's/<[^>]*>//g')
 
-        # 2. Extract the shader name.
-        # The format is: "ICON  NAME" or "ICON  NAME (Active)"
-        # We use awk to split by the double space separator "  " and take the 2nd part.
-        # Then we strip the " (Active)" suffix if it exists.
-        
+        # 2. Extract the shader name
         target_name=$(echo "$clean_selection" | awk -F"  " '{print $2}' | sed 's/ (Active)//')
 
         # 3. Handle the special "Turn Off" label
@@ -146,8 +172,7 @@ while true; do
             target="$target_name"
         fi
 
-        # 4. Validate target actually exists (safety check)
-        # If awk failed or empty, fallback to off or just exit
+        # 4. Validate target
         if [[ -z "$target" ]]; then
             exit 1
         fi

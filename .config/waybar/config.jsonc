@@ -93,7 +93,7 @@
         "tooltip-format": "LMB: Brightness Slider\nRMB: hyprsunset Slider\nMMB: Turn OFF hyprsunset",
         "on-click": "~/user_scripts/sliders/brightness_slider.sh",
         "on-click-right": "~/user_scripts/sliders/hyprsunset_slider.sh",
-        "on-click-middle": "~/user_scripts/waybar/hyprsunsetoff.sh",
+        "on-click-middle": "~/user_scripts/rofi/shader_menu.sh",
         "on-scroll-up": "swayosd-client --brightness raise",
         "on-scroll-down": "swayosd-client --brightness lower",
         "min-length": 4,
