@@ -1,19 +1,26 @@
-Install the necessary packages and start the firewall.
-
+```bash
+# Install the necessary packages and start the firewall
 sudo pacman -Syu vsftpd firewalld
+```
 
-start the firewall service
+```bash
+# Start the firewall service
 sudo systemctl enable --now firewalld
+```
 
-add your user to the userlist
-echo "your_username" | sudo tee /etc/vsftpd.userlist 
+```bash
+# Add your user to the userlist (replace your_username with your real username)
+echo "your_username" | sudo tee /etc/vsftpd.userlist
+```
 
-  open this in a text editor to insert some lines. 
-
+```bash
+# Open the config file in a text editor
 sudo nvim /etc/vsftpd.conf
+```
 
-    copy and paste the following in the file, and delete any exisiting configs (delet the preexisting text).  
+Inside the editor: **delete all existing text** and paste exactly the following lines:
 
+```conf
 anonymous_enable=NO
 local_enable=YES
 write_enable=YES
@@ -36,10 +43,15 @@ pasv_max_port=40100
 ftpd_banner=Welcome to this Arch Linux FTP service.
 use_sendfile=YES
 connect_from_port_20=YES
+```
 
+Save and quit, then run:
 
+```bash
 sudo firewall-cmd --permanent --add-service=ftp
 sudo firewall-cmd --permanent --add-port=40000-40100/tcp
 sudo firewall-cmd --reload
-
 sudo systemctl enable --now vsftpd.service
+```
+
+Done. (Make sure `/mnt/ramdisk/` exists and is mounted as tmpfs before starting the service.)
