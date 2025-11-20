@@ -410,6 +410,16 @@ then open obsidian's settings > Appearance > Scroll to the bottom to `CSS snippe
 - [ ] **Sound notify when usb plugin/disconnect** [[Configure udev auditory notify usb plugin]]
 
 ---
+- [ ] Set kitty as your defualt terminal. 
+```bash
+nvim ~/.config/xdg-terminals.list
+```
+and then paste this in it. just this. 
+```ini
+kitty.desktop
+```
+
+---
 
 **OPTIONAL**
 - [ ] block attention sucking sites. 

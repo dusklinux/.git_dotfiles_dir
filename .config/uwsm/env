@@ -1,130 +1,49 @@
-#!/binf/sh
-#
+#!/bin/sh
 # Universal Wayland Session Manager (UWSM) - General Environment
-#
-# This file delineates general environment variables for the Wayland session.
-# These settings pertain to application toolkits, hardware acceleration,
-# and default user applications. They are sourced by UWSM upon session initialization.
-#
-# To verify that these variables have been correctly exported to your session,
-# execute `env` within a terminal emulator.
 
-#--------------------------------------------------------------------------------
 # 1. System Locale and Performance
-#--------------------------------------------------------------------------------
-
-# Specifies the language, country, and character encoding for all applications.
-# It is critical for correct text rendering, sorting, and date/time formatting.
 export LANG=en_US.UTF-8
 
-# --- OpenMP Performance Tuning ---
-# Instructs OpenMP-aware applications (common in scientific computing, compression,
-# and multimedia) to utilize a number of threads that matches your CPU's total
-# thread count. Your Intel Core i7-12700H has 8 P-cores (16 threads) and 4 E-cores,
-# totaling 20 threads. This can significantly improve performance in parallel workloads.
+# Intel Core i7-12700H: 14 cores (6P + 8E) -> 20 threads.
+# $(nproc) is valid here as UWSM processes this via shell.
 export OMP_NUM_THREADS=$(nproc)
 
-#--------------------------------------------------------------------------------
-# 2. GUI Toolkit Configuration (Qt & GTK)
-#--------------------------------------------------------------------------------
+# 2. GUI Toolkit Configuration
 
-# --- Qt Configuration (KDE, etc.) ---
+# --- Qt Configuration ---
+# CRITICAL FIX: The separator IS a semicolon, but it must be quoted to avoid shell parsing errors.
+# This tells Qt: "Try Wayland; if that fails, fall back to XCB (XWayland)".
+export QT_QPA_PLATFORM="wayland;xcb"
 
-# Instructs Qt5/Qt6 applications to prioritize the native Wayland backend.
-# `xcb` is provided as a fallback, ensuring compatibility via XWayland for
-# applications that do not yet fully support Wayland.
-# NOTE: The separator is a colon ':', not a semicolon ';'.
-export QT_QPA_PLATFORM="wayland:xcb"
-
-# Sets the theme for Qt applications. `qt5ct` and `qt6ct` are common utilities
-# for configuring Qt appearance outside of the KDE Plasma desktop.
 export QT_QPA_PLATFORMTHEME=qt6ct
 # export QT_QPA_PLATFORMTHEME=qt5ct # Uncomment if you use qt5ct instead for Qt5 apps.
-
-# Prevents Qt applications from rendering their own window decorations (title bars,
-# borders), allowing the Wayland compositor (Hyprland) to manage them exclusively.
-# This is paramount for a consistent and integrated look and feel.
 export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
-
-# Allows Qt to automatically scale applications based on screen DPI.
-# Set to 1 to enable. This is often preferable to manual scaling.
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
 
-# --- GTK Configuration (GNOME, XFCE, etc.) ---
-
-# Instructs GTK applications to prioritize the native Wayland backend.
-# `x11` is provided as a fallback for compatibility via XWayland.
+# --- GTK Configuration ---
 export GDK_BACKEND="wayland,x11"
-
-# The GTK theme should ideally be managed by a dedicated utility like `nwg-look`
-# or by setting gsettings schemas, as this provides more reliable and granular control.
-# Setting it here can sometimes be overridden or lead to inconsistencies.
-# export GTK_THEME=Adwaita-dark
-
 export QT_QUICK_CONTROLS_STYLE=Fusion
 
-
-# Now, for libadwaita apps, the setting is by default read through xdg-portals, so you may need to install a portal interface like xdg-desktop-portal-gnome.if you don’t use portals at all, then you can set the environment variable ADW_DISABLE_PORTAL=1, in which case the dark theme setting will be read from gsettings, configure it as follow:
-# CAUTION!! THIS ALSO DISABLS THEMEING FOR SOME GTK APPS. SO IT'S COMMENTED OUT. 
-#export ADW_DISABLE_PORTAL=1
-
-#--------------------------------------------------------------------------------
 # 3. Cursor and Default Applications
-#--------------------------------------------------------------------------------
-
-# Defines the default cursor theme for applications, primarily those running on XWayland.
 export XCURSOR_THEME=Bibata-Modern-Classic
-# Defines the default cursor size for applications, primarily those running on XWayland.
-export XCURSOR_SIZE=20
-
-# Sets the default terminal emulator to be launched by other applications.
+export XCURSOR_SIZE=18
 export TERMINAL=kitty
-# Sets the default text editor for terminal-based sessions.
 export EDITOR=nvim
-# Sets the default web browser.
-#export BROWSER=firefox
 
-#--------------------------------------------------------------------------------
-# 4. Application-Specific Wayland Flags
-#--------------------------------------------------------------------------------
-
-# Forces Mozilla applications (Firefox, Thunderbird) to run natively in Wayland mode.
-# This is essential for proper scaling, performance, and integration.
+# 4. Application-Specific Flags
 export MOZ_ENABLE_WAYLAND=1
-# A potential fix for rendering issues, though generally enabled by default now.
-# Uncomment only if experiencing graphical artifacts in Firefox.
-# export MOZ_WEBRENDER=1
-
-# Forces SDL2-based applications (many games and emulators) to use the Wayland video driver.
 export SDL_VIDEODRIVER=wayland
-
-# Forces Clutter-based applications to use the Wayland backend.
 export CLUTTER_BACKEND=wayland
 
-# Instructs Electron-based applications (VSCode, Discord, etc.) to auto-detect
-# the appropriate rendering backend. On a Wayland session, this should select Wayland.
-# This is the modern and preferred method for Electron apps.
+# Modern Electron apps (VSCode, Discord, Obsidian) support this auto-negotiation now.
 export ELECTRON_OZONE_PLATFORM_HINT=auto
-
-# A crucial variable for preventing graphical glitches and display issues with
-# older Java Swing/AWT applications in non-reparenting window managers like Hyprland.
+# Fix for Java AWT apps in tiling WMs
 export _JAVA_AWT_WM_NONREPARENTING=1
 
-#--------------------------------------------------------------------------------
-# 5. Hardware Acceleration & GPU Configuration
-#--------------------------------------------------------------------------------
-#
-# This section is of paramount importance for your Intel + NVIDIA hybrid graphics setup.
-# The strategy is to use the power-efficient Intel iGPU for the desktop and general
-# applications, while enabling the high-performance NVIDIA dGPU for demanding tasks
-# (e.g., gaming, 3D rendering) via PRIME Render Offload.
-
-# --- VA-API (Video Acceleration API for Intel & NVIDIA) ---
-# Specifies the driver for VA-API hardware video acceleration (decoding/encoding).
-# For your 12th Gen Intel CPU, `iHD` is the correct modern driver.
-# Using the iGPU for video decoding is typically more power-efficient.
+# 5. Hardware Acceleration (Intel iGPU priority)
+# We force the Intel driver for the desktop session to save battery.
+# For specific apps (gaming), use 'prime-run' or 'env LIBVA_DRIVER_NAME=nvidia'.
 export LIBVA_DRIVER_NAME=iHD
-
 
 #-------------------------NVIDIA-------------------------------
 #COMMENT OUT ANY SET ENVIRONMENT VARIABLE IF YOU DONT HAVE NVIDIA

@@ -1,78 +1,31 @@
 #!/bin/sh
-#
 # Universal Wayland Session Manager (UWSM) - Hyprland Environment
-#
-# This file contains environment variables that are specific to the Hyprland
-# compositor, its renderer (Aquamarine), and the Wayland session it manages.
-#
 
-#--------------------------------------------------------------------------------
 # 1. Session Identification
-#--------------------------------------------------------------------------------
-
-# Sets the name of the current desktop session. This can be useful for scripts
-# and applications that adapt their behavior based on the desktop environment.
 export DESKTOP_SESSION=hyprland-uwsm
 
-#--------------------------------------------------------------------------------
 # 2. Cursor Configuration
-#--------------------------------------------------------------------------------
+# Hyprland native cursor size (affects the desktop itself)
+export HYPRCURSOR_SIZE=18
 
-# Specifies the size of the cursor for Hyprland's native cursor system (`hyprcursor`).
-# This affects the cursor in native Wayland windows and on the desktop itself.
-# Note that `XCURSOR_SIZE` in the other file handles cursors for XWayland applications.
-# Having both ensures a more consistent cursor size across all applications.
-export HYPRCURSOR_SIZE=24
+# 3. XDG Variables
+# UWSM handles XDG_CURRENT_DESKTOP, XDG_SESSION_TYPE, and XDG_SESSION_DESKTOP automatically.
 
-#--------------------------------------------------------------------------------
-# 3. XDG Base Directory Specification
-#--------------------------------------------------------------------------------
+# 4. Aquamarine (Renderer) Configuration
+# Hyprland v0.45+ uses Aquamarine, not wlroots.
 
-# The following XDG variables are fundamental for defining where applications should
-# find configuration files, data, and runtime state. As your comment rightly notes,
-# a properly configured session manager like UWSM typically sets these automatically.
-# They are left commented here for educational and diagnostic purposes. Manually
-# setting them is usually unnecessary and could interfere with the session manager.
-
-# export XDG_SESSION_TYPE=wayland
-export XDG_CURRENT_DESKTOP=Hyprland
-# export XDG_SESSION_DESKTOP=Hyprland
-# export XDG_CONFIG_HOME=$HOME/.config
-# export XDG_DATA_HOME=$HOME/.local/share
-# export XDG_STATE_HOME=$HOME/.local/state
-# export XDG_CACHE_HOME=$HOME/.cache
-# export XDG_RUNTIME_DIR=/run/user/$(id -u)
-
-#--------------------------------------------------------------------------------
-# 4. Hyprland & Renderer Debugging / Special Cases
-#--------------------------------------------------------------------------------
-#
-# The variables in this section should remain commented out during normal operation.
-# They are powerful tools for diagnostics and troubleshooting when encountering
-# rendering artifacts, crashes, or performance issues.
-
-# --- Hyprland Core ---
-# Enables highly verbose logging from Hyprland itself. Useful for bug reports.
-# export HYPRLAND_TRACE=1
-# Disables Hyprland's attempt to acquire real-time priority, which can sometimes
-# cause issues on certain systems or with specific kernel configurations.
-# export HYPRLAND_NO_RT=1
-# If using systemd, this disables sd_notify calls from Hyprland.
-# export HYPRLAND_NO_SD_NOTIFY=1
-
-# --- Aquamarine Renderer (Part of Hyprland) ---
-# Enables verbose logging specifically from the Aquamarine rendering engine.
-# export AQ_TRACE=1
-# Forces the renderer to use a specific DRM device (GPU). You can determine your
-# device paths with `ls -l /dev/dri/by-path`. Forcing the Intel iGPU might look
-# like `/dev/dri/card0`, but this should only be used for debugging.
-#card1 is intel for me and card2 is nvidia, set to the intel card for powersaving
+# --- GPU Selection ---
+# CRITICAL: Verify your card index with `ls -l /dev/dri/by-path`
+# Ideally, you want the INTEGRATED (Intel) card here for the desktop session.
+# If card1 is definitely Intel, this is correct. If card0 is Intel, change this.
 export AQ_DRM_DEVICES=/dev/dri/card1
-#export AQ_MGPU_NO_EXPLICIT=1 	#Disables explicit syncing on mgpu buffers
-#export AQ_NO_MODIFIERS=1 	#Disables modifiers for DRM buffers
 
+# Install other terminals via Install > Terminal
+export TERMINAL=xdg-terminal-exec
 
-#---------------------------------------------------------
-# path for exicutables in the user/local dir.
-export PATH="$HOME/.local/bin:$PATH"
-export PATH="$HOME/.cargo/bin:$PATH"
+# Use code editor
+export EDITOR=nvim
+
+# 5. Path
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+
