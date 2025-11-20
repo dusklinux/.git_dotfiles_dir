@@ -96,17 +96,17 @@ echo 60 | sudo tee /sys/class/power_supply/BAT1/charge_control_end_threshold
 
 ### 5. *Pacman Update and Packages Corruption Detection*
 
-**Optional** : if using the archinstall script
-```bash
-pacman -Sy archinstall
-```
-
 ```bash
 pacman-key --init
 ```
 
 ```bash
 pacman-key --populate archlinux
+```
+
+**Optional** : if using the archinstall script
+```bash
+pacman -Sy archinstall
 ```
 
 After entering this next command, type "y" for all prompts. 
@@ -251,7 +251,7 @@ mount /dev/esp_partition /mnt/boot
 ### 15. *Syncing Mirrors for faster Download Speeds*
 
 ```bash
-reflector --country India --verbose --latest 20 --age 24 --sort rate --save /etc/pacman.d/mirrorlist
+reflector --protocol https --country India --latest 6 --sort rate --save /etc/pacman.d/mirrorlist
 ```
 
 These are old Indian mirrors, Only paste this into the file if the above command *failed*.
@@ -268,8 +268,11 @@ vim /etc/pacman.d/mirrorlist
 
 ### 16. *Installing Linux*
 
+>[!Note]- Microcode: `intel-ucode` or `amd-ucode`, Pick for your CPU: AMD/Intel
+>Neglecting this can lead to stability issues or unpatched processor vulnerabilities. The microcode is loaded early in the boot process to patch the CPU's internal instruction set behavior.
+
 ```bash
-pacstrap /mnt base base-devel linux linux-headers linux-firmware nvim
+pacstrap -K /mnt base base-devel linux linux-headers linux-firmware intel-ucode nvim
 ```
 
 - [ ] Status
@@ -403,7 +406,7 @@ EDITOR=nvim visudo
 ### 26. *Configuring Initiramfs config*
 insert the required text into the file (recommanded)
 ```bash
-sed -i -e 's/^MODULES=.*/MODULES=(btrfs)/' -e 's|^BINARIES=.*|BINARIES=(/usr/bin/btrfs)|' /etc/mkinitcpio.conf
+sed -i -e 's/^MODULES=.*/MODULES=(btrfs)/' -e 's|^BINARIES=.*|BINARIES=(/usr/bin/btrfs)|' -e 's/^HOOKS=.*/HOOKS=(systemd autodetect microcode modconf kms keyboard sd-vconsole block filesystems)/' /etc/mkinitcpio.conf
 ```
 **OR** do it manually. 
 ```bash
@@ -413,6 +416,8 @@ nvim /etc/mkinitcpio.conf
 > [!note] Fill the empty brackets with 
 > MODULES=(btrfs)
 > BINARIES=(/usr/bin/btrfs)
+> HOOKS=(systemd autodetect microcode modconf kms keyboard sd-vconsole block filesystems)
+
 
 - [ ] Status
 
@@ -450,7 +455,7 @@ pacman -S --needed grub efibootmgr grub-btrfs os-prober
 
 make the changes with just this one command (recommanded)
 ```bash
-sed -i -e 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 zswap.enabled=0 rootfstype=btrfs pcie_aspm=force"/' -e 's/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/' -e 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
+sed -i -e 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 zswap.enabled=0 rootfstype=btrfs pcie_aspm=force fsck.mode=skip"/' -e 's/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/' -e 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
 ```
 
 **OR** do it manually

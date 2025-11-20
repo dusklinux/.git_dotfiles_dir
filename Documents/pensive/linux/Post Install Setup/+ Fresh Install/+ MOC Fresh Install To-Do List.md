@@ -39,6 +39,13 @@ echo 60 | sudo tee /sys/class/power_supply/BAT1/charge_control_end_threshold
 
 - [ ] **Restore Dotfiles:** Download the `git` bare repository and deploy the files on your PC [[Restore Backup On a Fresh Install]].
 
+>[!note]- Your mouse button will be reversed if you're using a physical mouse. 
+>Trackpad not effected. You'll later have the option to set it back to normal configuration in the steps below, or you could do it right now in the following file
+>```bash
+>nvim ~/.config/hypr/source/input.conf
+>```
+> change`left_handed = true` to `left_handed = false`
+
 ---
 
 - [ ] **Link Restored Vault files to Obsidian** : open and link to existing vault. 
@@ -62,13 +69,59 @@ systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.
 
 ---
 
-**OPTIONAL**
-- [ ] Syncing Mirrors for faster Download Speeds
-
+- [ ] configure Reflector config. 
 ```bash
-sudo reflector --country India --age 24 --sort rate --save /etc/pacman.d/mirrorlist
+sudo nvim /etc/xdg/reflector/reflector.conf
 ```
 
+replace the entire content of the file with this. 
+```ini
+--save /etc/pacman.d/mirrorlist
+
+# Select the transfer protocol (--protocol).
+--protocol https
+
+# Select the country (--country).
+# Consult the list of available countries with "reflector --list-countries" and
+# select the countries nearest to you or the ones that you trust. For example:
+--country India
+
+# Use only the  most recently synchronized mirrors (--latest).
+--latest 6
+
+# Sort the mirrors by synchronization time (--sort).
+--sort rate 
+```
+**OPTIONAL**
+- [ ] Syncing Pacman Mirrors for faster Download Speeds
+
+if your downloads are currently slow, run this. (**Though Usually not needed**)
+```bash
+sudo reflector --protocol https --country India --latest 6 --sort rate --save /etc/pacman.d/mirrorlist
+```
+
+
+---
+
+**OPTIONAL**
+- [ ] enabling better pacman visuals while downloading packages and faster downloads
+```bash
+sudo nvim /etc/pacman.conf
+```
+
+replace the the Misc Options part with the following or do it manually
+```
+# Misc options
+#UseSyslog
+Color
+#NoProgressBar
+CheckSpace
+#VerbosePkgLists
+ParallelDownloads = 5
+DownloadUser = alpm
+#DisableSandbox
+ILoveCandy
+```
 ---
 
 - [ ] **Set Default Shell:** Change the default shell from `bash` to `zsh` 

@@ -1,8 +1,13 @@
 
+>[!tip] Recommended to enable simultaneous downloads by un-commentating and setting `ParallelDownloads = 5`, especially useful if your downloads are slow for some reason in-spite of a fast connection.
+>```bash
+>nvim /etc/pacman.conf
+>```
+
+
+
 ## Not Recommanded to install all at once but here it is anyway. 
 [[All Packages at Once]]
-
-
 
 # Phased Package Installation
 
@@ -24,7 +29,7 @@ _Core GPU drivers, hardware acceleration, microcode, and firmware._
 
 
 ```
-pacman -S --needed intel-media-driver mesa vulkan-intel mesa-utils intel-gpu-tools libva libva-utils vulkan-icd-loader vulkan-tools intel-ucode sof-firmware linux-firmware
+pacman -S --needed intel-media-driver mesa vulkan-intel mesa-utils intel-gpu-tools libva libva-utils vulkan-icd-loader vulkan-tools sof-firmware linux-firmware
 ```
 
 - [ ] Status
