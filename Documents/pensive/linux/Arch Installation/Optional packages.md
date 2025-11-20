@@ -120,6 +120,8 @@ Core components for audio handling and text rendering.
 *   `easyeffects`: An advanced audio effects application for PipeWire.
 *   `qpwgraph`: A graph manager for PipeWire, useful for routing audio.
 
+network mangaer tray and notify when connect/disconnect
+network-manager-applet
 #### Fonts
 
 A good set of fonts is crucial for readability in both the terminal and GUI applications.
