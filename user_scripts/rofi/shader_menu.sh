@@ -10,8 +10,8 @@ set +o pipefail
 # Icons
 declare -A icons=( [active]="" [inactive]="" [off]="" [shader]="" )
 
-# Rofi Command (Using Array for Safety)
-# -mesg: Adds a persistent message so the window size doesn't jump around
+# Rofi Command
+# -mesg: Adds a persistent message
 rofi_cmd=(
     rofi -dmenu -i -markup-rows
     -theme-str "window {location: center; anchor: center; fullscreen: false; width: 400px;}"
@@ -19,7 +19,7 @@ rofi_cmd=(
 )
 
 # -----------------------------------------------------------------------------
-# INITIALIZATION (Done ONCE to save time)
+# INITIALIZATION
 # -----------------------------------------------------------------------------
 
 # 1. Capture Original State (for Cancellation)
@@ -51,17 +51,15 @@ done
 # 4. Pre-calculate list size
 max_idx=$((${#shaders[@]} - 1))
 
-# 5. Track "Virtual" Current State (Memory Cache)
-# We use this variable instead of querying 'hyprshade current' repeatedly
+# 5. Track "Virtual" Current State
 virtual_current="$ORIGINAL_SHADER"
 
 # -----------------------------------------------------------------------------
-# THE HIGH-SPEED LOOP
+# THE LOOP
 # -----------------------------------------------------------------------------
 
 while true; do
-    # A. Build Menu String (In-Memory)
-    # This is the only heavy lifting inside the loop
+    # A. Build Menu String
     menu_content=""
     for item in "${shaders[@]}"; do
         if [[ "$item" == "$virtual_current" ]]; then
@@ -83,7 +81,7 @@ while true; do
     done
 
     # B. Render Rofi
-    # We capture the exit code immediately
+    # Note: We rely on 'selection' to hold the text string when Enter is pressed
     selection=$(echo -e "$menu_content" | "${rofi_cmd[@]}" \
         -p "Shader Preview" \
         -selected-row "$current_idx" \
@@ -94,17 +92,18 @@ while true; do
     
     exit_code=$?
 
-    # C. Handle Navigation (The Critical Path)
+    # C. Handle Navigation
     if [[ $exit_code -eq 10 ]]; then
-        # --- DOWN ARROW ---
+        # --- DOWN ARROW (Preview Mode) ---
+        # Only works correctly if NOT searching. 
+        # If searching, this key binding usually breaks the search filter, 
+        # effectively acting as a "Next Shader" button.
         ((current_idx++))
         if [[ $current_idx -gt $max_idx ]]; then current_idx=0; fi
         
         target="${shaders[$current_idx]}"
         virtual_current="$target"
 
-        # ASYNC APPLY: We run hyprshade in background (&) so Rofi can reopen INSTANTLY.
-        # We silence output to prevent buffer lag.
         if [[ "$target" == "off" ]]; then
             hyprshade off >/dev/null 2>&1 &
         else
@@ -112,14 +111,13 @@ while true; do
         fi
 
     elif [[ $exit_code -eq 11 ]]; then
-        # --- UP ARROW ---
+        # --- UP ARROW (Preview Mode) ---
         ((current_idx--))
         if [[ $current_idx -lt 0 ]]; then current_idx=$max_idx; fi
         
         target="${shaders[$current_idx]}"
         virtual_current="$target"
 
-        # ASYNC APPLY
         if [[ "$target" == "off" ]]; then
             hyprshade off >/dev/null 2>&1 &
         else
@@ -127,20 +125,45 @@ while true; do
         fi
 
     elif [[ $exit_code -eq 0 ]]; then
-        # --- ENTER (CONFIRM) ---
-        # Just ensure the final state is enforced synchronously
-        target="${shaders[$current_idx]}"
+        # --- ENTER (CONFIRM SELECTION) ---
+        # FIX: We must parse the $selection text because the user might have filtered 
+        # the list, rendering $current_idx useless.
+
+        # 1. Strip Pango markup tags (<b>, <span>, etc.)
+        clean_selection=$(echo "$selection" | sed 's/<[^>]*>//g')
+
+        # 2. Extract the shader name.
+        # The format is: "ICON  NAME" or "ICON  NAME (Active)"
+        # We use awk to split by the double space separator "  " and take the 2nd part.
+        # Then we strip the " (Active)" suffix if it exists.
+        
+        target_name=$(echo "$clean_selection" | awk -F"  " '{print $2}' | sed 's/ (Active)//')
+
+        # 3. Handle the special "Turn Off" label
+        if [[ "$target_name" == "Turn Off" ]]; then
+            target="off"
+        else
+            target="$target_name"
+        fi
+
+        # 4. Validate target actually exists (safety check)
+        # If awk failed or empty, fallback to off or just exit
+        if [[ -z "$target" ]]; then
+            exit 1
+        fi
+
         if [[ "$target" == "off" ]]; then
             hyprshade off
         else
             hyprshade on "$target"
         fi
+        
         notify-send "Hyprshade" "Applied: $target" -i video-display
         exit 0
 
     else
         # --- ESC (CANCEL) ---
-        # Revert to original
+        # Revert to original state
         if [[ "$ORIGINAL_SHADER" == "off" ]]; then
             hyprshade off
         else
