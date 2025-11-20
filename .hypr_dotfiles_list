@@ -25,7 +25,7 @@
 .config/zathura/
 .config/autostart/
 .zshrc
-.git_dotfiles_list
+.hypr_dotfiles_list
 .config/starship.toml
 .config/mimeapps.list
 .local/share/errands/data.json
