@@ -59,6 +59,11 @@ post_hook = 'ln -nfs $HOME/.config/matugen/generated/zathura-colors $HOME/.confi
 # output_path = '~/.config/matugen/generated/starship-colors.toml'
 # post_hook = 'ln -nfs $HOME/.config/matugen/generated/starship-colors $HOME/.config/starship.toml'
 
+# [templates.tmux]
+# input_path = '~/.config/matugen/templates/tmux-colors.conf'
+# output_path = '~/.config/matugen/generated/tmux-colors.conf'
+# post_hook = 'tmux source-file ~/.config/matugen/tmux-colors.conf' 
+
 [templates.pywalfox]
 input_path = '~/.config/matugen/templates/pywalfox-colors.json'
 output_path = '~/.config/matugen/generated/pywalfox-colors.json'
@@ -90,3 +95,14 @@ output_path = '~/.config/matugen/generated/hyprlock-colors.conf'
 [templates.wlogout]
 input_path = '~/.config/matugen/templates/colors.css'
 output_path = '~/.config/matugen/generated/wlogout-colors.css'
+
+[templates.cava]
+input_path = '~/.config/matugen/templates/cava-colors.ini'
+output_path = '~/.config/matugen/generated/cava-colors.ini'
+post_hook = 'ln -nfs $HOME/.config/matugen/generated/cava-colors.ini $HOME/.config/cava/themes/cava-colors.ini; pkill -USR1 cava'
+
+[templates.alacritty]
+input_path = '~/.config/matugen/templates/alacritty.toml'
+output_path = '~/.config/matugen/generated/alacritty-colors.toml'
+post_hook = 'ln -nfs $HOME/.config/matugen/generated/alacritty-colors.toml $HOME/.config/alacritty/alacritty-colors.toml'
+
