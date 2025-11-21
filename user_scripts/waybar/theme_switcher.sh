@@ -8,8 +8,8 @@
 #   Unifies theme switching logic for Hyprland components.
 #   - Toggles GTK Theme (gsettings)
 #   - Updates Waypaper configuration
-#   - Updates SWWW randomization script
-#   - Generates and applies Matugen colors based on the current wallpaper
+#   - Updates SWWW randomization script (sets mode)
+#   - Triggers SWWW randomization script (applies new wallpaper + Matugen)
 #
 # Usage:
 #   ./theme_switcher.sh -light | --light | -l
@@ -23,7 +23,6 @@ set -u # Exit on undefined variables
 # --- Constants & Configuration ---
 readonly WAYPAPER_CONFIG="$HOME/.config/waypaper/config.ini"
 readonly SWWW_SCRIPT="$HOME/user_scripts/swww/swww_random_standalone.sh"
-readonly MATUGEN_CMD="matugen"
 
 # ANSI Color Codes for Output
 readonly RED='\033[0;31m'
@@ -122,7 +121,8 @@ log_info "Initializing switch to: ${GREEN}${MODE^^}${NC}"
 check_dependency "gsettings"
 check_dependency "sed"
 check_dependency "grep"
-check_dependency "matugen"
+# Kept 'matugen' check to ensure system sanity, even though called in sub-script
+check_dependency "matugen" 
 
 if [[ ! -f "$WAYPAPER_CONFIG" ]]; then
     log_error "Waypaper config not found: $WAYPAPER_CONFIG"
@@ -148,51 +148,30 @@ fi
 kill_process_safely "waypaper"
 
 # 3. Update Waypaper Config (post_command)
-# We use a flexible regex to capture whatever mode was previously set
+# This updates the config so if you run Waypaper manually later, it respects the last set mode.
 log_info "Updating Waypaper configuration..."
 sed -i "s/post_command = matugen --mode \(light\|dark\) image \$wallpaper/post_command = matugen --mode $MODE image \$wallpaper/" "$WAYPAPER_CONFIG"
 
 # 4. Update SWWW Script (theme_mode variable)
-# Uses ^ and $ anchors to ensure we only edit the specific configuration line
+# CRITICAL FIX: Adjusted regex to match the line even without the '# <-- SET THIS' comment
 log_info "Updating SWWW script configuration..."
-sed -i "s/^readonly theme_mode=\".*\" # <-- SET THIS$/readonly theme_mode=\"$MODE\" # <-- SET THIS/" "$SWWW_SCRIPT"
+sed -i "s/^readonly theme_mode=\".*\"/readonly theme_mode=\"$MODE\"/" "$SWWW_SCRIPT"
 
 # 5. Sync Filesystem
 sync
 sleep 0.2
 
-# 6. Extract Wallpaper Path
-# Using awk with '=' delimiter, handling potential whitespace around the equals sign
-current_wallpaper_path=$(grep '^wallpaper[[:space:]]*=' "$WAYPAPER_CONFIG" | awk -F'=' '{print $2}' | xargs)
+# 6. Run SWWW Standalone Script
+# This script handles picking a random wallpaper and running matugen
+log_info "Executing SWWW randomization script: $(basename "$SWWW_SCRIPT")"
 
-if [[ -z "$current_wallpaper_path" ]]; then
-    log_error "Could not extract wallpaper path from config."
-    exit 1
-fi
-
-# Expand tilde (~) to $HOME
-current_wallpaper_path="${current_wallpaper_path/#\~/$HOME}"
-
-if [[ ! -f "$current_wallpaper_path" ]]; then
-    log_error "Wallpaper file missing at: $current_wallpaper_path"
-    exit 1
-fi
-
-# 7. Apply Matugen Theme
-log_info "Generating colors from: $(basename "$current_wallpaper_path")"
-
-# Running Matugen
-# We allow it to fail (|| true) but suppress only standard errors if desired.
-# Removing '2>/dev/null' allows you to see errors if they happen, 
-# but if you prefer silence, you can add it back.
-# Currently set to suppress stderr to match original behavior but kept clean.
-if matugen --mode "$MODE" image "$current_wallpaper_path" 2>/dev/null; then
-    log_success "Matugen applied successfully."
+if "$SWWW_SCRIPT"; then
+    log_success "SWWW script executed successfully."
 else
-    log_warn "Matugen command reported an issue (or produced no output), but continuing..."
+    log_warn "SWWW script execution encountered an issue."
 fi
 
-# 8. Wait for completion
+# 7. Wait for completion
 log_info "Waiting for system propagation (2s)..."
 sleep 2
 

@@ -19,11 +19,6 @@ output_path = '~/.config/matugen/generated/qt5ct-colors.conf'
 input_path = '~/.config/matugen/templates/qtct-colors.conf'
 output_path = '~/.config/matugen/generated/qt6ct-colors.conf'
 
-[templates.waybar]
-input_path = '~/.config/matugen/templates/colors.css'
-output_path = '~/.config/matugen/generated/waybar-colors.css'
-post_hook = 'pkill -SIGUSR2 waybar' # Reloads Waybar after generation
-
 [templates.swaync]
 input_path = '~/.config/matugen/templates/colors.css'
 output_path = '~/.config/matugen/generated/swaync-colors.css'
@@ -106,3 +101,7 @@ input_path = '~/.config/matugen/templates/alacritty.toml'
 output_path = '~/.config/matugen/generated/alacritty-colors.toml'
 post_hook = 'ln -nfs $HOME/.config/matugen/generated/alacritty-colors.toml $HOME/.config/alacritty/alacritty-colors.toml'
 
+[templates.waybar]
+input_path = '~/.config/matugen/templates/colors.css'
+output_path = '~/.config/matugen/generated/waybar-colors.css'
+post_hook = 'pkill -SIGUSR2 waybar; notify-send "Theme Updated"' # Reloads Waybar after generation
