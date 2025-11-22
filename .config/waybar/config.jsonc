@@ -63,7 +63,7 @@
         "format-charging": " \n+{capacity}\n{power:.0f}W",
         "format-plugged": "\n{capacity}",
         "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
-        "on-click-right": "kitty -e $HOME/user_scripts/hypridle/timeout.sh",
+        "on-click-right": "kitty --class timeout.sh -e $HOME/user_scripts/hypridle/timeout.sh",
         "interval": 5,
         "states": {
             "warning": 40,
@@ -77,7 +77,7 @@
         "format-muted": "󰖁\nX",
         "on-click": "pavucontrol",
         "on-click-middle": "swayosd-client --output-volume mute-toggle",
-        "on-click-right": "kitty -e cava",
+        "on-click-right": "kitty --class cava -e cava",
         "on-scroll-up": "swayosd-client --output-volume raise",
         "on-scroll-down": "swayosd-client --output-volume lower",
         "format-icons": ["󰖁", "", ""],
@@ -103,7 +103,7 @@
     "cpu": {
         "format": "\n{usage}",
         "tooltip": true,
-        "on-click": "kitty -e btop",
+        "on-click": "kitty --class btop -e btop",
         "tooltip-format": "CPU: {usage}%\nAvg Freq: {avg_frequency}GHz",
         "interval": 2
     },
@@ -134,7 +134,7 @@
         "format-connected": "",
         "tooltip-format": "Devices connected: {num_connections}",
         "on-click": "blueman-manager",
-        "on-click-right": "kitty -e bluetui",
+        "on-click-right": "kitty --class bluetui -e bluetui",
         "interval": 5
     },
 
@@ -173,7 +173,7 @@
     "custom/network-unit": {
         "return-type": "json",
         "tooltip": true,
-        "on-click": "kitty -e wifitui",
+        "on-click": "kitty --class wifitui -e wifitui",
         "interval": 1,
         "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh unit"
     },
@@ -240,8 +240,7 @@
     "custom/app-tray": {
         "format": "",
         "tooltip-format": "Open Terminal App Tray!\n\nEmpty Terminal if no\nTray-App is Open.",
-        "on-click": "kitty -e tray-tui",
-        "interval": "once"
+        "on-click": "kitty --class tray-tui -e tray-tui"
     },
 
     "custom/power": {

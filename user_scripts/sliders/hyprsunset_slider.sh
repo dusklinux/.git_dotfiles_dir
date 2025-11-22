@@ -1,28 +1,18 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# Hyprsunset Slider (Optimized)
-# ==============================================================================
-# - Real-time temperature adjustment for Hyprland
-# - Auto-launches hyprsunset if missing
-# - Single-instance enforcement with window focus
-# - Crash protection and efficient IPC handling
+# Hyprsunset Slider (Finalized)
 # ==============================================================================
 
-set -u # Error on unset variables (safety)
+set -u # Error on unset variables
 
 # --- Constants ---
 readonly APP_NAME="hyprsunset"
 readonly TITLE_HINT="Hyprsunset"
-readonly LOCK_KEY="hyprsunset_slider"
+readonly LOCK_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/${APP_NAME}_slider.lock"
+readonly STATE_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hyprsunset_last_temp"
 
-# Use XDG_RUNTIME_DIR for security/isolation (falls back to /tmp if unset)
-readonly RUN_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-readonly STATE_FILE="$RUN_DIR/hyprsunset_last_temp"
-readonly LOCK_BASE="$RUN_DIR/yad_locks"
-readonly LOCK_FILE="$LOCK_BASE/$LOCK_KEY.lock"
-readonly LOCK_DIR="$LOCK_BASE/$LOCK_KEY.lockdir"
-
+# Temperature Limits
 readonly DEFAULT_TEMP=4500
 readonly MIN_TEMP=1000
 readonly MAX_TEMP=6000
@@ -32,74 +22,49 @@ readonly STARTUP_WAIT=5
 for cmd in yad hyprctl pgrep; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
         notify-send -u critical "$TITLE_HINT Error" "Missing dependency: $cmd"
-        echo "Error: Missing dependency '$cmd'" >&2
         exit 1
     fi
 done
 
 # ==============================================================================
-# 1. Single Instance & Focus Logic
+# 1. Single Instance & Focus Logic (Standardized)
 # ==============================================================================
 
-_focus_existing_window() {
-    # Method 1: wmctrl (fastest if available)
-    if command -v wmctrl >/dev/null 2>&1; then
-        if wmctrl -a "$TITLE_HINT" 2>/dev/null; then return 0; fi
-    fi
+# Use File Descriptor 200 for locking (Cleaner method)
+exec 200>"$LOCK_FILE"
 
-    # Method 2: hyprctl direct dispatch
-    if hyprctl dispatch focuswindow "title:^${TITLE_HINT}$" >/dev/null 2>&1; then
-        return 0
-    fi
-
-    # Method 3: Manual address lookup (robust fallback)
-    if command -v jq >/dev/null 2>&1; then
+_focus_existing() {
+    # Method 1: Hyprland JSON lookup (Most robust)
+    if command -v hyprctl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
         local addr
+        # Look for window by Title
         addr=$(hyprctl clients -j | jq -r --arg t "$TITLE_HINT" '.[] | select(.title == $t) | .address' | head -n1)
         if [[ -n "$addr" && "$addr" != "null" ]]; then
             hyprctl dispatch focuswindow "address:$addr" >/dev/null 2>&1
             return 0
         fi
     fi
-    return 1
+
+    # Method 2: Fallback to Title Regex
+    if command -v hyprctl >/dev/null 2>&1; then
+        hyprctl dispatch focuswindow "title:^${TITLE_HINT}$" >/dev/null 2>&1
+        return 0
+    fi
+
+    # Method 3: wmctrl (X11/Wayland fallback)
+    if command -v wmctrl >/dev/null 2>&1; then
+        wmctrl -a "$TITLE_HINT" 2>/dev/null
+    fi
 }
 
-# Ensure lock directory exists
-mkdir -p "$LOCK_BASE"
-
-# Try to acquire lock
-if command -v flock >/dev/null 2>&1; then
-    exec 9>"$LOCK_FILE"
-    if ! flock -n 9; then
-        _focus_existing_window
-        exit 0
-    fi
-    # Lock acquired, cleanup on exit
-    trap 'exec 9>&-; rm -f "$LOCK_FILE"; exit' INT TERM EXIT
-else
-    # Fallback for systems without flock (rare, but safe)
-    if mkdir "$LOCK_DIR" 2>/dev/null; then
-        echo "$$" > "$LOCK_DIR/pid"
-        trap 'rm -rf "$LOCK_DIR"; exit' INT TERM EXIT
-    else
-        if [ -f "$LOCK_DIR/pid" ]; then
-            old_pid=$(cat "$LOCK_DIR/pid" 2>/dev/null || echo "")
-            if [ -n "$old_pid" ] && kill -0 "$old_pid" 2>/dev/null; then
-                _focus_existing_window
-                exit 0
-            else
-                # Stale lock detected
-                rm -rf "$LOCK_DIR"
-                mkdir "$LOCK_DIR"
-                echo "$$" > "$LOCK_DIR/pid"
-                trap 'rm -rf "$LOCK_DIR"; exit' INT TERM EXIT
-            fi
-        fi
-    fi
+# If we cannot acquire the lock, focus the existing window and exit
+if ! flock -n 200; then
+    _focus_existing
+    exit 0
 fi
 
 # ==============================================================================
-# 2. Service Management Functions
+# 2. Service Management (Daemon Auto-Start)
 # ==============================================================================
 
 # Initialize state file if missing
@@ -114,7 +79,6 @@ get_current_temp() {
 }
 
 is_daemon_running() {
-    # Check for process belonging to current user only
     pgrep -u "$(id -u)" -x "$APP_NAME" >/dev/null 2>&1
 }
 
@@ -148,7 +112,7 @@ start_daemon() {
         fi
     fi
 
-    # 3. Wait for IPC Readiness (Critical for preventing lag)
+    # 3. Wait for IPC Readiness (Critical to prevent slider lag)
     local deadline=$((SECONDS + STARTUP_WAIT))
     local current=$(get_current_temp)
     while [ $SECONDS -le $deadline ]; do
@@ -168,32 +132,33 @@ start_daemon() {
 CURRENT_TEMP=$(get_current_temp)
 LAST_RESTART_ATTEMPT=0
 
-# Ensure it's running before showing UI
+# Ensure daemon is running before showing UI
 if ! is_daemon_running; then
     start_daemon || true
 fi
 
-# YAD UI Definition
+# YAD UI Definition (Fixed Size & Layout)
 YAD_CMD=(
     yad
     --title="$TITLE_HINT"
     --class="$TITLE_HINT"
     --scale
-    --text="Temperature (K)"
+    --text="Hyprsunset (K)                      󰡬"
     --min-value="$MIN_TEMP"
     --max-value="$MAX_TEMP"
     --value="$CURRENT_TEMP"
     --step=50
     --show-value
     --print-partial
-    --width=400
-    --height=50
+    --width=420                # Matched to other sliders
+    --height=90                # Matched to other sliders
     --window-icon="preferences-system"
     --button="Close":1
-    --buttons-layout=end
+    --buttons-layout=center    # Matched to other sliders
+    --fixed                    # CRITICAL: Prevents tiling in Hyprland
 )
 
-# Loop using Process Substitution to avoid subshell issues
+# Loop using Process Substitution
 while IFS= read -r NEW_TEMP; do
     # Sanitize input (integer only)
     NEW_TEMP=${NEW_TEMP%.*}
@@ -205,9 +170,7 @@ while IFS= read -r NEW_TEMP; do
 
     # Try to apply temperature
     if ! hyprctl hyprsunset temperature "$NEW_TEMP" >/dev/null 2>&1; then
-        # IPC Failed.
-        
-        # Check if we should attempt a restart (Rate Limit: Once every 3 seconds)
+        # IPC Failed. Check if we should attempt a restart (Rate Limit: Once every 3s)
         NOW=$(date +%s)
         if (( NOW - LAST_RESTART_ATTEMPT > 3 )); then
             if ! is_daemon_running; then
