@@ -1,23 +1,41 @@
 #!/usr/bin/env bash
 # waybar-net: prints tiny JSON for Waybar
-# Reads a single line: UNIT UP DOWN CLASS
+
+
+# this script accept three flags
+# down
+# up 
+# unit
+
+# 1. Define paths
+STATE_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/waybar-net"
+STATE_FILE="$STATE_DIR/state"
+HEARTBEAT_FILE="$STATE_DIR/heartbeat"
+
+# 2. SAFETY: Create dir if it doesn't exist
+mkdir -p "$STATE_DIR"
+
+# 3. WAKE UP DAEMON: 
+# Update heartbeat timestamp
+touch "$HEARTBEAT_FILE"
+# Send signal to wake daemon from its long sleep IMMEDIATELY
+# We suppress errors in case the service isn't running yet
+pkill -USR1 -f "network_meter_daemon.sh" || true
 
 set -euo pipefail
 
-STATE_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/waybar-net/state"
-
-# Default values if daemon isn't running
+# 4. Default values
 UNIT="KB"
 UP="0"
 DOWN="0"
 CLASS="network-kb"
 
-# Atomic Read: pure bash, no cat, no forks
+# 5. Atomic Read
 if [[ -r "$STATE_FILE" ]]; then
     read -r UNIT UP DOWN CLASS < "$STATE_FILE"
 fi
 
-# Define output based on argument
+# 6. Define output based on argument
 case "${1:-}" in
   unit)
     TEXT="$UNIT"
@@ -25,7 +43,6 @@ case "${1:-}" in
     ;;
   up|upload)
     TEXT="$UP"
-    # Dynamic tooltip showing full context
     TOOLTIP="Upload: $UP $UNIT/s\nDownload: $DOWN $UNIT/s"
     ;;
   down|download)
@@ -38,6 +55,5 @@ case "${1:-}" in
     ;;
 esac
 
-# Print JSON
-# We manually construct JSON to avoid the overhead of jq or python
+# 7. Print JSON
 printf '{"text":"%s","class":"%s","tooltip":"%s"}\n' "$TEXT" "$CLASS" "$TOOLTIP"
