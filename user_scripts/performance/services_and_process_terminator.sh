@@ -19,53 +19,50 @@ trap 'echo -e "\n\033[1;31mScript encountered an error.\033[0m"; read -rp "Press
 DEFAULT_PROCESSES=(
     "hyprsunset"
     "swww-daemon"
+    "waybar"
+)
+OPTIONAL_PROCESSES=(
     "inotifywait"
     "wl-paste"
     "wl-copy"
-    "waybar"
-    "wallpaper_updat"
-)
-OPTIONAL_PROCESSES=(
     "firefox"
     "discord"
 )
 
 # 2. System Services (Root)
 DEFAULT_SYSTEM_SERVICES=(
-    "udisks2"
     "firewalld"
     "vsftpd"
-    "swayosd-libinput-backend"
-    "warp-svc"
     "waydroid-container"
     "logrotate.timer"
     "sshd"
 )
 OPTIONAL_SYSTEM_SERVICES=(
+    "udisks2"
+    "swayosd-libinput-backend"
+    "warp-svc"
     "NetworkManager"
-    "acpid"
-    "asusd"
 )
 
 # 3. User Services (Systemd --user)
 DEFAULT_USER_SERVICES=(
-    "hypridle"
-    "hyprpolkitagent"
-    "gvfs-daemon"
-    "gvfs-metadata"
-    "swaync"
-    "swayosd-server"
+    "battery_notify"
     "blueman-applet"
     "blueman-manager"
+    "hypridle"
+    "hyprpolkitagent"
+    "swaync"
+    "gvfs-daemon"
+    "gvfs-metadata"
     "network_meter"
-    "battery_notify"
-    "gnome-keyring-daemon"
 )
 OPTIONAL_USER_SERVICES=(
+    "gnome-keyring-daemon"
+    "swayosd-server"
     "pipewire-pulse.socket"
     "pipewire.socket"
-    "wireplumber"
     "pipewire"
+    "wireplumber"
 )
 
 # --- LOGIC IMPLEMENTATION ---
