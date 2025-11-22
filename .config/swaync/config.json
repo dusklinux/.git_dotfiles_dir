@@ -48,31 +48,31 @@
             "actions": [
                 {
                     "label": "󰡬",
-                    "command": "bash $HOME/user_scripts/hypr/hyprsunset_slider.sh"
+                    "command": "uwsm-app -- $HOME/user_scripts/sliders/hyprsunset_slider.sh"
                 },
                 {
                     "label": "",
-                    "command": "kitty -e $HOME/user_scripts/network_manager/nmcli_wifi.sh"
+                    "command": "uwsm-app -- kitty -e $HOME/user_scripts/network_manager/nmcli_wifi.sh"
                 },
                 {
                     "label": "󰂯",
-                    "command": "blueman-manager"
+                    "command": "uwsm-app -- blueman-manager"
                 },
                 {
                     "label": "󰕾",
-                    "command": "pavucontrol"
+                    "command": "uwsm-app -- pavucontrol"
                 },
                 {
                     "label": "",
-                    "command": "bash $HOME/user_scripts/swww/swww_random_standalone.sh"
+                    "command": "uwsm-app -- $HOME/user_scripts/swww/swww_random_standalone.sh"
                 },
                 {
                     "label": "󰓅",
-                    "command": "kitty -e $HOME/user_scripts/performance/services_and_process_terminator.sh"
+                    "command": "uwsm-app -- kitty -e $HOME/user_scripts/performance/services_and_process_terminator.sh"
                 },
                 {
                     "label": "󰌾",
-                    "command": "hyprlock -q"
+                    "command": "uwsm-app -- hyprlock -q"
                 },
                 {
                     "label": "󰤄",
@@ -84,7 +84,7 @@
                 },
                 {
                     "label": "󱫓",
-                    "command": "kitty -e $HOME/user_scripts/hypridle/timeout.sh"
+                    "command": "uwsm-app -- kitty -e $HOME/user_scripts/hypridle/timeout.sh"
                 },
                 {
                     "label": "⏻",

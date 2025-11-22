@@ -47,6 +47,10 @@ echo 60 | sudo tee /sys/class/power_supply/BAT1/charge_control_end_threshold
 > change`left_handed = true` to `left_handed = false`
 
 ---
+**OPTIONAL**
+- [ ] If you want to quickly find out how to do something using an existing keybind, hold down `ALT` + `6` for the rofi menu to list the keybind list
+
+---
 
 - [ ] **Link Restored Vault files to Obsidian** : open and link to existing vault. 
 - When you open Obsidian for the first time, you'll be prompted with three options. Select "open Folder as Vault (Choose an existing folder of Markdown Files)" this directory should have been populated in ~/Documents/pensive/ after you restored the git files. 
@@ -404,6 +408,11 @@ Obsidian doesn't usually respect matugen theming on its own so you need to manua
 first, make sure you've set the appropriate colro scheme for your current theme - dark/light from the waybar. 
 
 then open obsidian's settings > Appearance > Scroll to the bottom to `CSS snippets`> Toggle on the `matugen-theme` option, and not the other one (if it exists). if you toggle on both, sometimes they will both be toggled off the next time you open Obsidian
+
+---
+
+- [ ] Set over all animations with just one click. 
+hold down `ALT` + `SUPER(windows key)` + `A`  after you hold down all these at once, rofi menu will show up for you to select from a list of animations. pick anyone. (`fluid` is recommended but pick the one you like.)
 
 ---
 

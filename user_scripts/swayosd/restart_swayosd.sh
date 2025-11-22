@@ -25,7 +25,7 @@ if pgrep -x "swayosd-server" > /dev/null; then
 fi
 
 # 2. CLEAN STARTUP (UWSM / SYSTEMD DETACHMENT)
-# We prioritize 'uwsm app' for full session compliance.
+# We prioritize 'uwsm-app' for full session compliance.
 # If not found, we fall back to 'systemd-run' (generic systemd).
 # Finally, 'setsid' for legacy non-systemd systems.
 
@@ -35,7 +35,7 @@ if command -v uwsm &> /dev/null; then
     # --- UWSM NATIVE METHOD ---
     # Wraps the process in a scope managed by the active UWSM session.
     # This ensures correct lifecycle management (cleanup on logout).
-    uwsm app -- "$SERVER_BIN" >/dev/null 2>&1 &
+    uwsm-app -- "$SERVER_BIN" >/dev/null 2>&1 &
 
 elif command -v systemd-run &> /dev/null; then
     # --- SYSTEMD GENERIC METHOD ---

@@ -38,7 +38,7 @@ fi
 # 3. Daemon Initialization
 if ! swww query &> /dev/null; then
     # Run init via uwsm so the daemon is properly scoped and persistent
-    uwsm app -- swww init &> /dev/null
+    uwsm-app -- swww init &> /dev/null
     sleep 0.5
 fi
 
@@ -59,7 +59,7 @@ if [[ -n "$target_wallpaper" ]]; then
     # Asynchronously generate the color scheme.
     # FIX: Added '&' and 'disown' to ensure this runs in background and 
     # returns control to the shell immediately.
-    setsid uwsm app -- matugen --mode "$theme_mode" image "$target_wallpaper" >/dev/null 2>&1 &
+    setsid uwsm-app -- matugen --mode "$theme_mode" image "$target_wallpaper" >/dev/null 2>&1 &
 else
     echo "Fatal: No valid image files detected in '$WALLPAPER_DIR'." >&2
     exit 1

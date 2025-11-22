@@ -4,18 +4,18 @@
 # CONFIGURATION & ASSETS
 # -----------------------------------------------------------------------------
 set -u
-# We intentionally remove pipefail to allow background disowning without grief
 set +o pipefail
 
 # Icons
 declare -A icons=( [active]="" [inactive]="" [off]="" [shader]="" )
 
 # Rofi Command
-# -mesg: Adds a persistent message
+# -mesg: Removed hardcoded color. It will now use your config's text-color.
+# -theme-str: Kept width override (400px) for menu shape, but removed other constraints.
 rofi_cmd=(
     rofi -dmenu -i -markup-rows
-    -theme-str "window {location: center; anchor: center; fullscreen: false; width: 400px;}"
-    -mesg "<span size='x-small' color='#6c7086'>Use <b>Up/Down</b> to preview. <b>Enter</b> to apply. <b>Esc</b> to cancel.</span>"
+    -theme-str "window {width: 400px;}"
+    -mesg "<span size='x-small'>Use <b>Up/Down</b> to preview. <b>Enter</b> to apply. <b>Esc</b> to cancel.</span>"
 )
 
 # -----------------------------------------------------------------------------
@@ -60,42 +60,52 @@ search_query=""
 # -----------------------------------------------------------------------------
 
 while true; do
-    # A. Build Menu String
+    # A. Build Menu String & Calculate Active Row
     menu_content=""
+    active_row_index="" 
+    counter=0
+
     for item in "${shaders[@]}"; do
+        # Determine if this is the active item
         if [[ "$item" == "$virtual_current" ]]; then
-            # Active Item
-            if [[ "$item" == "off" ]]; then
-                 line="<span weight='bold' color='#f38ba8'>${icons[off]}  Turn Off (Active)</span>"
-            else
-                 line="<span weight='bold' color='#a6e3a1'>${icons[active]}  ${item} (Active)</span>"
+            active_row_index="$counter"
+            # Bold text, but NO hardcoded colors (Rofi handles color via -a flag)
+            style_start="<b>"
+            style_end=" (Active)</b>"
+            current_icon="${icons[active]}"
+        else
+            style_start=""
+            style_end=""
+            current_icon="${icons[shader]}"
+        fi
+
+        # Handle "off" specific labelling
+        if [[ "$item" == "off" ]]; then
+            display_name="Turn Off"
+            if [[ "$item" != "$virtual_current" ]]; then 
+                current_icon="${icons[inactive]}"
+            else 
+                current_icon="${icons[off]}"
             fi
         else
-            # Inactive Item
-             if [[ "$item" == "off" ]]; then
-                 line="${icons[inactive]}  Turn Off"
-            else
-                 line="${icons[shader]}  ${item}"
-            fi
+            display_name="$item"
         fi
+
+        line="${style_start}${current_icon}  ${display_name}${style_end}"
         menu_content+="${line}\n"
+        
+        ((counter++))
     done
 
     # B. Prepare Rofi Flags
-    # We define dynamic flags based on whether a search is active.
-    # We MUST use -format 's|f' to capture both the selection (s) and the current filter/search (f).
-    rofi_flags=(-p "Shader Preview" -format "s|f")
+    # -a "$active_row_index" tells Rofi to style this row using 'element normal.active' from config.rasi
+    rofi_flags=(-p "Shader Preview" -format "s|f" -a "$active_row_index")
 
     if [[ -n "$search_query" ]]; then
         # --- SEARCH MODE ---
-        # If there is a query, we restore it using -filter.
-        # We DO NOT use custom keybindings for Up/Down here. This allows standard Rofi navigation
-        # (scrolling the list) without closing Rofi, ensuring the search doesn't reset.
-        # Note: Live preview is effectively paused while searching to allow navigation.
         rofi_flags+=(-filter "$search_query")
     else
         # --- PREVIEW MODE ---
-        # Standard behavior: Custom keys trigger exit (code 10/11) to reload the wallpaper.
         rofi_flags+=(-selected-row "$current_idx")
         rofi_flags+=(-kb-custom-1 "Down" -kb-custom-2 "Up" -kb-row-down "" -kb-row-up "")
     fi
@@ -105,10 +115,9 @@ while true; do
     exit_code=$?
 
     # D. Parse Output (Split Selection | Filter)
-    # Rofi returns "Selection Text|User Query" due to our -format flag.
     if [[ "$raw_output" == *"|"* ]]; then
-        selection="${raw_output%|*}"    # Take everything before the last pipe
-        returned_query="${raw_output##*|}" # Take everything after the last pipe
+        selection="${raw_output%|*}"
+        returned_query="${raw_output##*|}"
     else
         selection="$raw_output"
         returned_query=""
@@ -117,7 +126,6 @@ while true; do
     # E. Handle Navigation
     if [[ $exit_code -eq 10 ]]; then
         # --- DOWN ARROW (Preview Mode) ---
-        # If user typed text and hit Down, we switch to Search Mode instead of previewing.
         if [[ -n "$returned_query" ]]; then
             search_query="$returned_query"
             continue
@@ -128,7 +136,7 @@ while true; do
         
         target="${shaders[$current_idx]}"
         virtual_current="$target"
-        search_query="" # Ensure search is clear
+        search_query=""
 
         if [[ "$target" == "off" ]]; then
             hyprshade off >/dev/null 2>&1 &
@@ -148,7 +156,7 @@ while true; do
         
         target="${shaders[$current_idx]}"
         virtual_current="$target"
-        search_query="" # Ensure search is clear
+        search_query=""
 
         if [[ "$target" == "off" ]]; then
             hyprshade off >/dev/null 2>&1 &
@@ -159,7 +167,7 @@ while true; do
     elif [[ $exit_code -eq 0 ]]; then
         # --- ENTER (CONFIRM SELECTION) ---
         
-        # 1. Strip Pango markup tags
+        # 1. Strip Pango markup tags (removes <b> etc)
         clean_selection=$(echo "$selection" | sed 's/<[^>]*>//g')
 
         # 2. Extract the shader name
@@ -188,7 +196,6 @@ while true; do
 
     else
         # --- ESC (CANCEL) ---
-        # Revert to original state
         if [[ "$ORIGINAL_SHADER" == "off" ]]; then
             hyprshade off
         else

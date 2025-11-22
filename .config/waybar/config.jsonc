@@ -63,7 +63,7 @@
         "format-charging": " \n+{capacity}\n{power:.0f}W",
         "format-plugged": "\n{capacity}",
         "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
-        "on-click-right": "kitty --class timeout.sh -e $HOME/user_scripts/hypridle/timeout.sh",
+        "on-click-right": "uwsm-app -- kitty --class timeout.sh -e $HOME/user_scripts/hypridle/timeout.sh",
         "interval": 5,
         "states": {
             "warning": 40,
@@ -75,9 +75,9 @@
     "pulseaudio":{
         "format": "{icon}\n{volume}",
         "format-muted": "󰖁\nX",
-        "on-click": "pavucontrol",
+        "on-click": "uwsm-app -- pavucontrol",
         "on-click-middle": "swayosd-client --output-volume mute-toggle",
-        "on-click-right": "kitty --class cava -e cava",
+        "on-click-right": "uwsm-app -- kitty --class cava -e cava",
         "on-scroll-up": "swayosd-client --output-volume raise",
         "on-scroll-down": "swayosd-client --output-volume lower",
         "format-icons": ["󰖁", "", ""],
@@ -91,9 +91,9 @@
         "format-icons": ["","","","","","","","","","","","","","",""],
         "tooltip": true,
         "tooltip-format": "LMB: Brightness Slider\nRMB: hyprsunset Slider\nMMB: Turn OFF hyprsunset",
-        "on-click": "~/user_scripts/sliders/brightness_slider.sh",
-        "on-click-right": "~/user_scripts/sliders/hyprsunset_slider.sh",
-        "on-click-middle": "~/user_scripts/rofi/shader_menu.sh",
+        "on-click": "uwsm-app -- ~/user_scripts/sliders/brightness_slider.sh",
+        "on-click-right": "uwsm-app -- ~/user_scripts/sliders/hyprsunset_slider.sh",
+        "on-click-middle": "uwsm-app -- ~/user_scripts/rofi/shader_menu.sh",
         "on-scroll-up": "swayosd-client --brightness raise",
         "on-scroll-down": "swayosd-client --brightness lower",
         "min-length": 4,
@@ -103,7 +103,7 @@
     "cpu": {
         "format": "\n{usage}",
         "tooltip": true,
-        "on-click": "kitty --class btop -e btop",
+        "on-click": "uwsm-app -- kitty --class btop -e btop",
         "tooltip-format": "CPU: {usage}%\nAvg Freq: {avg_frequency}GHz",
         "interval": 2
     },
@@ -133,8 +133,8 @@
         "format-disabled": "󰂲",
         "format-connected": "",
         "tooltip-format": "Devices connected: {num_connections}",
-        "on-click": "blueman-manager",
-        "on-click-right": "kitty --class bluetui -e bluetui",
+        "on-click": "uwsm-app -- blueman-manager",
+        "on-click-right": "uwsm-app -- kitty --class bluetui -e bluetui",
         "interval": 5
     },
 
@@ -143,8 +143,8 @@
         "tooltip-format": "<big>{:%A, %d %B}</big>\n<tt><small>{calendar}</small></tt>",
         "timezone": "Asia/Kolkata",
         "interval": 60,
-        "on-click": "gnome-clocks",
-        "on-click-middle": "kitty -e peaclock",
+        "on-click": "uwsm-app -- gnome-clocks",
+        "on-click-middle": "uwsm-app -- kitty -e peaclock",
         "calendar": {
             "mode": "year",
             "mode-mon-col": 3,
@@ -173,7 +173,7 @@
     "custom/network-unit": {
         "return-type": "json",
         "tooltip": true,
-        "on-click": "kitty --class wifitui -e wifitui",
+        "on-click": "uwsm-app -- kitty --class wifitui -e wifitui",
         "interval": 1,
         "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh unit"
     },
@@ -224,7 +224,7 @@
         "return-type": "json",
         "interval": 5,
         "signal": 9,
-        "on-click": "~/user_scripts/waybar/toggle_hypridle.sh",
+        "on-click": "uwsm-app -- ~/user_scripts/waybar/toggle_hypridle.sh",
         "escape": true
     },
 
@@ -232,21 +232,21 @@
         "format": "",
         "tooltip": true,
         "tooltip-format": "Switch wallpapers with waypaper \nor Super + apostrophe (') after \ntoggeling for theme uniformity.\n\nLMB: Dark Mode\nRMB: Light Mode\nMMB: Waypaper",
-        "on-click": "~/user_scripts/waybar/theme_switcher.sh -dark",
-        "on-click-right": "~/user_scripts/waybar/theme_switcher.sh -light",
-        "on-click-middle": "waypaper"
+        "on-click": "uwsm-app -- ~/user_scripts/waybar/theme_switcher.sh -dark",
+        "on-click-right": "uwsm-app -- ~/user_scripts/waybar/theme_switcher.sh -light",
+        "on-click-middle": "uwsm-app -- waypaper"
     },
 
     "custom/app-tray": {
         "format": "",
         "tooltip-format": "Open Terminal App Tray!\n\nEmpty Terminal if no\nTray-App is Open.",
-        "on-click": "kitty --class tray-tui -e tray-tui"
+        "on-click": "uwsm-app -- kitty --class tray-tui -e tray-tui"
     },
 
     "custom/power": {
         "format": "",
         "tooltip": true,
         "tooltip-format": "Power Menu",
-        "on-click": "wlogout"
+        "on-click": "uwsm-app -- wlogout"
     }
 }
