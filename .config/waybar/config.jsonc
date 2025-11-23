@@ -63,7 +63,7 @@
         "format-charging": " \n+{capacity}\n{power:.0f}W",
         "format-plugged": "\n{capacity}",
         "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
-        "on-click": "uwsm-app -- kitty --class power_saver.sh -e $HOME/user_scripts/battery/power_saver.sh",
+        "on-click": "uwsm-app -- kitty --class power_saver.sh --hold -e $HOME/user_scripts/battery/power_saver.sh",
         "on-click-right": "uwsm-app -- kitty --class timeout.sh -e $HOME/user_scripts/hypridle/timeout.sh",
         "interval": 5,
         "states": {
