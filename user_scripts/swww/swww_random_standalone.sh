@@ -17,7 +17,7 @@ readonly WALLPAPER_DIR="$HOME/Pictures/wallpapers"
 readonly SWWW_OPTS="--transition-type grow --transition-duration 2 --transition-fps 60"
 
 # 3. theme_mode: The theme mode for matugen.
-readonly theme_mode="light" 
+readonly theme_mode="dark" 
 
 # --- END USER CONFIGURATION ---
 
