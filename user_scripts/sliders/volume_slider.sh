@@ -66,7 +66,7 @@ YAD_ARGS=(
     --scale
     --title="$TITLE"
     --window-icon="audio-volume-medium"
-    --text="$TITLE                                   "
+    --text="                      "
     --class="$APP_NAME"
     --min-value=0
     --max-value=100

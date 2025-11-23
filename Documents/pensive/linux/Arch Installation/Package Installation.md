@@ -134,7 +134,7 @@ pacman -S --needed ffmpeg mpv mpv-mpris swappy swayimg imagemagick libheif obs-s
 _Power management, system stats, logs, and security keyrings._
 
 ```
-pacman -S --needed btop nvtop inxi sysstat logrotate acpid tlp tlp-rdw thermald powertop ncdu gdu iotop iftop lshw wev pacman-contrib gnome-keyring libsecret yad dysk fwupd
+pacman -S --needed btop htop nvtop inxi sysstat sysbench logrotate acpid tlp tlp-rdw thermald powertop ncdu gdu iotop iftop lshw wev pacman-contrib gnome-keyring libsecret yad dysk fwupd
 ```
 
 - [ ] Status

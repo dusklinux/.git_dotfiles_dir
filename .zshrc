@@ -154,6 +154,8 @@ function y() {
 	rm -f -- "$tmp"
 }
 
+# --- sysbench benchmark ---
+alias run_sysbench='~/user_scripts/performance/sysbench_benchmark.sh'
 
 #-- LM- Studio-- 
 alias llm='/mnt/media/Documents/do_not_delete_linux/appimages/LM-Studio*'

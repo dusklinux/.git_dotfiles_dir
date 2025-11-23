@@ -63,6 +63,7 @@
         "format-charging": " \n+{capacity}\n{power:.0f}W",
         "format-plugged": "\n{capacity}",
         "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+        "on-click": "uwsm-app -- kitty --class power_saver.sh -e $HOME/user_scripts/battery/power_saver.sh",
         "on-click-right": "uwsm-app -- kitty --class timeout.sh -e $HOME/user_scripts/hypridle/timeout.sh",
         "interval": 5,
         "states": {
@@ -103,7 +104,8 @@
     "cpu": {
         "format": "\n{usage}",
         "tooltip": true,
-        "on-click": "uwsm-app -- kitty --class btop -e btop",
+        "on-click": "uwsm-app -- kitty --class htop -e htop",
+        "on-click-right": "uwsm-app -- kitty --class sysbench_benchmark.sh -e $HOME/user_scripts/performance/sysbench_benchmark.sh",
         "tooltip-format": "CPU: {usage}%\nAvg Freq: {avg_frequency}GHz",
         "interval": 2
     },
@@ -232,8 +234,8 @@
         "format": "",
         "tooltip": true,
         "tooltip-format": "Switch wallpapers with waypaper \nor Super + apostrophe (') after \ntoggeling for theme uniformity.\n\nLMB: Dark Mode\nRMB: Light Mode\nMMB: Waypaper",
-        "on-click": "uwsm-app -- ~/user_scripts/waybar/theme_switcher.sh -dark",
-        "on-click-right": "uwsm-app -- ~/user_scripts/waybar/theme_switcher.sh -light",
+        "on-click": "uwsm-app -- ~/user_scripts/swww/theme_switcher.sh -dark",
+        "on-click-right": "uwsm-app -- ~/user_scripts/swww/theme_switcher.sh -light",
         "on-click-middle": "uwsm-app -- waypaper"
     },
 

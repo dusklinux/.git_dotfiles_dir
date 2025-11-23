@@ -23,6 +23,7 @@ set -u # Exit on undefined variables
 # --- Constants & Configuration ---
 readonly WAYPAPER_CONFIG="$HOME/.config/waypaper/config.ini"
 readonly SWWW_SCRIPT="$HOME/user_scripts/swww/swww_random_standalone.sh"
+readonly SYMLINK_SCRIPT="$HOME/user_scripts/swww/symlink_dark_light_directory.sh"
 
 # ANSI Color Codes for Output
 readonly RED='\033[0;31m'
@@ -134,6 +135,12 @@ if [[ ! -f "$SWWW_SCRIPT" ]]; then
     exit 1
 fi
 
+if [[ ! -f "$SYMLINK_SCRIPT" ]]; then
+    log_error "Symlink script not found: $SYMLINK_SCRIPT"
+    exit 1
+fi
+chmod +x "$SYMLINK_SCRIPT" # Ensure it is executable
+
 # --- Core Logic ---
 
 # 1. Set GTK Color Scheme
@@ -160,6 +167,16 @@ sed -i "s/^readonly theme_mode=\".*\"/readonly theme_mode=\"$MODE\"/" "$SWWW_SCR
 # 5. Sync Filesystem
 sync
 sleep 0.2
+
+# 5.5. Update Directory Symlinks
+log_info "Updating wallpaper directory symlinks..."
+# We pass --light or --dark using the $MODE variable we already have
+if "$SYMLINK_SCRIPT" --"$MODE"; then
+    log_success "Symlinks updated to directory: $MODE"
+else
+    log_error "Failed to update symlinks."
+    # We do not exit here, so the rest of the theme switch can complete
+fi
 
 # 6. Run SWWW Standalone Script
 # This script handles picking a random wallpaper and running matugen

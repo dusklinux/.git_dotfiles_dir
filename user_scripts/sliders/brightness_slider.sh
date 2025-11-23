@@ -67,7 +67,7 @@ CURRENT_PCT=$(get_real_pct)
 YAD_ARGS=(
     --scale
     --title="$TITLE"
-    --text="$TITLE                             󰃠"
+    --text="                      󰃠"
     --class="$APP_NAME"
     --window-icon="video-display"  # Added icon for uniformity
     --min-value=1

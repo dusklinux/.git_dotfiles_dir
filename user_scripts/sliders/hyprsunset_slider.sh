@@ -143,7 +143,7 @@ YAD_CMD=(
     --title="$TITLE_HINT"
     --class="$TITLE_HINT"
     --scale
-    --text="Hyprsunset (K)                      󰡬"
+    --text="                      󰡬"
     --min-value="$MIN_TEMP"
     --max-value="$MAX_TEMP"
     --value="$CURRENT_TEMP"
