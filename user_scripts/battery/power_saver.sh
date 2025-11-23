@@ -145,7 +145,7 @@ if [ "$SWITCH_THEME_LATER" = true ]; then
     sleep 1
     
     # Detached execution via Hyprland dispatcher + UWSM
-    uwsm-app -- $HOME/user_scripts/swww/theme_switcher.sh --light && pkill swww-daemon
+    uwsm-app -- $HOME/user_scripts/swww/theme_switcher.sh --light && sleep 3 && pkill swww-daemon
 fi
 
 echo ""
