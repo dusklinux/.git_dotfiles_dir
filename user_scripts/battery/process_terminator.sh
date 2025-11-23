@@ -28,8 +28,8 @@ fi
 # 1. Processes (Raw Binaries to pkill)
 TARGET_PROCESSES=(
     "hyprsunset"
-    "swww-daemon"
     "waybar"
+    "blueman-manager"
 )
 
 # 2. System Services (Requires Root)
@@ -45,7 +45,6 @@ TARGET_SYSTEM_SERVICES=(
 TARGET_USER_SERVICES=(
     "battery_notify"
     "blueman-applet"
-    "blueman-manager"
     "hypridle"
     "hyprpolkitagent"
     "swaync"
