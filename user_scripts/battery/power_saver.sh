@@ -77,18 +77,9 @@ if command -v playerctl &> /dev/null; then
 fi
 log_step "Resource monitors killed & media paused."
 
-# --- 4. Screen & Audio ---
+# --- 4. Screen ---
 # Brightness
 gum spin --spinner points --title "Lowering brightness to 1%..." -- brightnessctl set 1% > /dev/null
-
-# Volume Logic
-current_vol=$(pamixer --get-volume)
-if [ "$current_vol" -gt 50 ]; then
-    gum spin --spinner points --title "Volume is $current_vol%. Lowering to 50%..." -- pamixer --set-volume 50
-    log_step "Volume capped at 50%."
-else
-    log_step "Volume is $current_vol%. Leaving it unchanged."
-fi
 
 # --- 5. Hyprland Config ---
 gum spin --spinner line --title "Disabling Animations & Reloading Hyprland..." -- \
@@ -117,6 +108,18 @@ if sudo -v; then
     # As per your specific instruction: Block ONLY after authentication 
     # to prevent locking out Bluetooth keyboards during password entry.
     gum spin --spinner globe --title "Blocking Bluetooth..." -- rfkill block bluetooth
+    
+    # Sleep to ensure device disconnects before adjusting volume
+    sleep 0.5
+
+    # --- Volume Logic (Moved Here) ---
+    current_vol=$(pamixer --get-volume)
+    if [ "$current_vol" -gt 50 ]; then
+        gum spin --spinner points --title "Volume is $current_vol%. Lowering to 50%..." -- pamixer --set-volume 50
+        log_step "Volume capped at 50%."
+    else
+        log_step "Volume is $current_vol%. Leaving it unchanged."
+    fi
     
     # --- TLP ---
     gum spin --spinner globe --title "Activating TLP power saver..." -- sudo tlp power-saver
