@@ -143,6 +143,12 @@ alias git_dotfiles='/usr/bin/git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=
 # alias for automatically adding the list of files to the staging area.
 alias git_dotfiles_add_list='git_dotfiles add --pathspec-from-file=.git_dotfiles_list'
 
+# unlock block_devices
+alias unlock='$HOME/user_scripts/drives/drive_manager.sh unlock'
+
+# lock block_devices
+alias lock='$HOME/user_scripts/drives/drive_manager.sh lock'
+
 # YAZI
 #change the current working directory when exiting Yazi
 
@@ -171,15 +177,6 @@ sort_size() {
   du -h -x -s -- * | sort -r -h | head -20
 }
 
-# for unlocking drive with the scripts with just drive <name of the drive> eg drive fast or drive media or drive browser
-unlock () {
-    ~/user_scripts/unlock_drive/unlock_$1.sh
-}
-
-# for locking drive with the scripts with just drive <name of the drive> eg drive fast or drive media or drive browser
-lock () {
-    ~/user_scripts/lock_drive/lock_$1.sh
-}
 # List installed Arch packages, sorted by installation date.
 list_installed() {
   awk 'NR==FNR { if (/\[ALPM\] installed/) { ts = $1; gsub(/^\[|\]$/, "", ts); pkg = $4; if (!(pkg in fit)) fit[pkg] = ts; } next; } { if ($0 in fit) print fit[$0], $0; }' /var/log/pacman.log <(pacman -Qq) | sort -k1,1 | awk '{print $2}'

@@ -55,6 +55,7 @@ DEFAULT_USER_SERVICES=(
     "gvfs-daemon"
     "gvfs-metadata"
     "network_meter"
+    "waybar"
 )
 OPTIONAL_USER_SERVICES=(
     "gnome-keyring-daemon"

@@ -68,7 +68,7 @@ echo 60 | sudo tee /sys/class/power_supply/BAT1/charge_control_end_threshold
 - [ ] **Enable UserSession Services**. 
 
 ```bash
-systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service hypridle.service hyprpolkitagent.service
+systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service hypridle.service hyprpolkitagent.service fumon.service gnome-keyring-daemon.service gnome-keyring-daemon.socket hypridle hyprsunset
 ```
 
 ---

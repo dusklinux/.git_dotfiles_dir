@@ -59,7 +59,7 @@ if command -v uwsm >/dev/null 2>&1; then
     actions[logout]="uwsm stop"
 else
     # Fallback: Terminate the specific session ID safely
-    actions[logout]="loginctl terminate-session ${XDG_SESSION_ID:-}"
+    actions[logout]="uwsm stop"
 fi
 
 # Lock: Idempotent check for running hyprlock instance.

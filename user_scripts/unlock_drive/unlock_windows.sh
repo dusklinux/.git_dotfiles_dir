@@ -1,1 +1,0 @@
-sudo mount /mnt/windows

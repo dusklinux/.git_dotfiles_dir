@@ -532,7 +532,7 @@ options = rw,nosuid,nodev,discard,X-mount.mode=1777
 ### 34. *System Services*
 
 ```bash
-systemctl enable NetworkManager.service tlp.service udisks2.service thermald.service bluetooth.service firewalld.service fstrim.timer systemd-timesyncd.service acpid.service vsftpd.service reflector.timer swayosd-libinput-backend
+systemctl enable NetworkManager.service tlp.service udisks2.service thermald.service bluetooth.service firewalld.service fstrim.timer systemd-timesyncd.service acpid.service vsftpd.service reflector.timer swayosd-libinput-backend systemd-resolved.service
 ```
 
 *Tlp-rdw services*
