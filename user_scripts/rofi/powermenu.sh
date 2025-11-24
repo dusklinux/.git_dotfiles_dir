@@ -239,7 +239,8 @@ if [[ "$need_confirm" == "true" && "$state" != "confirmed" ]]; then
     
     # YES Option
     # We pass "$key:confirmed" in the info field.
-    label_yes="<span weight='bold' color='#f38ba8'>Yes, ${texts[$key]}</span>"
+    # COLOR REMOVED HERE to utilize Rofi theme
+    label_yes="<span weight='bold'>Yes, ${texts[$key]}</span>"
     print_entry "$key" "$label_yes" "${key}:confirmed"
     
     # NO Option
