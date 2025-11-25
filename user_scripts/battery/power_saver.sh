@@ -265,6 +265,10 @@ main() {
         else
             log_warn "Theme script not found: $THEME_SCRIPT"
         fi
+    else
+        # Kill swww immediately if not switching theme
+        run_quiet pkill swww-daemon
+        log_step "swww-daemon terminated."
     fi
 
     # --- Complete ---

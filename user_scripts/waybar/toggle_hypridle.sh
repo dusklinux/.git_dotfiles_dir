@@ -1,25 +1,111 @@
 #!/usr/bin/env bash
+#
+# Toggle hypridle (idle inhibitor) on/off
+# Integrates with Waybar custom module via real-time signals
+#
 
-# Define the Waybar Signal (Must match the "signal" number in waybar config)
-signal_module=9
+# Exit on unset variables, propagate pipe failures
+set -uo pipefail
 
-if pgrep -x "hypridle" > /dev/null; then
-    # --- TURN OFF ---
-    # Kill the process
-    killall hypridle
-    
-    # Wait loop: Ensure it is actually dead before updating UI
-    # This prevents the UI from checking status while it's still shutting down
-    while pgrep -x "hypridle" > /dev/null; do sleep 0.1; done
+# =============================================================================
+# Configuration
+# =============================================================================
+readonly WAYBAR_SIGNAL=9              # Must match "signal" in waybar config
+readonly PROC_NAME="hypridle"
+readonly KILL_TIMEOUT=50              # Iterations (50 × 100ms = 5 seconds)
 
-    notify-send -u low -t 2000 "Suspend Inhibited" "Automatic suspend is now OFF (Coffee Mode ☕)." -i "dialog-warning"
-else
-    # --- TURN ON ---
-    # Start hypridle in the background, disowning it so it doesn't die when this script ends
-    hypridle & disown
+# =============================================================================
+# Helper Functions
+# =============================================================================
+is_running() {
+    pgrep -x "${PROC_NAME}" &>/dev/null
+}
 
-    notify-send -u low -t 2000 "Suspend Enabled" "Automatic suspend is now ON." -i "dialog-information"
-fi
+send_notification() {
+    local urgency="$1"
+    local title="$2"
+    local body="$3"
+    local icon="$4"
 
-# Instant UI Update: Signal Waybar to reload the module immediately
-pkill -RTMIN+${signal_module} waybar
+    # Silently skip if notify-send unavailable
+    command -v notify-send &>/dev/null || return 0
+    notify-send -u "${urgency}" -t 2000 "${title}" "${body}" -i "${icon}"
+}
+
+update_waybar() {
+    # Signal Waybar to refresh the module; ignore if Waybar not running
+    pkill -RTMIN+"${WAYBAR_SIGNAL}" waybar 2>/dev/null || true
+}
+
+# =============================================================================
+# Main Logic
+# =============================================================================
+main() {
+    if is_running; then
+        # -----------------------------------------------------------------
+        # DISABLE hypridle (Coffee Mode)
+        # -----------------------------------------------------------------
+        
+        # Send SIGTERM (graceful shutdown)
+        pkill -x "${PROC_NAME}" 2>/dev/null || true
+
+        # Wait for termination with timeout
+        local count=0
+        while is_running && (( count < KILL_TIMEOUT )); do
+            sleep 0.1
+            ((count++))
+        done
+
+        # Force kill if still alive (SIGKILL)
+        if is_running; then
+            pkill -9 -x "${PROC_NAME}" 2>/dev/null || true
+            sleep 0.2
+        fi
+
+        # Final verification
+        if is_running; then
+            send_notification "critical" "Error" \
+                "Failed to stop ${PROC_NAME}" "dialog-error"
+            exit 1
+        fi
+
+        send_notification "low" "Suspend Inhibited" \
+            "Automatic suspend is now OFF (Coffee Mode ☕)." \
+            "dialog-warning"
+    else
+        # -----------------------------------------------------------------
+        # ENABLE hypridle
+        # -----------------------------------------------------------------
+        
+        # Verify binary exists
+        if ! command -v "${PROC_NAME}" &>/dev/null; then
+            send_notification "critical" "Error" \
+                "${PROC_NAME} not found in PATH" "dialog-error"
+            exit 1
+        fi
+
+        # Start in background, detach from script
+        "${PROC_NAME}" &>/dev/null &
+        disown
+
+        # Allow time for process to initialize
+        sleep 0.3
+
+        # Verify it started successfully
+        if ! is_running; then
+            send_notification "critical" "Error" \
+                "Failed to start ${PROC_NAME}" "dialog-error"
+            exit 1
+        fi
+
+        send_notification "low" "Suspend Enabled" \
+            "Automatic suspend is now ON." \
+            "dialog-information"
+    fi
+
+    # Update Waybar module
+    update_waybar
+}
+
+main "$@"
+exit 0

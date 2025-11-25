@@ -48,7 +48,7 @@ readonly -a TARGET_USER_SERVICES=(
     "swaync"
     "gvfs-daemon"
     "gvfs-metadata"
-    "network_meter"
+#    "network_meter"
 )
 
 # --- GLOBALS ---

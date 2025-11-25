@@ -1,68 +1,96 @@
 #!/bin/bash
-
 # -----------------------------------------------------------------------------
-# OPTIMIZED MICROPHONE SWITCHER FOR HYPRLAND
-# Dependencies: hyprland, pulseaudio-utils (pactl), jq, swayosd-git
+# OPTIMIZED MICROPHONE INPUT SWITCHER FOR HYPRLAND
+# Dependencies: hyprland, pulseaudio-utils (pactl), jq, swayosd-client
 # -----------------------------------------------------------------------------
+set -uo pipefail
 
-# 1. Get the currently focused monitor for the OSD notification
-focused_monitor=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name')
+# Dependency check
+for cmd in pactl jq hyprctl swayosd-client; do
+    if ! command -v "$cmd" &>/dev/null; then
+        echo "Error: Required command '$cmd' not found." >&2
+        exit 1
+    fi
+done
 
-# 2. Get the current default source (mic)
-current_source=$(pactl get-default-source)
+# 1. Get the currently focused monitor for OSD notification
+focused_monitor=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name // empty')
+focused_monitor="${focused_monitor:-}"
+
+# 2. Get the current default source (microphone)
+current_source=$(pactl get-default-source 2>/dev/null || echo "")
 
 # 3. THE LOGIC CORE
-#    Differences from the Audio script:
-#    a. We list 'sources' instead of 'sinks'.
-#    b. CRITICAL: We filter out sources where 'monitor_of' is not null. 
-#       This prevents switching to "Monitor of HDMI" or "Monitor of Headphones".
-read -r next_name next_desc next_vol next_mute <<< "$(pactl -f json list sources | jq -r --arg current "$current_source" '
-  [ .[] 
-    | select(.monitor_of == null) 
-    | select((.ports | length == 0) or ([.ports[]? | .availability != "not available"] | any)) 
-  ] 
+#    Key difference: Filter out monitor sources (.monitor_of != null)
+source_data=$(pactl -f json list sources 2>/dev/null | jq -r --arg current "$current_source" '
+  # Filter: Exclude monitor sources AND apply availability check
+  [ .[]
+    | select(.monitor_of == null)
+    | select((.ports | length == 0) or ([.ports[]? | .availability != "not available"] | any))
+  ]
   | sort_by(.name) as $sources
-  | ($sources | map(.name) | index($current)) as $idx
-  | if $idx == null then 0 else ($idx + 1) % ($sources | length) end as $next_idx
-  | $sources[$next_idx] 
-  | [
-      .name,
-      (.description // .properties."device.description" // .properties."node.description" // .properties."device.product.name" // .name),
-      (.volume | to_entries[0].value.value_percent | sub("%";"")),
-      (.mute)
-    ] 
-  | @tsv
-')"
+  | ($sources | length) as $len
 
-# 4. Error Handling: If no microphones found
-if [ -z "$next_name" ]; then
-    swayosd-client --monitor "$focused_monitor" --custom-message "No Input Devices"
+  # Safety: Exit early if no sources available
+  | if $len == 0 then ""
+    else
+      (($sources | map(.name) | index($current)) // -1) as $idx
+      | (if $idx < 0 then 0 else ($idx + 1) % $len end) as $next_idx
+      | $sources[$next_idx]
+      | [
+          .name,
+          ((.description // .properties."device.description" // .properties."node.description" // .properties."device.product.name" // .name) | gsub("[\\t\\n\\r]"; " ")),
+          ((.volume | to_entries[0].value.value_percent // "0%") | sub("%$"; "")),
+          (if .mute then "true" else "false" end)
+        ]
+      | @tsv
+    end
+')
+
+# 4. Parse the output safely
+IFS=$'\t' read -r next_name next_desc next_vol next_mute <<< "$source_data"
+
+# 5. Error handling: No sources found
+if [[ -z "${next_name:-}" ]]; then
+    swayosd-client ${focused_monitor:+--monitor "$focused_monitor"} \
+        --custom-message "No Input Devices Available" \
+        --custom-icon "microphone-sensitivity-muted-symbolic"
     exit 1
 fi
 
-# 5. Switch the default source
-pactl set-default-source "$next_name"
+# 6. Ensure volume is numeric
+if ! [[ "${next_vol:-}" =~ ^[0-9]+$ ]]; then
+    next_vol=0
+fi
 
-# 6. CRITICAL: Move currently recording applications (Discord, OBS, Zoom, etc.)
-#    This ensures your voice chat switches immediately.
-pactl list short source-outputs | cut -f1 | while read -r output_id; do
-    pactl move-source-output "$output_id" "$next_name"
-done
+# 7. Switch the default source
+if ! pactl set-default-source "$next_name" 2>/dev/null; then
+    swayosd-client ${focused_monitor:+--monitor "$focused_monitor"} \
+        --custom-message "Failed to switch input" \
+        --custom-icon "dialog-error-symbolic"
+    exit 1
+fi
 
-# 7. Determine Icon based on volume and mute status
-#    We use 'microphone-sensitivity' icons which are standard in most icon themes.
-if [ "$next_mute" = "true" ] || [ "$next_vol" -eq 0 ]; then
+# 8. Move all currently recording applications to the new source
+while IFS=$'\t' read -r output_id _; do
+    [[ -n "$output_id" ]] && pactl move-source-output "$output_id" "$next_name" 2>/dev/null || true
+done < <(pactl list short source-outputs 2>/dev/null)
+
+# 9. Determine icon based on volume and mute status
+if [[ "${next_mute:-}" == "true" ]] || (( next_vol == 0 )); then
     icon="microphone-sensitivity-muted-symbolic"
-elif [ "$next_vol" -le 33 ]; then
+elif (( next_vol <= 33 )); then
     icon="microphone-sensitivity-low-symbolic"
-elif [ "$next_vol" -le 66 ]; then
+elif (( next_vol <= 66 )); then
     icon="microphone-sensitivity-medium-symbolic"
 else
     icon="microphone-sensitivity-high-symbolic"
 fi
 
-# 8. Display the OSD Notification
+# 10. Display the OSD notification
 swayosd-client \
-    --monitor "$focused_monitor" \
-    --custom-message "$next_desc" \
+    ${focused_monitor:+--monitor "$focused_monitor"} \
+    --custom-message "${next_desc:-Unknown Device}" \
     --custom-icon "$icon"
+
+exit 0

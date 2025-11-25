@@ -173,6 +173,11 @@ export PATH="$HOME/.local/bin:$PATH"
 
 Create a symlink from the compiled binary to your local bin directory, renaming it to `kokoros` for convenience.
 
+first create the parent directory for the symlink
+```bash
+mkdir -p ~/.local/bin/
+```
+
 ```bash
 ln -nfs ~/contained_apps/uv/kokoros_cpu/Kokoros/target/release/koko ~/.local/bin/kokoros
 ```

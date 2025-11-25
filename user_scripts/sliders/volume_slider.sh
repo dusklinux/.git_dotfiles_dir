@@ -1,94 +1,179 @@
 #!/usr/bin/env bash
+#
+# volume-slider - A simple GUI volume control using yad and WirePlumber
+#
+
 set -euo pipefail
 
-# --- CONFIGURATION ---
-APP_NAME="volume-slider"       # Used for Hyprland Window Rules (class)
-TITLE="Volume"                 # Window Title & Text Label
-LOCK_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/${APP_NAME}.lock"
+# ==============================================================================
+# CONFIGURATION
+# ==============================================================================
+readonly APP_NAME="volume-slider"
+readonly TITLE="Volume"
+readonly LOCK_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/${APP_NAME}.lock"
 
-# --- SINGLE INSTANCE GUARD (FLOCK) ---
-exec 200>"$LOCK_FILE"
+# ==============================================================================
+# UTILITY FUNCTIONS
+# ==============================================================================
+die() {
+    printf 'Error: %s\n' "$*" >&2
+    exit 1
+}
 
-_focus_existing() {
-    if command -v hyprctl >/dev/null 2>&1; then
-        if command -v jq >/dev/null 2>&1; then
-            ADDR=$(hyprctl clients -j 2>/dev/null | jq -r --arg c "$APP_NAME" '.[] | select(.class == $c) | .address' | head -n1)
-            if [ -n "$ADDR" ] && [ "$ADDR" != "null" ]; then
-                hyprctl dispatch focuswindow "address:$ADDR" >/dev/null 2>&1
-                return
+show_usage() {
+    cat <<EOF
+Usage: ${0##*/} [OPTIONS]
+
+A simple volume slider using yad and WirePlumber.
+
+Options:
+    -s SINK    Audio sink to control (default: @DEFAULT_AUDIO_SINK@)
+    -h         Show this help message
+EOF
+}
+
+# ==============================================================================
+# SINGLE INSTANCE GUARD
+# ==============================================================================
+focus_existing_window() {
+    local addr=""
+    
+    # Try Hyprland first
+    if command -v hyprctl &>/dev/null; then
+        if command -v jq &>/dev/null; then
+            addr=$(hyprctl clients -j 2>/dev/null | \
+                   jq -r --arg c "$APP_NAME" \
+                      '.[] | select(.class == $c) | .address' 2>/dev/null | \
+                   head -n1) || true
+                   
+            if [[ -n "$addr" && "$addr" != "null" ]]; then
+                hyprctl dispatch focuswindow "address:$addr" &>/dev/null || true
+                return 0
             fi
         fi
-        hyprctl dispatch focuswindow "title:^${TITLE}$" >/dev/null 2>&1
+        # Fallback: focus by title pattern
+        hyprctl dispatch focuswindow "title:^${TITLE}$" &>/dev/null || true
+        return 0
     fi
-
-    if command -v wmctrl >/dev/null 2>&1; then
-        wmctrl -a "$TITLE" 2>/dev/null || true
+    
+    # Try wmctrl for X11/other WMs
+    if command -v wmctrl &>/dev/null; then
+        wmctrl -a "$TITLE" &>/dev/null || true
     fi
 }
 
+# Ensure lock directory exists
+mkdir -p "${LOCK_FILE%/*}" 2>/dev/null || true
+
+# Open file descriptor for locking
+exec 200>"$LOCK_FILE" || die "Cannot create lock file: $LOCK_FILE"
+
+# Try to acquire exclusive lock (non-blocking)
 if ! flock -n 200; then
-    _focus_existing
+    focus_existing_window
     exit 0
 fi
 
-# --- ARGUMENT PARSING ---
+# ==============================================================================
+# ARGUMENT PARSING
+# ==============================================================================
 SINK="@DEFAULT_AUDIO_SINK@"
 
 while getopts ":s:h" opt; do
     case "$opt" in
         s) SINK="$OPTARG" ;;
-        h) echo "Usage: $0 [-s SINK_ID]"; exit 0 ;;
-        *) echo "Invalid option"; exit 1 ;;
+        h) show_usage; exit 0 ;;
+        :) die "Option -${OPTARG} requires an argument" ;;
+        ?) die "Unknown option: -${OPTARG}" ;;
     esac
 done
+shift $((OPTIND - 1))
 
-# --- SAFETY CHECKS ---
-if ! command -v yad >/dev/null 2>&1; then echo "Error: yad is missing."; exit 1; fi
-if ! command -v wpctl >/dev/null 2>&1; then echo "Error: wpctl is missing."; exit 1; fi
+# ==============================================================================
+# DEPENDENCY CHECKS
+# ==============================================================================
+command -v yad &>/dev/null   || die "yad is required but not installed"
+command -v wpctl &>/dev/null || die "wpctl (WirePlumber) is required but not installed"
 
-# --- BACKEND FUNCTIONS ---
-get_current_volume() {
-    wpctl get-volume "$SINK" | awk '{print int($2 * 100)}'
+# ==============================================================================
+# AUDIO BACKEND
+# ==============================================================================
+get_volume() {
+    local output
+    output=$(wpctl get-volume "$SINK" 2>&1) || return 1
+    # Parse: "Volume: 0.75" or "Volume: 0.75 [MUTED]"
+    awk '{printf "%d", $2 * 100}' <<< "$output"
 }
 
 set_volume() {
     local vol="$1"
-    wpctl set-volume "$SINK" "${vol}%" >/dev/null 2>&1
-    if [ "$vol" -gt 0 ]; then
-        wpctl set-mute "$SINK" 0 >/dev/null 2>&1
-    fi
+    
+    # Validate input is a non-negative integer
+    [[ "$vol" =~ ^[0-9]+$ ]] || return 1
+    
+    # Clamp to valid range (0-100)
+    ((vol = vol > 100 ? 100 : vol))
+    
+    # Set the volume
+    wpctl set-volume "$SINK" "${vol}%" 2>/dev/null || return 1
+    
+    # Auto-unmute when volume > 0
+    ((vol > 0)) && wpctl set-mute "$SINK" 0 &>/dev/null
+    
+    return 0
 }
 
-CURRENT_PCT=$(get_current_volume)
+# ==============================================================================
+# INITIALIZATION
+# ==============================================================================
+CURRENT_VOL=$(get_volume) || die "Cannot get volume for sink: $SINK"
 
-# --- YAD UI ---
+# Validate retrieved volume; fallback to 50%
+[[ "$CURRENT_VOL" =~ ^[0-9]+$ ]] || CURRENT_VOL=50
+
+# ==============================================================================
+# YAD UI CONFIGURATION
+# ==============================================================================
 YAD_ARGS=(
     --scale
     --title="$TITLE"
-    --window-icon="audio-volume-medium"
-    --text="                      "
+    --window-icon=audio-volume-medium
     --class="$APP_NAME"
+    --text="                      "
     --min-value=0
     --max-value=100
-    --value="$CURRENT_PCT"
+    --value="$CURRENT_VOL"
     --step=1
     --show-value
     --print-partial
-    --width=420                    # Uniform Width
-    --height=90                    # Uniform Height
-    --buttons-layout=center
-    --button="Close":1             # Changed OK to Close for uniformity
+    --width=420
+    --height=90
     --fixed
+    --buttons-layout=center
+    --button="Close":1
 )
 
-# --- THE EVENT LOOP ---
-set_volume "$CURRENT_PCT"
+# ==============================================================================
+# MAIN EVENT LOOP
+# ==============================================================================
+last_vol="$CURRENT_VOL"
 
-yad "${YAD_ARGS[@]}" | while IFS= read -r NEW_PCT; do
-    NEW_PCT_INT=${NEW_PCT%.*}
+# Disable errexit for UI loop (yad returns 1 on "Close" button)
+set +e
+
+# Process substitution avoids subshell variable scope issues
+while IFS= read -r value; do
+    # Strip any decimal portion (yad may output floats)
+    value="${value%%.*}"
     
-    if [ -n "$NEW_PCT_INT" ] && [ "$NEW_PCT_INT" != "$CURRENT_PCT" ]; then
-        set_volume "$NEW_PCT_INT"
-        CURRENT_PCT="$NEW_PCT_INT"
+    # Skip empty or invalid values
+    [[ "$value" =~ ^[0-9]+$ ]] || continue
+    
+    # Update volume only if changed
+    if ((value != last_vol)); then
+        set_volume "$value" && last_vol="$value"
     fi
-done
+done < <(yad "${YAD_ARGS[@]}" 2>/dev/null)
+
+# Always exit cleanly
+exit 0

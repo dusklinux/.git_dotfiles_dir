@@ -1,59 +1,91 @@
 #!/usr/bin/env bash
-# waybar-net: prints tiny JSON for Waybar
-
-
-# this script accept three flags
-# down
-# up 
-# unit
-
-# 1. Define paths
-STATE_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/waybar-net"
-STATE_FILE="$STATE_DIR/state"
-HEARTBEAT_FILE="$STATE_DIR/heartbeat"
-
-# 2. SAFETY: Create dir if it doesn't exist
-mkdir -p "$STATE_DIR"
-
-# 3. WAKE UP DAEMON: 
-# Update heartbeat timestamp
-touch "$HEARTBEAT_FILE"
-# Send signal to wake daemon from its long sleep IMMEDIATELY
-# We suppress errors in case the service isn't running yet
-pkill -USR1 -f "network_meter_daemon.sh" || true
+#===============================================================================
+# waybar-net: Prints JSON for Waybar custom network module
+# Usage: waybar-net [unit|up|upload|down|download]
+#===============================================================================
 
 set -euo pipefail
 
-# 4. Default values
+#-------------------------------------------------------------------------------
+# Configuration
+#-------------------------------------------------------------------------------
+readonly STATE_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/waybar-net"
+readonly STATE_FILE="${STATE_DIR}/state"
+readonly HEARTBEAT_FILE="${STATE_DIR}/heartbeat"
+readonly PIDFILE="${STATE_DIR}/daemon.pid"
+
+#-------------------------------------------------------------------------------
+# Initialization
+#-------------------------------------------------------------------------------
+# Ensure state directory exists
+mkdir -p "$STATE_DIR"
+
+# Update heartbeat to signal activity to daemon
+touch "$HEARTBEAT_FILE"
+
+# Wake daemon via PID file (safer than pkill -f)
+if [[ -r "$PIDFILE" ]]; then
+    if read -r daemon_pid < "$PIDFILE" 2>/dev/null && [[ -n "$daemon_pid" ]]; then
+        # Verify process exists before signaling
+        if kill -0 "$daemon_pid" 2>/dev/null; then
+            kill -USR1 "$daemon_pid" 2>/dev/null || true
+        fi
+    fi
+fi
+
+#-------------------------------------------------------------------------------
+# Read State with Defaults
+#-------------------------------------------------------------------------------
 UNIT="KB"
 UP="0"
 DOWN="0"
 CLASS="network-kb"
 
-# 5. Atomic Read
-if [[ -r "$STATE_FILE" ]]; then
-    read -r UNIT UP DOWN CLASS < "$STATE_FILE"
+# Read state file with validation
+if [[ -f "$STATE_FILE" && -r "$STATE_FILE" && -s "$STATE_FILE" ]]; then
+    if IFS=' ' read -r r_unit r_up r_down r_class < "$STATE_FILE" 2>/dev/null; then
+        # Only accept non-empty values
+        [[ -n "${r_unit:-}" ]]  && UNIT="$r_unit"
+        [[ -n "${r_up:-}" ]]    && UP="$r_up"
+        [[ -n "${r_down:-}" ]]  && DOWN="$r_down"
+        [[ -n "${r_class:-}" ]] && CLASS="$r_class"
+    fi
 fi
 
-# 6. Define output based on argument
+#-------------------------------------------------------------------------------
+# Generate Output
+#-------------------------------------------------------------------------------
 case "${1:-}" in
-  unit)
-    TEXT="$UNIT"
-    TOOLTIP="Unit: $UNIT/s"
-    ;;
-  up|upload)
-    TEXT="$UP"
-    TOOLTIP="Upload: $UP $UNIT/s\nDownload: $DOWN $UNIT/s"
-    ;;
-  down|download)
-    TEXT="$DOWN"
-    TOOLTIP="Download: $DOWN $UNIT/s\nUpload: $UP $UNIT/s"
-    ;;
-  *)
-    echo "{}"
-    exit 0
-    ;;
+    unit)
+        TEXT="$UNIT"
+        TOOLTIP="Unit: ${UNIT}/s"
+        ;;
+    up|upload)
+        TEXT="$UP"
+        TOOLTIP="Upload: ${UP} ${UNIT}/s\\nDownload: ${DOWN} ${UNIT}/s"
+        ;;
+    down|download)
+        TEXT="$DOWN"
+        TOOLTIP="Download: ${DOWN} ${UNIT}/s\\nUpload: ${UP} ${UNIT}/s"
+        ;;
+    *)
+        printf '%s\n' '{}'
+        exit 0
+        ;;
 esac
 
-# 7. Print JSON
-printf '{"text":"%s","class":"%s","tooltip":"%s"}\n' "$TEXT" "$CLASS" "$TOOLTIP"
+#-------------------------------------------------------------------------------
+# JSON Output (with basic escaping for safety)
+#-------------------------------------------------------------------------------
+# Escape any quotes or backslashes in values
+json_safe() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    printf '%s' "$s"
+}
+
+printf '{"text":"%s","class":"%s","tooltip":"%s"}\n' \
+    "$(json_safe "$TEXT")" \
+    "$(json_safe "$CLASS")" \
+    "$TOOLTIP"

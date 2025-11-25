@@ -1,206 +1,337 @@
 #!/usr/bin/env bash
+#
+# Hyprshade Selector - Interactive shader picker with live preview
+#
 
 # -----------------------------------------------------------------------------
-# CONFIGURATION & ASSETS
+# STRICT MODE & SAFETY
 # -----------------------------------------------------------------------------
-set -u
-set +o pipefail
+set -o errexit      # Exit on error
+set -o nounset      # Error on unset variables
+set -o pipefail     # Pipeline fails on first error
 
-# Icons
-declare -A icons=( [active]="" [inactive]="" [off]="" [shader]="" )
+# -----------------------------------------------------------------------------
+# CONFIGURATION
+# -----------------------------------------------------------------------------
+declare -rA ICONS=(
+    [active]=""
+    [inactive]=""
+    [off]=""
+    [shader]=""
+)
 
-# Rofi Command
-# -mesg: Removed hardcoded color. It will now use your config's text-color.
-# -theme-str: Kept width override (400px) for menu shape, but removed other constraints.
-rofi_cmd=(
-    rofi -dmenu -i -markup-rows
-    -theme-str "window {width: 400px;}"
+declare -ra ROFI_CMD=(
+    rofi
+    -dmenu
+    -i
+    -markup-rows
+    -theme-str 'window {width: 400px;}'
     -mesg "<span size='x-small'>Use <b>Up/Down</b> to preview. <b>Enter</b> to apply. <b>Esc</b> to cancel.</span>"
 )
+
+# -----------------------------------------------------------------------------
+# GLOBAL STATE
+# -----------------------------------------------------------------------------
+declare -a SHADERS=()
+declare ORIGINAL_SHADER=""
+declare -i CURRENT_IDX=0
+declare -i MAX_IDX=0
+declare VIRTUAL_CURRENT=""
+declare SEARCH_QUERY=""
+declare CLEANUP_NEEDED="true"
+
+# -----------------------------------------------------------------------------
+# UTILITY FUNCTIONS
+# -----------------------------------------------------------------------------
+
+# Trim leading and trailing whitespace
+trim() {
+    local str="${1:-}"
+    str="${str#"${str%%[![:space:]]*}"}"
+    str="${str%"${str##*[![:space:]]}"}"
+    printf '%s' "$str"
+}
+
+# Log error message to stderr
+err() {
+    printf 'Error: %s\n' "$*" >&2
+}
+
+# Check for required commands
+check_dependencies() {
+    local -a missing=()
+    local cmd
+    for cmd in rofi hyprshade awk sed; do
+        if ! command -v "$cmd" &>/dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+    
+    if ((${#missing[@]} > 0)); then
+        err "Missing required commands: ${missing[*]}"
+        exit 1
+    fi
+}
+
+# Apply shader (foreground or background)
+apply_shader() {
+    local shader="${1:-off}"
+    local background="${2:-false}"
+    
+    local redirect=""
+    [[ "$background" == "true" ]] && redirect="&"
+    
+    if [[ "$shader" == "off" ]]; then
+        if [[ "$background" == "true" ]]; then
+            hyprshade off &>/dev/null &
+        else
+            hyprshade off
+        fi
+    else
+        if [[ "$background" == "true" ]]; then
+            hyprshade on "$shader" &>/dev/null &
+        else
+            hyprshade on "$shader"
+        fi
+    fi
+}
+
+# Cleanup handler - restore original state on unexpected exit
+cleanup() {
+    if [[ "$CLEANUP_NEEDED" == "true" && -n "$ORIGINAL_SHADER" ]]; then
+        apply_shader "$ORIGINAL_SHADER" 2>/dev/null || true
+    fi
+}
 
 # -----------------------------------------------------------------------------
 # INITIALIZATION
 # -----------------------------------------------------------------------------
 
-# 1. Capture Original State (for Cancellation)
-raw_orig=$(hyprshade current)
-ORIGINAL_SHADER="${raw_orig#"${raw_orig%%[![:space:]]*}"}"
-ORIGINAL_SHADER="${ORIGINAL_SHADER%"${ORIGINAL_SHADER##*[![:space:]]}"}"
-[[ -z "$ORIGINAL_SHADER" ]] && ORIGINAL_SHADER="off"
-
-# 2. Load Shaders into Memory
-mapfile -t raw_list < <(hyprshade ls)
-declare -a shaders
-shaders+=("off") 
-
-for raw in "${raw_list[@]}"; do
-    clean="${raw#"${raw%%[![:space:]]*}"}"
-    clean="${clean%"${clean##*[![:space:]]}"}"
-    [[ -n "$clean" ]] && shaders+=("$clean")
-done
-
-# 3. Find Start Index
-current_idx=0
-for i in "${!shaders[@]}"; do
-    if [[ "${shaders[$i]}" == "$ORIGINAL_SHADER" ]]; then
-        current_idx=$i
-        break
+init() {
+    check_dependencies
+    
+    # Set up cleanup trap
+    trap cleanup EXIT INT TERM HUP
+    
+    # Capture original shader state
+    ORIGINAL_SHADER=$(trim "$(hyprshade current 2>/dev/null || echo '')")
+    [[ -z "$ORIGINAL_SHADER" ]] && ORIGINAL_SHADER="off"
+    
+    # Load available shaders
+    SHADERS=("off")
+    local line
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        local clean
+        clean=$(trim "$line")
+        [[ -n "$clean" ]] && SHADERS+=("$clean")
+    done < <(hyprshade ls 2>/dev/null || true)
+    
+    # Validate shaders array
+    if ((${#SHADERS[@]} == 0)); then
+        err "No shaders available"
+        exit 1
     fi
-done
-
-# 4. Pre-calculate list size
-max_idx=$((${#shaders[@]} - 1))
-
-# 5. Track "Virtual" Current State
-virtual_current="$ORIGINAL_SHADER"
-search_query=""
+    
+    # Find current shader index
+    CURRENT_IDX=0
+    local i
+    for i in "${!SHADERS[@]}"; do
+        if [[ "${SHADERS[i]}" == "$ORIGINAL_SHADER" ]]; then
+            CURRENT_IDX=$i
+            break
+        fi
+    done
+    
+    MAX_IDX=$((${#SHADERS[@]} - 1))
+    VIRTUAL_CURRENT="$ORIGINAL_SHADER"
+    SEARCH_QUERY=""
+}
 
 # -----------------------------------------------------------------------------
-# THE LOOP
+# MENU BUILDING
 # -----------------------------------------------------------------------------
 
-while true; do
-    # A. Build Menu String & Calculate Active Row
-    menu_content=""
-    active_row_index="" 
-    counter=0
-
-    for item in "${shaders[@]}"; do
-        # Determine if this is the active item
-        if [[ "$item" == "$virtual_current" ]]; then
-            active_row_index="$counter"
-            # Bold text, but NO hardcoded colors (Rofi handles color via -a flag)
+build_menu() {
+    local -n menu_ref=$1
+    local -n active_ref=$2
+    
+    menu_ref=()
+    active_ref=0
+    
+    local i item icon style_start style_end display_name
+    
+    for i in "${!SHADERS[@]}"; do
+        item="${SHADERS[i]}"
+        
+        # Determine styling
+        if [[ "$item" == "$VIRTUAL_CURRENT" ]]; then
+            active_ref=$i
             style_start="<b>"
             style_end=" (Active)</b>"
-            current_icon="${icons[active]}"
+            
+            if [[ "$item" == "off" ]]; then
+                icon="${ICONS[off]}"
+            else
+                icon="${ICONS[active]}"
+            fi
         else
             style_start=""
             style_end=""
-            current_icon="${icons[shader]}"
+            
+            if [[ "$item" == "off" ]]; then
+                icon="${ICONS[inactive]}"
+            else
+                icon="${ICONS[shader]}"
+            fi
         fi
-
-        # Handle "off" specific labelling
+        
+        # Display name
         if [[ "$item" == "off" ]]; then
             display_name="Turn Off"
-            if [[ "$item" != "$virtual_current" ]]; then 
-                current_icon="${icons[inactive]}"
-            else 
-                current_icon="${icons[off]}"
-            fi
         else
             display_name="$item"
         fi
-
-        line="${style_start}${current_icon}  ${display_name}${style_end}"
-        menu_content+="${line}\n"
         
-        ((counter++))
+        menu_ref+=("${style_start}${icon}  ${display_name}${style_end}")
     done
+}
 
-    # B. Prepare Rofi Flags
-    # -a "$active_row_index" tells Rofi to style this row using 'element normal.active' from config.rasi
-    rofi_flags=(-p "Shader Preview" -format "s|f" -a "$active_row_index")
+# -----------------------------------------------------------------------------
+# MAIN LOOP
+# -----------------------------------------------------------------------------
 
-    if [[ -n "$search_query" ]]; then
-        # --- SEARCH MODE ---
-        rofi_flags+=(-filter "$search_query")
-    else
-        # --- PREVIEW MODE ---
-        rofi_flags+=(-selected-row "$current_idx")
-        rofi_flags+=(-kb-custom-1 "Down" -kb-custom-2 "Up" -kb-row-down "" -kb-row-up "")
-    fi
-
-    # C. Render Rofi
-    raw_output=$(echo -e "$menu_content" | "${rofi_cmd[@]}" "${rofi_flags[@]}")
-    exit_code=$?
-
-    # D. Parse Output (Split Selection | Filter)
-    if [[ "$raw_output" == *"|"* ]]; then
-        selection="${raw_output%|*}"
-        returned_query="${raw_output##*|}"
-    else
-        selection="$raw_output"
-        returned_query=""
-    fi
-
-    # E. Handle Navigation
-    if [[ $exit_code -eq 10 ]]; then
-        # --- DOWN ARROW (Preview Mode) ---
-        if [[ -n "$returned_query" ]]; then
-            search_query="$returned_query"
-            continue
-        fi
-
-        ((current_idx++))
-        if [[ $current_idx -gt $max_idx ]]; then current_idx=0; fi
+main_loop() {
+    local -a menu_lines
+    local -i active_row_index
+    local -a rofi_flags
+    local raw_output selection returned_query
+    local -i exit_code
+    local target
+    
+    while true; do
+        # Build menu
+        build_menu menu_lines active_row_index
         
-        target="${shaders[$current_idx]}"
-        virtual_current="$target"
-        search_query=""
-
-        if [[ "$target" == "off" ]]; then
-            hyprshade off >/dev/null 2>&1 &
-        else
-            hyprshade on "$target" >/dev/null 2>&1 &
-        fi
-
-    elif [[ $exit_code -eq 11 ]]; then
-        # --- UP ARROW (Preview Mode) ---
-        if [[ -n "$returned_query" ]]; then
-            search_query="$returned_query"
-            continue
-        fi
-
-        ((current_idx--))
-        if [[ $current_idx -lt 0 ]]; then current_idx=$max_idx; fi
+        # Prepare rofi flags
+        # Using index format for reliable parsing
+        rofi_flags=(
+            -p "Shader Preview"
+            -format "i|f"
+            -a "$active_row_index"
+        )
         
-        target="${shaders[$current_idx]}"
-        virtual_current="$target"
-        search_query=""
-
-        if [[ "$target" == "off" ]]; then
-            hyprshade off >/dev/null 2>&1 &
+        if [[ -n "$SEARCH_QUERY" ]]; then
+            rofi_flags+=(-filter "$SEARCH_QUERY")
         else
-            hyprshade on "$target" >/dev/null 2>&1 &
-        fi
-
-    elif [[ $exit_code -eq 0 ]]; then
-        # --- ENTER (CONFIRM SELECTION) ---
-        
-        # 1. Strip Pango markup tags (removes <b> etc)
-        clean_selection=$(echo "$selection" | sed 's/<[^>]*>//g')
-
-        # 2. Extract the shader name
-        target_name=$(echo "$clean_selection" | awk -F"  " '{print $2}' | sed 's/ (Active)//')
-
-        # 3. Handle the special "Turn Off" label
-        if [[ "$target_name" == "Turn Off" ]]; then
-            target="off"
-        else
-            target="$target_name"
-        fi
-
-        # 4. Validate target
-        if [[ -z "$target" ]]; then
-            exit 1
-        fi
-
-        if [[ "$target" == "off" ]]; then
-            hyprshade off
-        else
-            hyprshade on "$target"
+            rofi_flags+=(
+                -selected-row "$CURRENT_IDX"
+                -kb-custom-1 "Down"
+                -kb-custom-2 "Up"
+                -kb-row-down ""
+                -kb-row-up ""
+            )
         fi
         
-        notify-send "Hyprshade" "Applied: $target" -i video-display
-        exit 0
-
-    else
-        # --- ESC (CANCEL) ---
-        if [[ "$ORIGINAL_SHADER" == "off" ]]; then
-            hyprshade off
+        # Execute rofi - use printf for safe output (no backslash interpretation)
+        # Temporarily disable errexit for rofi call
+        set +o errexit
+        raw_output=$(printf '%s\n' "${menu_lines[@]}" | "${ROFI_CMD[@]}" "${rofi_flags[@]}" 2>/dev/null)
+        exit_code=$?
+        set -o errexit
+        
+        # Parse output (index|filter format)
+        if [[ "$raw_output" == *"|"* ]]; then
+            selection="${raw_output%%|*}"
+            returned_query="${raw_output#*|}"
         else
-            hyprshade on "$ORIGINAL_SHADER"
+            selection="$raw_output"
+            returned_query=""
         fi
-        exit 0
-    fi
-done
+        
+        # Handle based on exit code
+        case $exit_code in
+            0)
+                # ENTER - Confirm selection
+                if [[ -n "$selection" ]] && [[ "$selection" =~ ^[0-9]+$ ]]; then
+                    if ((selection >= 0 && selection <= MAX_IDX)); then
+                        target="${SHADERS[selection]}"
+                    else
+                        target="$VIRTUAL_CURRENT"
+                    fi
+                else
+                    target="$VIRTUAL_CURRENT"
+                fi
+                
+                apply_shader "$target"
+                
+                # Send notification if available
+                if command -v notify-send &>/dev/null; then
+                    local display_target
+                    [[ "$target" == "off" ]] && display_target="Off" || display_target="$target"
+                    notify-send -i video-display "Hyprshade" "Applied: $display_target"
+                fi
+                
+                CLEANUP_NEEDED="false"
+                exit 0
+                ;;
+                
+            10)
+                # DOWN - Preview next
+                if [[ -n "$returned_query" ]]; then
+                    SEARCH_QUERY="$returned_query"
+                    continue
+                fi
+                
+                ((++CURRENT_IDX > MAX_IDX)) && CURRENT_IDX=0
+                
+                target="${SHADERS[CURRENT_IDX]}"
+                VIRTUAL_CURRENT="$target"
+                SEARCH_QUERY=""
+                
+                apply_shader "$target" true
+                ;;
+                
+            11)
+                # UP - Preview previous
+                if [[ -n "$returned_query" ]]; then
+                    SEARCH_QUERY="$returned_query"
+                    continue
+                fi
+                
+                ((--CURRENT_IDX < 0)) && CURRENT_IDX=$MAX_IDX
+                
+                target="${SHADERS[CURRENT_IDX]}"
+                VIRTUAL_CURRENT="$target"
+                SEARCH_QUERY=""
+                
+                apply_shader "$target" true
+                ;;
+                
+            1)
+                # ESC / Cancel
+                apply_shader "$ORIGINAL_SHADER"
+                CLEANUP_NEEDED="false"
+                exit 0
+                ;;
+                
+            *)
+                # Unknown exit code - treat as error
+                err "Rofi exited with unexpected code: $exit_code"
+                apply_shader "$ORIGINAL_SHADER"
+                CLEANUP_NEEDED="false"
+                exit 1
+                ;;
+        esac
+    done
+}
+
+# -----------------------------------------------------------------------------
+# ENTRY POINT
+# -----------------------------------------------------------------------------
+
+main() {
+    init
+    main_loop
+}
+
+main "$@"

@@ -1,192 +1,254 @@
 #!/usr/bin/env bash
-
 # ==============================================================================
-# Hyprsunset Slider (Finalized)
+# Hyprsunset Slider - Optimized
 # ==============================================================================
 
-set -u # Error on unset variables
+set -ufo pipefail
 
-# --- Constants ---
+# --- Configuration ---
 readonly APP_NAME="hyprsunset"
 readonly TITLE_HINT="Hyprsunset"
-readonly LOCK_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/${APP_NAME}_slider.lock"
-readonly STATE_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hyprsunset_last_temp"
-
-# Temperature Limits
 readonly DEFAULT_TEMP=4500
 readonly MIN_TEMP=1000
 readonly MAX_TEMP=6000
 readonly STARTUP_WAIT=5
+readonly RESTART_COOLDOWN=3
 
-# --- Dependency Check ---
-for cmd in yad hyprctl pgrep; do
-    if ! command -v "$cmd" >/dev/null 2>&1; then
-        notify-send -u critical "$TITLE_HINT Error" "Missing dependency: $cmd"
-        exit 1
-    fi
-done
+# --- Derived Constants (cache expensive calls) ---
+readonly USER_ID="$(id -u)"
+readonly RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/${USER_ID}}"
+readonly LOCK_FILE="${RUNTIME_DIR}/${APP_NAME}_slider.lock"
+readonly STATE_FILE="${RUNTIME_DIR}/${APP_NAME}_last_temp"
 
-# ==============================================================================
-# 1. Single Instance & Focus Logic (Standardized)
-# ==============================================================================
+# --- Utility Functions ---
 
-# Use File Descriptor 200 for locking (Cleaner method)
-exec 200>"$LOCK_FILE"
-
-_focus_existing() {
-    # Method 1: Hyprland JSON lookup (Most robust)
-    if command -v hyprctl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
-        local addr
-        # Look for window by Title
-        addr=$(hyprctl clients -j | jq -r --arg t "$TITLE_HINT" '.[] | select(.title == $t) | .address' | head -n1)
-        if [[ -n "$addr" && "$addr" != "null" ]]; then
-            hyprctl dispatch focuswindow "address:$addr" >/dev/null 2>&1
-            return 0
-        fi
-    fi
-
-    # Method 2: Fallback to Title Regex
-    if command -v hyprctl >/dev/null 2>&1; then
-        hyprctl dispatch focuswindow "title:^${TITLE_HINT}$" >/dev/null 2>&1
-        return 0
-    fi
-
-    # Method 3: wmctrl (X11/Wayland fallback)
-    if command -v wmctrl >/dev/null 2>&1; then
-        wmctrl -a "$TITLE_HINT" 2>/dev/null
-    fi
+die() {
+    local msg="$1"
+    printf 'FATAL: %s\n' "$msg" >&2
+    command -v notify-send >/dev/null 2>&1 && \
+        notify-send -u critical "${TITLE_HINT} Error" "$msg"
+    exit 1
 }
 
-# If we cannot acquire the lock, focus the existing window and exit
-if ! flock -n 200; then
-    _focus_existing
-    exit 0
-fi
+warn() {
+    printf 'WARN: %s\n' "$1" >&2
+}
 
-# ==============================================================================
-# 2. Service Management (Daemon Auto-Start)
-# ==============================================================================
+# --- Dependency Validation ---
 
-# Initialize state file if missing
-if [ ! -f "$STATE_FILE" ]; then
-    echo "$DEFAULT_TEMP" > "$STATE_FILE"
-fi
+check_dependencies() {
+    local -a missing=()
+    local cmd
+    for cmd in yad hyprctl pgrep; do
+        command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
+    done
+    (( ${#missing[@]} == 0 )) || die "Missing dependencies: ${missing[*]}"
+    
+    # Runtime directory must exist
+    [[ -d "$RUNTIME_DIR" ]] || die "Runtime directory missing: ${RUNTIME_DIR}"
+}
 
+# --- State Management ---
+
+# Read and validate temperature from state file
 get_current_temp() {
-    local val
-    val=$(cat "$STATE_FILE" 2>/dev/null || echo "$DEFAULT_TEMP")
-    echo "${val%.*}" # Integer only
+    local val=""
+    
+    [[ -f "$STATE_FILE" && -r "$STATE_FILE" ]] && val=$(<"$STATE_FILE")
+    
+    # Validate: must be integer within bounds
+    if [[ "$val" =~ ^[0-9]+$ ]] && (( val >= MIN_TEMP && val <= MAX_TEMP )); then
+        printf '%d' "$val"
+    else
+        printf '%d' "$DEFAULT_TEMP"
+    fi
 }
+
+save_current_temp() {
+    printf '%d' "$1" > "$STATE_FILE" 2>/dev/null || \
+        warn "Failed to save state to ${STATE_FILE}"
+}
+
+# Clamp value to valid range
+clamp_temp() {
+    local val=$1
+    (( val < MIN_TEMP )) && val=$MIN_TEMP
+    (( val > MAX_TEMP )) && val=$MAX_TEMP
+    printf '%d' "$val"
+}
+
+# --- Daemon Management ---
 
 is_daemon_running() {
-    pgrep -u "$(id -u)" -x "$APP_NAME" >/dev/null 2>&1
+    pgrep -u "$USER_ID" -x "$APP_NAME" >/dev/null 2>&1
+}
+
+wait_for_daemon() {
+    local deadline=$((SECONDS + STARTUP_WAIT))
+    while (( SECONDS < deadline )); do
+        is_daemon_running && return 0
+        sleep 0.2
+    done
+    return 1
+}
+
+wait_for_ipc() {
+    local temp=$1
+    local deadline=$((SECONDS + STARTUP_WAIT))
+    while (( SECONDS < deadline )); do
+        hyprctl hyprsunset temperature "$temp" >/dev/null 2>&1 && return 0
+        sleep 0.2
+    done
+    return 1
 }
 
 start_daemon() {
-    echo "Starting $APP_NAME..." >&2
-
-    # 1. Try systemd --user
+    printf 'Starting %s...\n' "$APP_NAME" >&2
+    
+    # Method 1: systemd user service
     if command -v systemctl >/dev/null 2>&1; then
         if systemctl --user start "$APP_NAME" 2>/dev/null; then
-            # Wait for process to appear
-            local deadline=$((SECONDS + STARTUP_WAIT))
-            while [ $SECONDS -le $deadline ]; do
-                is_daemon_running && return 0
-                sleep 0.2
-            done
+            wait_for_daemon && {
+                wait_for_ipc "$(get_current_temp)" && return 0
+            }
         fi
     fi
-
-    # 2. Fallback: Direct Binary Launch
+    
+    # Method 2: Direct binary launch
     if ! is_daemon_running; then
         local bin_path
         bin_path=$(command -v "$APP_NAME" 2>/dev/null)
         
-        if [ -n "$bin_path" ]; then
-            # Use setsid to detach completely
-            setsid "$bin_path" >/dev/null 2>&1 &
-            disown $! 2>/dev/null || true
-        else
-            notify-send -u critical "Hyprsunset Error" "Binary not found."
-            return 1
+        if [[ -z "$bin_path" ]]; then
+            die "Binary '${APP_NAME}' not found in PATH"
         fi
+        
+        # Proper daemonization: new session, detached from terminal
+        setsid "$bin_path" </dev/null >/dev/null 2>&1 &
     fi
-
-    # 3. Wait for IPC Readiness (Critical to prevent slider lag)
-    local deadline=$((SECONDS + STARTUP_WAIT))
-    local current=$(get_current_temp)
-    while [ $SECONDS -le $deadline ]; do
-        if hyprctl hyprsunset temperature "$current" >/dev/null 2>&1; then
-            return 0
-        fi
-        sleep 0.2
-    done
     
-    return 1
+    # Wait for IPC readiness
+    wait_for_ipc "$(get_current_temp)"
 }
 
-# ==============================================================================
-# 3. Main Logic Loop
-# ==============================================================================
+# --- Single Instance Management ---
 
-CURRENT_TEMP=$(get_current_temp)
-LAST_RESTART_ATTEMPT=0
-
-# Ensure daemon is running before showing UI
-if ! is_daemon_running; then
-    start_daemon || true
-fi
-
-# YAD UI Definition (Fixed Size & Layout)
-YAD_CMD=(
-    yad
-    --title="$TITLE_HINT"
-    --class="$TITLE_HINT"
-    --scale
-    --text="                      󰡬"
-    --min-value="$MIN_TEMP"
-    --max-value="$MAX_TEMP"
-    --value="$CURRENT_TEMP"
-    --step=50
-    --show-value
-    --print-partial
-    --width=420                # Matched to other sliders
-    --height=90                # Matched to other sliders
-    --window-icon="preferences-system"
-    --button="Close":1
-    --buttons-layout=center    # Matched to other sliders
-    --fixed                    # CRITICAL: Prevents tiling in Hyprland
-)
-
-# Loop using Process Substitution
-while IFS= read -r NEW_TEMP; do
-    # Sanitize input (integer only)
-    NEW_TEMP=${NEW_TEMP%.*}
+focus_existing_window() {
+    local addr=""
     
-    # Ignore empty or unchanged values
-    if [[ -z "$NEW_TEMP" || "$NEW_TEMP" == "$CURRENT_TEMP" ]]; then
-        continue
-    fi
-
-    # Try to apply temperature
-    if ! hyprctl hyprsunset temperature "$NEW_TEMP" >/dev/null 2>&1; then
-        # IPC Failed. Check if we should attempt a restart (Rate Limit: Once every 3s)
-        NOW=$(date +%s)
-        if (( NOW - LAST_RESTART_ATTEMPT > 3 )); then
-            if ! is_daemon_running; then
-                start_daemon || true
-            fi
-            LAST_RESTART_ATTEMPT=$NOW
-            
-            # Retry the command once
-            hyprctl hyprsunset temperature "$NEW_TEMP" >/dev/null 2>&1 || true
+    # Method 1: Precise JSON lookup (requires jq)
+    if command -v jq >/dev/null 2>&1; then
+        addr=$(hyprctl clients -j 2>/dev/null | \
+               jq -r --arg t "$TITLE_HINT" \
+               'first(.[] | select(.title == $t) | .address) // empty' 2>/dev/null) || true
+        
+        if [[ -n "$addr" ]]; then
+            hyprctl dispatch focuswindow "address:${addr}" >/dev/null 2>&1
+            return 0
         fi
     fi
+    
+    # Method 2: Title regex match
+    hyprctl dispatch focuswindow "title:^${TITLE_HINT}\$" >/dev/null 2>&1 && return 0
+    
+    # Method 3: wmctrl fallback (X11/XWayland)
+    command -v wmctrl >/dev/null 2>&1 && wmctrl -a "$TITLE_HINT" 2>/dev/null
+    
+    return 0
+}
 
-    # Update state
-    CURRENT_TEMP="$NEW_TEMP"
-    echo "$CURRENT_TEMP" > "$STATE_FILE"
+acquire_lock() {
+    # Use FD 9 (avoid conflicts with script's own redirections)
+    exec 9>"$LOCK_FILE" || die "Cannot create lock file: ${LOCK_FILE}"
+    
+    if ! flock -n 9; then
+        focus_existing_window
+        exit 0
+    fi
+}
 
-done < <("${YAD_CMD[@]}")
+cleanup() {
+    # Release lock and remove file
+    exec 9>&- 2>/dev/null
+    rm -f "$LOCK_FILE" 2>/dev/null
+}
 
+# --- Main Application ---
+
+main() {
+    check_dependencies
+    acquire_lock
+    trap cleanup EXIT INT TERM HUP
+    
+    # Initialize state
+    local current_temp last_restart_attempt=0
+    current_temp=$(get_current_temp)
+    save_current_temp "$current_temp"
+    
+    # Ensure daemon is running
+    is_daemon_running || start_daemon || warn "Daemon start failed; continuing anyway"
+    
+    # YAD UI command array
+    local -ra yad_cmd=(
+        yad
+        --title="$TITLE_HINT"
+        --class="$TITLE_HINT"
+        --scale
+        --text="                      󰡬"
+        --min-value="$MIN_TEMP"
+        --max-value="$MAX_TEMP"
+        --value="$current_temp"
+        --step=50
+        --show-value
+        --print-partial
+        --width=420
+        --height=90
+        --window-icon=preferences-system
+        --button="Close":1
+        --buttons-layout=center
+        --fixed
+    )
+    
+    # Main event loop
+    local new_temp now
+    while IFS= read -r new_temp; do
+        # Sanitize: strip decimals and non-digits
+        new_temp="${new_temp%%.*}"
+        new_temp="${new_temp//[!0-9]/}"
+        
+        # Skip invalid input
+        [[ -z "$new_temp" ]] && continue
+        [[ ! "$new_temp" =~ ^[0-9]+$ ]] && continue
+        
+        # Clamp to valid range
+        new_temp=$(clamp_temp "$new_temp")
+        
+        # Skip if unchanged
+        (( new_temp == current_temp )) && continue
+        
+        # Attempt to apply temperature
+        if ! hyprctl hyprsunset temperature "$new_temp" >/dev/null 2>&1; then
+            # IPC failure: attempt recovery with rate limiting
+            printf -v now '%(%s)T' -1
+            
+            if (( now - last_restart_attempt > RESTART_COOLDOWN )); then
+                last_restart_attempt=$now
+                
+                if ! is_daemon_running; then
+                    start_daemon || true
+                fi
+                
+                # Retry after recovery
+                hyprctl hyprsunset temperature "$new_temp" >/dev/null 2>&1 || true
+            fi
+        fi
+        
+        # Update state
+        current_temp=$new_temp
+        save_current_temp "$current_temp"
+        
+    done < <("${yad_cmd[@]}")
+}
+
+main "$@"
 exit 0

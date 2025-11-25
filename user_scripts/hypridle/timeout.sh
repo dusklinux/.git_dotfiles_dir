@@ -13,7 +13,7 @@ set -o pipefail
 # CONFIGURATION
 #===============================================================================
 readonly CONFIG_FILE="${HOME}/.config/hypr/hypridle.conf"
-readonly BACKUP_FILE="${CONFIG_FILE}.bak"
+readonly BACKUP_FILE="/tmp/hypridlle.bak"
 readonly SCRIPT_NAME="${0##*/}"
 
 # Listener block signatures (used for matching, not regex)

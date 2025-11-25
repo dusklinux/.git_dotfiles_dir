@@ -1,71 +1,94 @@
 #!/bin/bash
-
 # -----------------------------------------------------------------------------
-# OPTIMIZED AUDIO SWITCHER FOR HYPRLAND
-# Dependencies: hyprland, pulseaudio-utils (pactl), jq, swayosd-git
+# OPTIMIZED AUDIO OUTPUT SWITCHER FOR HYPRLAND
+# Dependencies: hyprland, pulseaudio-utils (pactl), jq, swayosd-client
 # -----------------------------------------------------------------------------
+set -uo pipefail
 
-# 1. Get the currently focused monitor for the OSD notification
-#    We capture this early to ensure the OSD appears on the screen you are looking at.
-focused_monitor=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name')
+# Dependency check
+for cmd in pactl jq hyprctl swayosd-client; do
+    if ! command -v "$cmd" &>/dev/null; then
+        echo "Error: Required command '$cmd' not found." >&2
+        exit 1
+    fi
+done
 
-# 2. Get the current default sink name to calculate the rotation
-current_sink=$(pactl get-default-sink)
+# 1. Get the currently focused monitor for OSD notification
+focused_monitor=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name // empty')
+focused_monitor="${focused_monitor:-}"  # Default to empty string (swayosd will use default)
 
-# 3. THE LOGIC CORE
-#    We use one single jq command to:
-#    a. List sinks and filter out unavailable ones (e.g. unplugged HDMI).
-#    b. Find the index of the current sink.
-#    c. Calculate the next sink in the cycle.
-#    d. formatting the output data (Name, Description, Volume, Mute Status).
-#    We use @tsv (Tab Separated Values) to safely pass data back to Bash.
+# 2. Get the current default sink name
+current_sink=$(pactl get-default-sink 2>/dev/null || echo "")
 
-read -r next_name next_desc next_vol next_mute <<< "$(pactl -f json list sinks | jq -r --arg current "$current_sink" '
-  # Filter sinks: Keep only those with no ports OR where availability is not "not available"
-  [ .[] | select((.ports | length == 0) or ([.ports[]? | .availability != "not available"] | any)) ] 
+# 3. THE LOGIC CORE - Single jq command with safety checks
+#    Using NUL as delimiter to handle descriptions with tabs/newlines
+sink_data=$(pactl -f json list sinks 2>/dev/null | jq -r --arg current "$current_sink" '
+  # Filter: Keep sinks with no ports OR where at least one port is available
+  [ .[] | select((.ports | length == 0) or ([.ports[]? | .availability != "not available"] | any)) ]
   | sort_by(.name) as $sinks
-  | ($sinks | map(.name) | index($current)) as $idx
-  | if $idx == null then 0 else ($idx + 1) % ($sinks | length) end as $next_idx
-  | $sinks[$next_idx] 
-  | [
-      .name,
-      # Intelligent Description Lookup: Try specific properties before falling back to generic name
-      (.description // .properties."device.description" // .properties."node.description" // .properties."device.product.name" // .name),
-      (.volume | to_entries[0].value.value_percent | sub("%";"")),
-      (.mute)
-    ] 
-  | @tsv
-')"
+  | ($sinks | length) as $len
 
-# 4. Error Handling: If no sinks found or jq failed
-if [ -z "$next_name" ]; then
-    swayosd-client --monitor "$focused_monitor" --custom-message "No Output Devices"
+  # Safety: Exit early if no sinks available
+  | if $len == 0 then ""
+    else
+      (($sinks | map(.name) | index($current)) // -1) as $idx
+      | (if $idx < 0 then 0 else ($idx + 1) % $len end) as $next_idx
+      | $sinks[$next_idx]
+      | [
+          .name,
+          # Sanitize description: replace tabs/newlines with spaces
+          ((.description // .properties."device.description" // .properties."node.description" // .properties."device.product.name" // .name) | gsub("[\\t\\n\\r]"; " ")),
+          ((.volume | to_entries[0].value.value_percent // "0%") | sub("%$"; "")),
+          (if .mute then "true" else "false" end)
+        ]
+      | @tsv
+    end
+')
+
+# 4. Parse the output safely
+IFS=$'\t' read -r next_name next_desc next_vol next_mute <<< "$sink_data"
+
+# 5. Error handling: No sinks found or parsing failed
+if [[ -z "${next_name:-}" ]]; then
+    swayosd-client ${focused_monitor:+--monitor "$focused_monitor"} \
+        --custom-message "No Output Devices Available" \
+        --custom-icon "audio-volume-muted-symbolic"
     exit 1
 fi
 
-# 5. Switch the default sink
-pactl set-default-sink "$next_name"
-
-# 6. CRITICAL: Move currently playing audio streams to the new sink
-#    This ensures music/video moves immediately without needing a restart.
-pactl list short sink-inputs | cut -f1 | while read -r input_id; do
-    pactl move-sink-input "$input_id" "$next_name"
-done
-
-# 7. Determine Icon based on volume and mute status
-if [ "$next_mute" = "true" ] || [ "$next_vol" -eq 0 ]; then
-    icon="sink-volume-muted-symbolic"
-elif [ "$next_vol" -le 33 ]; then
-    icon="sink-volume-low-symbolic"
-elif [ "$next_vol" -le 66 ]; then
-    icon="sink-volume-medium-symbolic"
-else
-    icon="sink-volume-high-symbolic"
+# 6. Ensure volume is numeric (default to 0)
+if ! [[ "${next_vol:-}" =~ ^[0-9]+$ ]]; then
+    next_vol=0
 fi
 
-# 8. Display the OSD Notification
-#    Using --custom-icon allows us to use the standard icon set calculated above.
+# 7. Switch the default sink
+if ! pactl set-default-sink "$next_name" 2>/dev/null; then
+    swayosd-client ${focused_monitor:+--monitor "$focused_monitor"} \
+        --custom-message "Failed to switch output" \
+        --custom-icon "dialog-error-symbolic"
+    exit 1
+fi
+
+# 8. Move all currently playing streams to the new sink
+while IFS=$'\t' read -r input_id _; do
+    [[ -n "$input_id" ]] && pactl move-sink-input "$input_id" "$next_name" 2>/dev/null || true
+done < <(pactl list short sink-inputs 2>/dev/null)
+
+# 9. Determine icon based on volume and mute status
+if [[ "${next_mute:-}" == "true" ]] || (( next_vol == 0 )); then
+    icon="audio-volume-muted-symbolic"
+elif (( next_vol <= 33 )); then
+    icon="audio-volume-low-symbolic"
+elif (( next_vol <= 66 )); then
+    icon="audio-volume-medium-symbolic"
+else
+    icon="audio-volume-high-symbolic"
+fi
+
+# 10. Display the OSD notification
 swayosd-client \
-    --monitor "$focused_monitor" \
-    --custom-message "$next_desc" \
+    ${focused_monitor:+--monitor "$focused_monitor"} \
+    --custom-message "${next_desc:-Unknown Device}" \
     --custom-icon "$icon"
+
+exit 0

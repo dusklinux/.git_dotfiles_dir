@@ -1,22 +1,36 @@
 [Unit]
-Description=Battery Status Notification Service
-# Ensure we start AFTER the graphical session is truly ready
+Description=Battery Status Notification Service (Event-Driven)
+Documentation=man:upower(1)
 After=graphical-session.target
-# If you use UWSM, this binds the service to the UWSM session
 PartOf=graphical-session.target
+
+# Require upower to be available
+Wants=upower.service
+After=upower.service
 
 [Service]
 Type=simple
-# Use %h for home directory compatibility
 ExecStart=%h/user_scripts/battery/notify/battery_notify.sh
+
+# Restart policy
 Restart=on-failure
 RestartSec=5
+RestartPreventExitStatus=0
 
-# IMPORTANT: Do not hardcode DISPLAY or DBUS. 
-# Systemd user session should inherit these from UWSM's activation.
-# However, to be safe, we enable logging:
+# Resource limits (this script is lightweight)
+MemoryMax=50M
+CPUQuota=5%
+
+# Logging
 StandardOutput=journal
 StandardError=journal
+SyslogIdentifier=battery-notify
+
+# Security hardening (optional, comment out if issues arise)
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
 
 [Install]
 WantedBy=graphical-session.target

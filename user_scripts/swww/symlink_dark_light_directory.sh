@@ -9,122 +9,158 @@
 #              - Toggles state by default, or accepts --light / --dark flags.
 # ==============================================================================
 
-# strict mode: exit on error, unset vars are errors, pipelines fail if any command fails
 set -euo pipefail
 
 # --- CONFIGURATION ---
-BASE_DIR="$HOME/Pictures"
-LIGHT_DIR="$BASE_DIR/light"
-DARK_DIR="$BASE_DIR/dark"
-WALLPAPER_ROOT="$BASE_DIR/wallpapers"
-LINK_NAME="active"
-LINK_PATH="$WALLPAPER_ROOT/$LINK_NAME"
+readonly BASE_DIR="${HOME}/Pictures"
+readonly LIGHT_DIR="${BASE_DIR}/light"
+readonly DARK_DIR="${BASE_DIR}/dark"
+readonly WALLPAPER_ROOT="${BASE_DIR}/wallpapers"
+readonly LINK_NAME="active"
+readonly LINK_PATH="${WALLPAPER_ROOT}/${LINK_NAME}"
+
+# Track temp link for cleanup
+TMP_LINK=""
 
 # --- FUNCTIONS ---
 
-usage() {
-    echo "Usage: $(basename "$0") [OPTION]"
-    echo "Manage wallpaper symlinks for Light/Dark modes."
-    echo ""
-    echo "Options:"
-    echo "  (no args)   Toggle between Light and Dark based on current link."
-    echo "  --light     Force switch to Light directory."
-    echo "  --dark      Force switch to Dark directory."
-    echo "  --help      Show this help message."
-    exit 0
+cleanup() {
+    # Remove temp link on exit/interrupt (ignore errors)
+    [[ -n "${TMP_LINK}" ]] && rm -f -- "${TMP_LINK}" 2>/dev/null
+    return 0
 }
 
-# Function to create the symlink atomically
+die() {
+    printf 'ERROR: %s\n' "$*" >&2
+    exit 1
+}
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTION]
+
+Manage wallpaper symlinks for Light/Dark modes.
+
+Options:
+  (no args)   Toggle between Light and Dark based on current link.
+  --light     Force switch to Light directory.
+  --dark      Force switch to Dark directory.
+  -h, --help  Show this help message.
+EOF
+}
+
 update_symlink() {
     local target_dir="$1"
     local link_location="$2"
-    local tmp_link="${link_location}.tmp"
+    # Use PID for unique temp name (prevents race conditions)
+    TMP_LINK="${link_location}.tmp.$$"
 
-    echo "-> Switching wallpaper source to: $target_dir"
+    printf -- '-> Switching wallpaper source to: %s\n' "${target_dir}"
 
-    # 1. Create a temporary symlink first
-    # This ensures we don't break the current link if something goes wrong during creation
-    ln -sfn "$target_dir" "$tmp_link"
+    # Create temporary symlink (--no-dereference via -n)
+    ln -sfn -- "${target_dir}" "${TMP_LINK}" \
+        || die "Failed to create temporary symlink at '${TMP_LINK}'"
 
-    # 2. Atomically rename the temp link to the real link name
-    # 'mv -T' treats the destination as a file, overwriting it instantly.
-    # This prevents race conditions where an application might see a missing file.
-    mv -T "$tmp_link" "$link_location"
-    
-    echo "-> Success: $link_location points to $target_dir"
+    # Atomically rename temp link to final location
+    # -T: treat destination as file, not directory
+    # -f: force overwrite without prompt
+    mv -Tf -- "${TMP_LINK}" "${link_location}" \
+        || die "Failed to atomically rename symlink to '${link_location}'"
+
+    TMP_LINK=""  # Clear on success (prevent cleanup from removing final link)
+    printf -- '-> Success: %s -> %s\n' "${link_location}" "${target_dir}"
 }
 
-# --- PRE-FLIGHT CHECKS ---
+main() {
+    trap cleanup EXIT INT TERM
 
-# 1. Create Source Directories
-# We create the 'light' and 'dark' directories.
-# We also create 'wallpapers', which is the PARENT of the 'active' link.
-# CRITICAL: We do NOT mkdir the 'active' path itself. If 'active' is a real directory,
-# symlinking will fail or nest inside it.
-mkdir -p "$LIGHT_DIR"
-mkdir -p "$DARK_DIR"
-mkdir -p "$WALLPAPER_ROOT"
+    local target_state=""
 
-# 2. Safety Check: Collision Detection
-# If 'active' exists and is a physical Directory (not a symlink), we must abort.
-# We should not delete a folder that might contain actual user files.
-if [[ -d "$LINK_PATH" && ! -L "$LINK_PATH" ]]; then
-    echo "CRITICAL ERROR: '$LINK_PATH' exists and is a real directory."
-    echo "This script expects '$LINK_PATH' to be a symlink."
-    echo "Please manually move your files out of '$LINK_PATH' and delete the directory before running this script."
-    exit 1
-fi
+    # --- PRE-FLIGHT CHECKS ---
 
-# --- STATE LOGIC ---
+    # Create all required directories in one call
+    mkdir -p -- "${LIGHT_DIR}" "${DARK_DIR}" "${WALLPAPER_ROOT}"
 
-TARGET_STATE=""
-
-# Parse Arguments
-if [[ $# -eq 0 ]]; then
-    # === TOGGLE MODE ===
-    # Check where the link currently points
-    if [[ -L "$LINK_PATH" ]]; then
-        CURRENT_TARGET=$(readlink -f "$LINK_PATH")
-        
-        if [[ "$CURRENT_TARGET" == "$LIGHT_DIR" ]]; then
-            TARGET_STATE="dark"
-        elif [[ "$CURRENT_TARGET" == "$DARK_DIR" ]]; then
-            TARGET_STATE="light"
+    # Collision detection: abort if path exists and is NOT a symlink
+    if [[ -e "${LINK_PATH}" && ! -L "${LINK_PATH}" ]]; then
+        if [[ -d "${LINK_PATH}" ]]; then
+            die "'${LINK_PATH}' exists as a real directory (not a symlink). Remove it first."
         else
-            echo "Current link points to unknown location: $CURRENT_TARGET"
-            echo "Resetting to Dark mode."
-            TARGET_STATE="dark"
+            die "'${LINK_PATH}' exists as a regular file (not a symlink). Remove it first."
         fi
-    else
-        echo "No active link found. Initializing to Dark mode."
-        TARGET_STATE="dark"
     fi
-else
-    # === FLAG MODE ===
-    case "$1" in
-        --light)
-            TARGET_STATE="light"
+
+    # --- ARGUMENT PARSING ---
+
+    if [[ $# -eq 0 ]]; then
+        # === TOGGLE MODE ===
+        if [[ -L "${LINK_PATH}" ]]; then
+            # Use readlink WITHOUT -f to get exact stored path (avoids canonicalization mismatch)
+            local current_target
+            current_target=$(readlink -- "${LINK_PATH}")
+
+            case "${current_target}" in
+                "${LIGHT_DIR}")
+                    target_state="dark"
+                    ;;
+                "${DARK_DIR}")
+                    target_state="light"
+                    ;;
+                *)
+                    printf 'Warning: Link points to unknown location: %s\n' "${current_target}" >&2
+                    printf 'Resetting to Dark mode.\n' >&2
+                    target_state="dark"
+                    ;;
+            esac
+        else
+            printf 'No active link found. Initializing to Dark mode.\n'
+            target_state="dark"
+        fi
+
+    elif [[ $# -eq 1 ]]; then
+        # === FLAG MODE ===
+        case "$1" in
+            --light)
+                target_state="light"
+                ;;
+            --dark)
+                target_state="dark"
+                ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            -*)
+                printf 'Error: Unknown option: %s\n\n' "$1" >&2
+                usage >&2
+                exit 1
+                ;;
+            *)
+                printf 'Error: Invalid argument: %s\n\n' "$1" >&2
+                usage >&2
+                exit 1
+                ;;
+        esac
+    else
+        printf 'Error: Too many arguments (expected 0 or 1, got %d)\n\n' "$#" >&2
+        usage >&2
+        exit 1
+    fi
+
+    # --- EXECUTION ---
+
+    case "${target_state}" in
+        light)
+            update_symlink "${LIGHT_DIR}" "${LINK_PATH}"
             ;;
-        --dark)
-            TARGET_STATE="dark"
-            ;;
-        -h|--help)
-            usage
+        dark)
+            update_symlink "${DARK_DIR}" "${LINK_PATH}"
             ;;
         *)
-            echo "Error: Invalid argument '$1'"
-            usage
+            # Should never happen, but defensive programming
+            die "Internal error: unexpected target state '${target_state}'"
             ;;
     esac
-fi
+}
 
-# --- EXECUTION ---
-
-case "$TARGET_STATE" in
-    light)
-        update_symlink "$LIGHT_DIR" "$LINK_PATH"
-        ;;
-    dark)
-        update_symlink "$DARK_DIR" "$LINK_PATH"
-        ;;
-esac
+main "$@"

@@ -1,95 +1,168 @@
 #!/usr/bin/env bash
+#
+# brightness-slider - A GTK brightness control slider
+# Dependencies: yad, brightnessctl
+# Optional: hyprctl+jq (Hyprland), wmctrl (X11)
+#
+
 set -euo pipefail
 
 # --- CONFIGURATION ---
-APP_NAME="brightness-slider"   # Used for Hyprland Window Rules (class)
-TITLE="Brightness"             # Window Title & Text Label
-LOCK_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/${APP_NAME}.lock"
+readonly APP_NAME="brightness-slider"
+readonly TITLE="Brightness"
+readonly LOCK_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/${APP_NAME}.lock"
 
 # --- SINGLE INSTANCE GUARD (FLOCK) ---
 exec 200>"$LOCK_FILE"
 
-_focus_existing() {
+focus_existing_window() {
+    local addr=""
+
+    # Try Hyprland/hyprctl first
     if command -v hyprctl >/dev/null 2>&1; then
         if command -v jq >/dev/null 2>&1; then
-            ADDR=$(hyprctl clients -j 2>/dev/null | jq -r --arg c "$APP_NAME" '.[] | select(.class == $c) | .address' | head -n1)
-            if [ -n "$ADDR" ] && [ "$ADDR" != "null" ]; then
-                hyprctl dispatch focuswindow "address:$ADDR" >/dev/null 2>&1
-                return
+            addr=$(
+                hyprctl clients -j 2>/dev/null \
+                | jq -r --arg c "$APP_NAME" \
+                    '.[] | select(.class == $c) | .address' \
+                | head -n1
+            ) || true
+
+            if [[ -n "$addr" && "$addr" != "null" ]]; then
+                hyprctl dispatch focuswindow "address:$addr" >/dev/null 2>&1 || true
+                return 0
             fi
         fi
-        hyprctl dispatch focuswindow "title:^${TITLE}$" >/dev/null 2>&1
+        # Fallback: match by title regex
+        hyprctl dispatch focuswindow "title:^${TITLE}$" >/dev/null 2>&1 || true
+        return 0
     fi
 
+    # Fallback: wmctrl for X11/other WMs
     if command -v wmctrl >/dev/null 2>&1; then
         wmctrl -a "$TITLE" 2>/dev/null || true
     fi
 }
 
 if ! flock -n 200; then
-    _focus_existing
+    focus_existing_window
     exit 0
 fi
 
 # --- ARGUMENT PARSING ---
-DEVICE=""
-CLASS=""
+device=""
+class=""
+
+show_help() {
+    cat <<EOF
+Usage: ${0##*/} [OPTIONS]
+
+Options:
+    -d DEVICE    Specify the backlight device
+    -c CLASS     Specify the device class  
+    -h           Show this help message
+
+Examples:
+    ${0##*/} -d intel_backlight
+    ${0##*/} -c backlight
+EOF
+}
 
 while getopts ":d:c:h" opt; do
     case "$opt" in
-        d) DEVICE="$OPTARG" ;;
-        c) CLASS="$OPTARG" ;;
-        h) echo "Usage: $0 [-d DEVICE] [-c CLASS]"; exit 0 ;;
-        *) echo "Invalid option"; exit 1 ;;
+        d) device="$OPTARG" ;;
+        c) class="$OPTARG" ;;
+        h) show_help; exit 0 ;;
+        :) echo "Error: Option -$OPTARG requires an argument" >&2; exit 1 ;;
+        \?) echo "Error: Unknown option: -$OPTARG" >&2; exit 1 ;;
     esac
 done
+shift $((OPTIND - 1))
 
-BRIGHTNESSCTL=(brightnessctl)
-[ -n "$DEVICE" ] && BRIGHTNESSCTL+=(--device="$DEVICE")
-[ -n "$CLASS" ] && BRIGHTNESSCTL+=(--class="$CLASS")
+# Build brightnessctl command array
+brightnessctl_cmd=(brightnessctl)
+[[ -n "$device" ]] && brightnessctl_cmd+=(--device="$device")
+[[ -n "$class" ]] && brightnessctl_cmd+=(--class="$class")
 
-# --- SAFETY CHECKS ---
-if ! command -v yad >/dev/null 2>&1; then echo "yad missing"; exit 1; fi
-if ! command -v brightnessctl >/dev/null 2>&1; then echo "brightnessctl missing"; exit 1; fi
+# --- DEPENDENCY CHECKS ---
+missing_deps=()
+command -v yad >/dev/null 2>&1 || missing_deps+=(yad)
+command -v brightnessctl >/dev/null 2>&1 || missing_deps+=(brightnessctl)
 
-# --- CALCULATE INITIAL PERCENTAGE ---
-get_real_pct() {
-    local curr max
-    curr=$("${BRIGHTNESSCTL[@]}" g)
-    max=$("${BRIGHTNESSCTL[@]}" m)
-    if [ "$max" -eq 0 ]; then echo 50; return; fi
-    echo $(( (curr * 100 + max / 2) / max ))
+if ((${#missing_deps[@]} > 0)); then
+    echo "Error: Missing required dependencies: ${missing_deps[*]}" >&2
+    exit 1
+fi
+
+# --- HELPER FUNCTIONS ---
+get_brightness_percent() {
+    local current max pct
+
+    current=$("${brightnessctl_cmd[@]}" get 2>/dev/null) || { echo 50; return; }
+    max=$("${brightnessctl_cmd[@]}" max 2>/dev/null) || { echo 50; return; }
+
+    # Validate: must be non-negative integers
+    if ! [[ "$current" =~ ^[0-9]+$ && "$max" =~ ^[0-9]+$ ]]; then
+        echo 50
+        return
+    fi
+
+    # Prevent division by zero
+    if ((max == 0)); then
+        echo 50
+        return
+    fi
+
+    # Calculate percentage with proper rounding
+    pct=$(( (current * 100 + max / 2) / max ))
+
+    # Clamp to valid range
+    ((pct < 1)) && pct=1
+    ((pct > 100)) && pct=100
+
+    echo "$pct"
 }
 
-CURRENT_PCT=$(get_real_pct)
+set_brightness() {
+    local value="$1"
+    "${brightnessctl_cmd[@]}" set "${value}%" >/dev/null 2>&1 || true
+}
 
-# --- YAD UI ---
-YAD_ARGS=(
+# --- MAIN EXECUTION ---
+current_pct=$(get_brightness_percent)
+
+yad_args=(
     --scale
     --title="$TITLE"
     --text="                      󰃠"
     --class="$APP_NAME"
-    --window-icon="video-display"  # Added icon for uniformity
+    --window-icon="video-display"
     --min-value=1
     --max-value=100
-    --value="$CURRENT_PCT"
+    --value="$current_pct"
     --step=1
-    --show-value
     --print-partial
-    --width=420                    # Uniform Width
-    --height=90                    # Uniform Height
+    --width=420
+    --height=90
     --buttons-layout=center
-    --button="Close":1             # Changed OK to Close for uniformity
+    --button="Close:1"
     --fixed
 )
 
-# The Loop
-"${BRIGHTNESSCTL[@]}" set "${CURRENT_PCT}%" >/dev/null 2>&1
+# Process slider changes in real-time
+# IMPORTANT: Using process substitution (<(...)) instead of pipe
+# to avoid subshell scoping issues - variable updates persist!
+while IFS= read -r value; do
+    # Remove any decimal portion (yad may output floats)
+    value_int="${value%.*}"
 
-yad "${YAD_ARGS[@]}" | while IFS= read -r NEW_PCT; do
-    NEW_PCT_INT=${NEW_PCT%.*}
-    if [ -n "$NEW_PCT_INT" ] && [ "$NEW_PCT_INT" != "$CURRENT_PCT" ]; then
-        "${BRIGHTNESSCTL[@]}" set "${NEW_PCT_INT}%" -q >/dev/null 2>&1
-        CURRENT_PCT="$NEW_PCT_INT"
+    # Validate: non-empty, numeric, in range, and actually changed
+    if [[ -n "$value_int" && "$value_int" =~ ^[0-9]+$ ]]; then
+        if ((value_int != current_pct && value_int >= 1 && value_int <= 100)); then
+            set_brightness "$value_int"
+            current_pct="$value_int"
+        fi
     fi
-done
+done < <(yad "${yad_args[@]}" 2>/dev/null || true)
+
+exit 0
