@@ -234,8 +234,8 @@
         "format": "",
         "tooltip": true,
         "tooltip-format": "Switch wallpapers with waypaper \nor Super + apostrophe (') after \ntoggeling for theme uniformity.\n\nLMB: Dark Mode\nRMB: Light Mode\nMMB: Waypaper",
-        "on-click": "uwsm-app -- ~/user_scripts/swww/theme_switcher.sh -dark",
-        "on-click-right": "uwsm-app -- ~/user_scripts/swww/theme_switcher.sh -light",
+        "on-click": "uwsm-app -- ~/user_scripts/swww/theme_switcher.sh --dark",
+        "on-click-right": "uwsm-app -- ~/user_scripts/swww/theme_switcher.sh --light",
         "on-click-middle": "uwsm-app -- waypaper"
     },
 

@@ -12,18 +12,26 @@
 #   - Triggers SWWW randomization script (applies new wallpaper + Matugen)
 #
 # Usage:
-#   ./theme_switcher.sh -light | --light | -l
-#   ./theme_switcher.sh -dark  | --dark  | -d
+#   ./theme_switcher.sh -l | --light    Switch to Light theme
+#   ./theme_switcher.sh -d | --dark     Switch to Dark theme
+#   ./theme_switcher.sh -h | --help     Show help
 #
 # ==============================================================================
 
 # --- Safe Execution Mode ---
-set -u # Exit on undefined variables
+set -o nounset    # Exit on undefined variables
+set -o pipefail   # Catch pipe failures
+
+# --- Bash Version Check ---
+if ((BASH_VERSINFO[0] < 4)); then
+    printf 'ERROR: Bash 4.0+ required. Current: %s\n' "$BASH_VERSION" >&2
+    exit 1
+fi
 
 # --- Constants & Configuration ---
-readonly WAYPAPER_CONFIG="$HOME/.config/waypaper/config.ini"
-readonly SWWW_SCRIPT="$HOME/user_scripts/swww/swww_random_standalone.sh"
-readonly SYMLINK_SCRIPT="$HOME/user_scripts/swww/symlink_dark_light_directory.sh"
+readonly WAYPAPER_CONFIG="${HOME}/.config/waypaper/config.ini"
+readonly SWWW_SCRIPT="${HOME}/user_scripts/swww/swww_random_standalone.sh"
+readonly SYMLINK_SCRIPT="${HOME}/user_scripts/swww/symlink_dark_light_directory.sh"
 
 # ANSI Color Codes for Output
 readonly RED='\033[0;31m'
@@ -32,165 +40,251 @@ readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
 readonly NC='\033[0m' # No Color
 
+# Exit status tracker
+declare -i overall_status=0
+
 # --- Helper Functions ---
 
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    printf '%b[INFO]%b %s\n' "${BLUE}" "${NC}" "$1"
 }
 
 log_success() {
-    echo -e "${GREEN}[OK]${NC} $1"
+    printf '%b[OK]%b %s\n' "${GREEN}" "${NC}" "$1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1" >&2
+    printf '%b[WARN]%b %s\n' "${YELLOW}" "${NC}" "$1" >&2
+    overall_status=1
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1" >&2
+    printf '%b[ERROR]%b %s\n' "${RED}" "${NC}" "$1" >&2
+    overall_status=1
 }
 
 check_dependency() {
-    if ! command -v "$1" &> /dev/null; then
-        log_error "Required command '$1' not found. Please install it."
+    local cmd="$1"
+    if ! command -v "$cmd" &>/dev/null; then
+        log_error "Required command '${cmd}' not found. Please install it."
         exit 1
     fi
 }
 
 usage() {
-    echo "Usage: $(basename "$0") [OPTION]"
-    echo "Options:"
-    echo "  -l, --light    Switch to Light theme"
-    echo "  -d, --dark     Switch to Dark theme"
-    echo "  -h, --help     Show this help message"
-    exit 1
+    cat <<-EOF
+	Usage: $(basename "$0") [OPTION]
+	
+	Options:
+	  -l, --light    Switch to Light theme
+	  -d, --dark     Switch to Dark theme
+	  -h, --help     Show this help message
+	EOF
+}
+
+validate_file() {
+    local filepath="$1"
+    local desc="${2:-File}"
+
+    if [[ ! -f "$filepath" ]]; then
+        log_error "${desc} not found: ${filepath}"
+        return 1
+    fi
+    if [[ ! -r "$filepath" ]]; then
+        log_error "${desc} not readable: ${filepath}"
+        return 1
+    fi
+    return 0
+}
+
+ensure_executable() {
+    local filepath="$1"
+    local desc="${2:-Script}"
+
+    if ! validate_file "$filepath" "$desc"; then
+        return 1
+    fi
+    if [[ ! -x "$filepath" ]]; then
+        if ! chmod +x "$filepath" 2>/dev/null; then
+            log_error "Cannot make ${desc} executable: ${filepath}"
+            return 1
+        fi
+        log_info "Made ${desc} executable."
+    fi
+    return 0
 }
 
 kill_process_safely() {
     local proc_name="$1"
-    
-    if pgrep -x "$proc_name" > /dev/null; then
-        log_info "Terminating $proc_name..."
-        pkill -x "$proc_name"
-        
-        # Wait loop (max 2 seconds, checking every 0.1s)
-        for _ in {1..20}; do
-            if ! pgrep -x "$proc_name" > /dev/null; then
-                log_success "$proc_name terminated gracefully."
-                return 0
-            fi
-            sleep 0.1
-        done
+    local -i i
 
-        # Force kill if still running
-        if pgrep -x "$proc_name" > /dev/null; then
-            log_warn "$proc_name did not exit, forcing kill..."
-            pkill -9 -x "$proc_name"
-            sleep 0.5
+    # Check if process exists (suppress stderr for permission issues)
+    if ! pgrep -x "$proc_name" &>/dev/null; then
+        return 0
+    fi
+
+    log_info "Terminating ${proc_name}..."
+    pkill -x "$proc_name" 2>/dev/null
+
+    # Wait up to 2 seconds (20 iterations × 0.1s)
+    for ((i = 0; i < 20; i++)); do
+        if ! pgrep -x "$proc_name" &>/dev/null; then
+            log_success "${proc_name} terminated gracefully."
+            return 0
+        fi
+        sleep 0.1
+    done
+
+    # Force kill if still running
+    if pgrep -x "$proc_name" &>/dev/null; then
+        log_warn "${proc_name} did not exit gracefully, force killing..."
+        pkill -9 -x "$proc_name" 2>/dev/null
+        sleep 0.3
+        
+        if pgrep -x "$proc_name" &>/dev/null; then
+            log_error "Failed to terminate ${proc_name}."
+            return 1
         fi
     fi
+
+    log_success "${proc_name} terminated."
+    return 0
 }
 
 # --- Argument Parsing ---
 
-if [[ $# -eq 0 ]]; then
-    usage
+if (($# == 0)); then
+    log_error "No arguments provided."
+    usage >&2
+    exit 1
+fi
+
+# Warn about extra arguments
+if (($# > 1)); then
+    log_warn "Extra arguments ignored. Only processing: $1"
 fi
 
 MODE=""
 
 case "$1" in
-    -l|--light|-light)
+    -l|--light)
         MODE="light"
         ;;
-    -d|--dark|-dark)
+    -d|--dark)
         MODE="dark"
         ;;
     -h|--help)
         usage
+        exit 0  # Help exits successfully
         ;;
     *)
         log_error "Invalid argument: $1"
-        usage
+        usage >&2
+        exit 1
         ;;
 esac
 
-log_info "Initializing switch to: ${GREEN}${MODE^^}${NC}"
+log_info "Initializing theme switch to: ${GREEN}${MODE^^}${NC}"
 
 # --- Pre-flight Checks ---
 
+log_info "Running pre-flight checks..."
+
+# Check required commands
 check_dependency "gsettings"
 check_dependency "sed"
-check_dependency "grep"
-# Kept 'matugen' check to ensure system sanity, even though called in sub-script
-check_dependency "matugen" 
+check_dependency "pgrep"
+check_dependency "pkill"
+check_dependency "matugen"
 
-if [[ ! -f "$WAYPAPER_CONFIG" ]]; then
-    log_error "Waypaper config not found: $WAYPAPER_CONFIG"
-    exit 1
-fi
+# Validate files and scripts
+validate_file "$WAYPAPER_CONFIG" "Waypaper config" || exit 1
+ensure_executable "$SWWW_SCRIPT" "SWWW script" || exit 1
+ensure_executable "$SYMLINK_SCRIPT" "Symlink script" || exit 1
 
-if [[ ! -f "$SWWW_SCRIPT" ]]; then
-    log_error "SWWW script not found: $SWWW_SCRIPT"
-    exit 1
-fi
-
-if [[ ! -f "$SYMLINK_SCRIPT" ]]; then
-    log_error "Symlink script not found: $SYMLINK_SCRIPT"
-    exit 1
-fi
-chmod +x "$SYMLINK_SCRIPT" # Ensure it is executable
+log_success "Pre-flight checks passed."
 
 # --- Core Logic ---
 
 # 1. Set GTK Color Scheme
 log_info "Setting GTK color scheme..."
-if [[ "$MODE" == "light" ]]; then
-    gsettings set org.gnome.desktop.interface color-scheme prefer-light
+if gsettings set org.gnome.desktop.interface color-scheme "prefer-${MODE}" 2>/dev/null; then
+    log_success "GTK color scheme set to 'prefer-${MODE}'."
 else
-    gsettings set org.gnome.desktop.interface color-scheme prefer-dark
+    log_warn "Failed to set GTK color scheme (gsettings may be unavailable)."
 fi
 
 # 2. Handle Waypaper Process
-kill_process_safely "waypaper"
+kill_process_safely "waypaper" || true  # Non-fatal
 
-# 3. Update Waypaper Config (post_command)
-# This updates the config so if you run Waypaper manually later, it respects the last set mode.
+# 3. Update Waypaper Config
 log_info "Updating Waypaper configuration..."
-sed -i "s/post_command = matugen --mode \(light\|dark\) image \$wallpaper/post_command = matugen --mode $MODE image \$wallpaper/" "$WAYPAPER_CONFIG"
 
-# 4. Update SWWW Script (theme_mode variable)
-# CRITICAL FIX: Adjusted regex to match the line even without the '# <-- SET THIS' comment
+# Flexible pattern: handles variable whitespace around = and between args
+if sed -i -E \
+    "s/(post_command\s*=\s*matugen\s+--mode\s+)(light|dark)(\s+image)/\1${MODE}\3/" \
+    "$WAYPAPER_CONFIG" 2>/dev/null; then
+    
+    # Verify the substitution took effect
+    if grep -qE "post_command.*matugen.*--mode\s+${MODE}" "$WAYPAPER_CONFIG" 2>/dev/null; then
+        log_success "Waypaper configuration updated."
+    else
+        log_warn "Waypaper config pattern not found or unchanged."
+    fi
+else
+    log_error "Failed to modify Waypaper configuration."
+fi
+
+# 4. Update SWWW Script
 log_info "Updating SWWW script configuration..."
-sed -i "s/^readonly theme_mode=\".*\"/readonly theme_mode=\"$MODE\"/" "$SWWW_SCRIPT"
 
-# 5. Sync Filesystem
+if sed -i -E \
+    "s/^(readonly\s+theme_mode=)\"[^\"]*\"/\1\"${MODE}\"/" \
+    "$SWWW_SCRIPT" 2>/dev/null; then
+    
+    # Verify the substitution
+    if grep -qE "^readonly\s+theme_mode=\"${MODE}\"" "$SWWW_SCRIPT" 2>/dev/null; then
+        log_success "SWWW script configuration updated."
+    else
+        log_warn "SWWW script pattern not found or unchanged."
+    fi
+else
+    log_error "Failed to modify SWWW script."
+fi
+
+# 5. Sync Filesystem (ensure changes are written)
+log_info "Syncing filesystem..."
 sync
 sleep 0.2
 
-# 5.5. Update Directory Symlinks
+# 6. Update Directory Symlinks
 log_info "Updating wallpaper directory symlinks..."
-# We pass --light or --dark using the $MODE variable we already have
-if "$SYMLINK_SCRIPT" --"$MODE"; then
-    log_success "Symlinks updated to directory: $MODE"
+if "$SYMLINK_SCRIPT" "--${MODE}"; then
+    log_success "Symlinks updated to ${MODE} directory."
 else
     log_error "Failed to update symlinks."
-    # We do not exit here, so the rest of the theme switch can complete
 fi
 
-# 6. Run SWWW Standalone Script
-# This script handles picking a random wallpaper and running matugen
-log_info "Executing SWWW randomization script: $(basename "$SWWW_SCRIPT")"
-
+# 7. Run SWWW Standalone Script
+log_info "Executing SWWW randomization script..."
 if "$SWWW_SCRIPT"; then
     log_success "SWWW script executed successfully."
 else
-    log_warn "SWWW script execution encountered an issue."
+    log_warn "SWWW script execution had issues (check script output above)."
 fi
 
-# 7. Wait for completion
-log_info "Waiting for system propagation (2s)..."
-sleep 2
+# 8. Brief propagation delay
+log_info "Allowing system propagation (1s)..."
+sleep 1
 
-log_success "Theme switched to ${MODE^^} successfully."
-exit 0
+# --- Final Report ---
+
+echo  # Blank line for readability
+
+if ((overall_status == 0)); then
+    log_success "Theme switched to ${MODE^^} successfully!"
+else
+    log_warn "Theme switch to ${MODE^^} completed with warnings. Review output above."
+fi
+
+exit "$overall_status"
