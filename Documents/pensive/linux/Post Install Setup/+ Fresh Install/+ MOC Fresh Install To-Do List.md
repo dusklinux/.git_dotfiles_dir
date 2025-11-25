@@ -261,7 +261,7 @@ systemctl --user enable --now network_meter
 - [ ] **Create a symlink** for the service file in user_scripts/battery/battery_notify.service, so the service works. , this is done because service files are looked for in .config/systemd/user/.
 
 ```bash
-ln -nfs $HOME/user_scripts/battery/battery_notify.service ~/.config/systemd/user/
+ln -nfs $HOME/user_scripts/battery/notify/battery_notify.service ~/.config/systemd/user/
 ```
 
 and then enable the service 

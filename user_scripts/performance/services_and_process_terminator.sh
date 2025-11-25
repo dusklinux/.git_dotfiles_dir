@@ -1,27 +1,56 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
-# performance_toggle.sh (v3.1)
+# performance_toggle.sh (v3.2)
 #
 # A robust utility to terminate processes and stop services to free up system resources.
 # Optimized for Arch Linux / Hyprland workflows.
 #
-# v3.1 FIX: Removed 'gum spin' wrapper which caused scope issues with bash functions.
+# Changelog:
+#   v3.2 - Fixed auto-mode data corruption bug
+#        - Added strict mode with proper error handling
+#        - Added bash version check
+#        - Fixed missing default cases in case statements
+#        - Improved perform_stop reliability with SIGKILL fallback
+#        - Removed unnecessary namerefs
+#        - Consistent use of [[ ]] and printf
 #
-# Dependencies: gum, sudo, systemd, procps-ng
+# Requirements: bash 4.3+, gum, sudo, systemd, procps-ng
 #
 
+# --- STRICT MODE ---
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# --- BASH VERSION CHECK ---
+if ((BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3))); then
+    printf 'Error: This script requires bash 4.3 or higher (found %s)\n' "$BASH_VERSION" >&2
+    exit 1
+fi
+
 # --- SAFETY TRAP ---
-trap 'echo -e "\n\033[1;31mScript encountered an error.\033[0m"; read -rp "Press Enter to exit..."' ERR
+_cleanup() {
+    local exit_code=$?
+    trap - ERR EXIT
+
+    if [[ "${1:-}" == "error" ]]; then
+        printf '\n\033[1;31mScript encountered an error on line %s (exit code: %d)\033[0m\n' \
+            "${2:-unknown}" "$exit_code" >&2
+        read -rp "Press Enter to exit..."
+    fi
+}
+trap '_cleanup error "$LINENO"' ERR
+trap '_cleanup' EXIT
 
 # --- CONFIGURATION ---
 
 # 1. Processes (Raw Binaries)
-DEFAULT_PROCESSES=(
+declare -ra DEFAULT_PROCESSES=(
     "hyprsunset"
     "swww-daemon"
     "waybar"
 )
-OPTIONAL_PROCESSES=(
+declare -ra OPTIONAL_PROCESSES=(
     "inotifywait"
     "wl-paste"
     "wl-copy"
@@ -30,14 +59,14 @@ OPTIONAL_PROCESSES=(
 )
 
 # 2. System Services (Root)
-DEFAULT_SYSTEM_SERVICES=(
+declare -ra DEFAULT_SYSTEM_SERVICES=(
     "firewalld"
     "vsftpd"
     "waydroid-container"
     "logrotate.timer"
     "sshd"
 )
-OPTIONAL_SYSTEM_SERVICES=(
+declare -ra OPTIONAL_SYSTEM_SERVICES=(
     "udisks2"
     "swayosd-libinput-backend"
     "warp-svc"
@@ -45,7 +74,7 @@ OPTIONAL_SYSTEM_SERVICES=(
 )
 
 # 3. User Services (Systemd --user)
-DEFAULT_USER_SERVICES=(
+declare -ra DEFAULT_USER_SERVICES=(
     "battery_notify"
     "blueman-applet"
     "blueman-manager"
@@ -57,7 +86,7 @@ DEFAULT_USER_SERVICES=(
     "network_meter"
     "waybar"
 )
-OPTIONAL_USER_SERVICES=(
+declare -ra OPTIONAL_USER_SERVICES=(
     "gnome-keyring-daemon"
     "swayosd-server"
     "pipewire-pulse.socket"
@@ -66,108 +95,174 @@ OPTIONAL_USER_SERVICES=(
     "wireplumber"
 )
 
-# --- LOGIC IMPLEMENTATION ---
-
-if ! command -v gum &> /dev/null; then
-    echo "Error: 'gum' is not installed."
+# --- DEPENDENCY CHECK ---
+if ! command -v gum &>/dev/null; then
+    printf 'Error: "gum" is not installed.\n' >&2
     exit 1
 fi
 
+# --- UTILITY FUNCTIONS ---
+
+# Check if an element exists in an array
+# Usage: contains_element "needle" "${haystack[@]}"
 contains_element() {
-    local match="$1"; shift
-    for e; do [[ "$e" == "$match" ]] && return 0; done
+    local match="$1"
+    shift
+    local element
+    for element in "$@"; do
+        [[ "$element" == "$match" ]] && return 0
+    done
     return 1
 }
 
+# Check if a process/service is currently active
+# Usage: is_active "name" "type"
+# Types: proc, sys, user
 is_active() {
     local name="$1"
     local type="$2"
+
     case "$type" in
-        "proc") pgrep -x "$name" &> /dev/null ;;
-        "sys")  systemctl is-active --quiet "$name" ;;
-        "user") systemctl --user is-active --quiet "$name" ;;
+        proc)
+            pgrep -x "$name" &>/dev/null
+            ;;
+        sys)
+            systemctl is-active --quiet "$name" 2>/dev/null
+            ;;
+        user)
+            systemctl --user is-active --quiet "$name" 2>/dev/null
+            ;;
+        *)
+            printf 'Warning: Unknown type "%s" in is_active()\n' "$type" >&2
+            return 1
+            ;;
     esac
 }
 
+# Gather all currently active candidates from all categories
+# Output format: type:name|display_text
 gather_candidates() {
-    local -n list_proc_def=DEFAULT_PROCESSES
-    local -n list_proc_opt=OPTIONAL_PROCESSES
-    local -n list_sys_def=DEFAULT_SYSTEM_SERVICES
-    local -n list_sys_opt=OPTIONAL_SYSTEM_SERVICES
-    local -n list_usr_def=DEFAULT_USER_SERVICES
-    local -n list_usr_opt=OPTIONAL_USER_SERVICES
+    local item
 
-    for p in "${list_proc_def[@]}" "${list_proc_opt[@]}"; do
-        is_active "$p" "proc" && echo "proc:$p|$p (Process)"
+    for item in "${DEFAULT_PROCESSES[@]}" "${OPTIONAL_PROCESSES[@]}"; do
+        is_active "$item" "proc" && printf 'proc:%s|%s (Process)\n' "$item" "$item"
     done
-    for s in "${list_sys_def[@]}" "${list_sys_opt[@]}"; do
-        is_active "$s" "sys" && echo "sys:$s|$s (System Svc)"
+
+    for item in "${DEFAULT_SYSTEM_SERVICES[@]}" "${OPTIONAL_SYSTEM_SERVICES[@]}"; do
+        is_active "$item" "sys" && printf 'sys:%s|%s (System Svc)\n' "$item" "$item"
     done
-    for u in "${list_usr_def[@]}" "${list_usr_opt[@]}"; do
-        is_active "$u" "user" && echo "user:$u|$u (User Svc)"
+
+    for item in "${DEFAULT_USER_SERVICES[@]}" "${OPTIONAL_USER_SERVICES[@]}"; do
+        is_active "$item" "user" && printf 'user:%s|%s (User Svc)\n' "$item" "$item"
     done
+
+    return 0
 }
 
+# Check if an item is in the default (pre-selected) lists
 is_default_item() {
     local name="$1"
     local type="$2"
+
     case "$type" in
-        "proc") contains_element "$name" "${DEFAULT_PROCESSES[@]}" ;;
-        "sys")  contains_element "$name" "${DEFAULT_SYSTEM_SERVICES[@]}" ;;
-        "user") contains_element "$name" "${DEFAULT_USER_SERVICES[@]}" ;;
+        proc)
+            contains_element "$name" "${DEFAULT_PROCESSES[@]}"
+            ;;
+        sys)
+            contains_element "$name" "${DEFAULT_SYSTEM_SERVICES[@]}"
+            ;;
+        user)
+            contains_element "$name" "${DEFAULT_USER_SERVICES[@]}"
+            ;;
+        *)
+            return 1
+            ;;
     esac
 }
 
+# Stop a process or service
+# Returns 0 on success, 1 on failure
 perform_stop() {
     local type="$1"
     local name="$2"
+    local i
 
     case "$type" in
-        "proc")
-            pkill -x "$name"
-            # Wait loop: Check every 0.1s for up to 2 seconds
-            for _ in {1..20}; do
-                if ! is_active "$name" "proc"; then return 0; fi
+        proc)
+            # Attempt graceful termination first
+            pkill -x "$name" 2>/dev/null || true
+
+            # Wait up to 2 seconds for graceful shutdown
+            for i in {1..20}; do
+                is_active "$name" "proc" || return 0
                 sleep 0.1
             done
-            return 1
+
+            # Force kill as last resort
+            pkill -9 -x "$name" 2>/dev/null || true
+            sleep 0.3
+
+            # Final check
+            ! is_active "$name" "proc"
             ;;
-        "sys")
-            sudo systemctl stop "$name"
+        sys)
+            if ! sudo systemctl stop "$name" 2>/dev/null; then
+                # Check if it's simply not loaded/doesn't exist
+                if ! systemctl list-unit-files "$name" &>/dev/null; then
+                    printf 'Warning: Unit %s not found\n' "$name" >&2
+                fi
+                return 1
+            fi
+            sleep 0.2
             ! is_active "$name" "sys"
             ;;
-        "user")
-            systemctl --user stop "$name"
+        user)
+            if ! systemctl --user stop "$name" 2>/dev/null; then
+                return 1
+            fi
+            sleep 0.2
             ! is_active "$name" "user"
+            ;;
+        *)
+            printf 'Error: Unknown type "%s" in perform_stop()\n' "$type" >&2
+            return 1
             ;;
     esac
 }
 
 # --- EXECUTION PHASES ---
 
+# Gather active candidates
 mapfile -t CANDIDATES < <(gather_candidates)
 
-if [ ${#CANDIDATES[@]} -eq 0 ]; then
-    gum style --border normal --padding "1 2" --border-foreground 212 "System Clean" "All monitored services/processes are already inactive."
-    echo ""
+# Early exit if nothing to do
+if [[ ${#CANDIDATES[@]} -eq 0 ]]; then
+    gum style --border normal --padding "1 2" --border-foreground 212 \
+        "System Clean" \
+        "All monitored services/processes are already inactive."
+    printf '\n'
+    trap - ERR EXIT
     exec "${SHELL:-/bin/bash}"
 fi
 
-SELECTED_ITEMS=()
+declare -a SELECTED_ITEMS=()
 
-if [[ "$1" == "--auto" ]]; then
+if [[ "${1:-}" == "--auto" ]]; then
+    # Auto mode: select all default items automatically
     for line in "${CANDIDATES[@]}"; do
-        data="${line%%|*}"
-        type="${data%%:*}"
-        name="${data#*:}"
+        data="${line%%|*}"       # Extract "type:name" (before pipe)
+        type="${data%%:*}"       # Extract type (before colon)
+        name="${data#*:}"        # Extract name (after colon)
+
         if is_default_item "$name" "$type"; then
-            SELECTED_ITEMS+=("$line")
+            SELECTED_ITEMS+=("$data")  # FIX: Store only data, not full line
         fi
     done
 else
-    OPTIONS_DISPLAY=()
-    PRE_SELECTED_DISPLAY=()
-    declare -A DATA_MAP
+    # Interactive mode: let user choose
+    declare -a OPTIONS_DISPLAY=()
+    declare -a PRE_SELECTED_DISPLAY=()
+    declare -A DATA_MAP=()
 
     for line in "${CANDIDATES[@]}"; do
         data="${line%%|*}"
@@ -183,87 +278,108 @@ else
         fi
     done
 
-    PRE_SELECTED_STR=$(IFS=, ; echo "${PRE_SELECTED_DISPLAY[*]}")
+    # Build comma-separated list of pre-selected items
+    PRE_SELECTED_STR=""
+    if [[ ${#PRE_SELECTED_DISPLAY[@]} -gt 0 ]]; then
+        PRE_SELECTED_STR=$(IFS=,; printf '%s' "${PRE_SELECTED_DISPLAY[*]}")
+    fi
 
-    gum style --border double --padding "1 2" --border-foreground 57 "Performance Terminator"
+    gum style --border double --padding "1 2" --border-foreground 57 \
+        "Performance Terminator"
 
-    SELECTION_RESULT=$(gum choose --no-limit --height 15 \
-        --header "Select resources to FREE. (SPACE: toggle, ENTER: confirm)" \
-        --selected="$PRE_SELECTED_STR" \
-        "${OPTIONS_DISPLAY[@]}")
+    # Allow gum choose to exit without selection (user cancels)
+    SELECTION_RESULT=$(
+        gum choose --no-limit --height 15 \
+            --header "Select resources to FREE. (SPACE: toggle, ENTER: confirm)" \
+            --selected="$PRE_SELECTED_STR" \
+            "${OPTIONS_DISPLAY[@]}"
+    ) || true
 
-    if [ -z "$SELECTION_RESULT" ]; then
-        echo "Cancelled."
+    if [[ -z "$SELECTION_RESULT" ]]; then
+        printf 'Cancelled.\n'
         exit 0
     fi
 
+    # Parse selection results
     while IFS= read -r line; do
-        [[ -n "$line" ]] && SELECTED_ITEMS+=("${DATA_MAP[$line]}")
+        if [[ -n "$line" ]]; then
+            SELECTED_ITEMS+=("${DATA_MAP[$line]}")
+        fi
     done <<< "$SELECTION_RESULT"
 fi
 
-if [ ${#SELECTED_ITEMS[@]} -eq 0 ]; then
-    echo "No items selected."
+# Check if anything was selected
+if [[ ${#SELECTED_ITEMS[@]} -eq 0 ]]; then
+    printf 'No items selected.\n'
+    trap - ERR EXIT
     exec "${SHELL:-/bin/bash}"
 fi
 
-# Sudo Check
+# Pre-authenticate sudo if system services are selected
 NEEDS_SUDO=false
 for item in "${SELECTED_ITEMS[@]}"; do
-    [[ "$item" == sys:* ]] && NEEDS_SUDO=true && break
+    if [[ "$item" == sys:* ]]; then
+        NEEDS_SUDO=true
+        break
+    fi
 done
 
-if $NEEDS_SUDO; then
+if [[ "$NEEDS_SUDO" == true ]]; then
+    printf 'System services selected. Authenticating...\n'
     if ! sudo -v; then
         gum style --foreground 196 "Authentication failed. Aborting."
         exit 1
     fi
 fi
 
-SUCCESS_LIST=()
-FAIL_LIST=()
+declare -a SUCCESS_LIST=()
+declare -a FAIL_LIST=()
 
-echo ""
+printf '\n'
 gum style --bold "Stopping selected resources..."
 
-# --- MAIN LOOP (Corrected) ---
+# --- MAIN PROCESSING LOOP ---
 for item in "${SELECTED_ITEMS[@]}"; do
     type="${item%%:*}"
     name="${item#*:}"
-    
-    # Print status (simulated spinner text since we can't use gum spin comfortably here)
-    echo -n " • Stopping $name..."
 
-    # Execute logic DIRECTLY in shell context
+    printf ' • Stopping %s...' "$name"
+
     if perform_stop "$type" "$name"; then
-        echo -e "\r \033[0;32m✔\033[0m Stopped $name    "
+        printf '\r \033[0;32m✔\033[0m Stopped %s     \n' "$name"
         SUCCESS_LIST+=("$type: $name")
     else
-        echo -e "\r \033[0;31m✘\033[0m Failed $name     "
+        printf '\r \033[0;31m✘\033[0m Failed %s      \n' "$name"
         FAIL_LIST+=("$type: $name")
     fi
 done
 
-# --- REPORTING ---
+# --- FINAL REPORT ---
 REPORT=""
 
-if [ ${#SUCCESS_LIST[@]} -gt 0 ]; then
-    REPORT+="$(gum style --foreground 82 "✔ Successfully Stopped:")\n"
-    for s in "${SUCCESS_LIST[@]}"; do REPORT+="  $s\n"; done
-    REPORT+="\n"
+if [[ ${#SUCCESS_LIST[@]} -gt 0 ]]; then
+    REPORT+="$(gum style --foreground 82 "✔ Successfully Stopped:")"$'\n'
+    for item in "${SUCCESS_LIST[@]}"; do
+        REPORT+="  $item"$'\n'
+    done
+    REPORT+=$'\n'
 fi
 
-if [ ${#FAIL_LIST[@]} -gt 0 ]; then
-    REPORT+="$(gum style --foreground 196 "✘ Failed to Stop (Still Active):")\n"
-    for f in "${FAIL_LIST[@]}"; do REPORT+="  $f\n"; done
-    REPORT+="\n"
+if [[ ${#FAIL_LIST[@]} -gt 0 ]]; then
+    REPORT+="$(gum style --foreground 196 "✘ Failed to Stop (Still Active):")"$'\n'
+    for item in "${FAIL_LIST[@]}"; do
+        REPORT+="  $item"$'\n'
+    done
+    REPORT+=$'\n'
 fi
 
 clear
 gum style --border double --padding "1 2" --border-foreground 57 "Execution Complete"
-echo -e "$REPORT"
+printf '%b' "$REPORT"
 
-trap - ERR
-echo "-----------------------------------------------------"
-echo "Session Active. Type 'exit' to close."
+# Clear traps before launching interactive shell
+trap - ERR EXIT
+
+printf '%s\n' "-----------------------------------------------------"
+printf '%s\n' "Session Active. Type 'exit' to close."
 exec "${SHELL:-/bin/bash}"

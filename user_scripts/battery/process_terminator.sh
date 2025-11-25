@@ -6,34 +6,32 @@
 # Optimized for Arch Linux / Hyprland (run with sudo).
 #
 
-# --- ROOT CHECK ---
-if [ "$EUID" -ne 0 ]; then
-    echo -e "\033[1;31mError: This script must be run as root (sudo).\033[0m"
-    exit 1
-fi
+set -o pipefail
 
-# --- DETECT REAL USER ---
-# We need this to stop 'systemctl --user' services correctly while running as root.
-if [ -n "$SUDO_USER" ]; then
-    REAL_USER="$SUDO_USER"
-    REAL_UID=$(id -u "$SUDO_USER")
-else
-    echo "Warning: Script not run via sudo. Assuming current user is root (this may affect user services)."
-    REAL_USER="root"
-    REAL_UID=0
-fi
+# --- CONSTANTS ---
+readonly STOP_TIMEOUT=10
+readonly PROCESS_WAIT_ATTEMPTS=10
+readonly PROCESS_WAIT_INTERVAL=0.1
+
+# --- COLORS ---
+readonly RED='\033[1;31m'
+readonly GREEN='\033[1;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[1;34m'
+readonly GRAY='\033[0;37m'
+readonly RESET='\033[0m'
 
 # --- CONFIGURATION ---
 
 # 1. Processes (Raw Binaries to pkill)
-TARGET_PROCESSES=(
+readonly -a TARGET_PROCESSES=(
     "hyprsunset"
     "waybar"
     "blueman-manager"
 )
 
 # 2. System Services (Requires Root)
-TARGET_SYSTEM_SERVICES=(
+readonly -a TARGET_SYSTEM_SERVICES=(
     "firewalld"
     "vsftpd"
     "waydroid-container"
@@ -42,7 +40,7 @@ TARGET_SYSTEM_SERVICES=(
 )
 
 # 3. User Services (Requires User Context)
-TARGET_USER_SERVICES=(
+readonly -a TARGET_USER_SERVICES=(
     "battery_notify"
     "blueman-applet"
     "hypridle"
@@ -53,92 +51,232 @@ TARGET_USER_SERVICES=(
     "network_meter"
 )
 
+# --- GLOBALS ---
+FAILURE_COUNT=0
+REAL_USER=""
+REAL_UID=""
+USER_RUNTIME_DIR=""
+USER_DBUS_ADDRESS=""
+
 # --- FUNCTIONS ---
+
+die() {
+    echo -e "${RED}Error: $1${RESET}" >&2
+    exit 1
+}
+
+warn() {
+    echo -e "${YELLOW}Warning: $1${RESET}" >&2
+}
+
+check_root() {
+    if [[ ${EUID} -ne 0 ]]; then
+        die "This script must be run as root (sudo)."
+    fi
+}
+
+check_dependencies() {
+    local -a missing=()
+    local cmd
+    
+    for cmd in pgrep pkill systemctl id timeout; do
+        if ! command -v "$cmd" &>/dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+    
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        die "Missing required commands: ${missing[*]}"
+    fi
+}
+
+detect_real_user() {
+    if [[ -n "${SUDO_USER:-}" ]]; then
+        REAL_USER="$SUDO_USER"
+        REAL_UID=$(id -u "$SUDO_USER" 2>/dev/null) || die "Could not determine UID for user '$SUDO_USER'"
+    else
+        warn "Script not run via sudo. User services may not stop correctly."
+        REAL_USER="root"
+        REAL_UID=0
+    fi
+    
+    USER_RUNTIME_DIR="/run/user/${REAL_UID}"
+    USER_DBUS_ADDRESS="unix:path=${USER_RUNTIME_DIR}/bus"
+}
 
 print_status() {
     local status="$1"
     local name="$2"
-    if [ "$status" == "success" ]; then
-        echo -e "[\033[1;32m OK \033[0m] Stopped: $name"
-    elif [ "$status" == "skip" ]; then
-        echo -e "[\033[1;30mSKIP\033[0m] Not running: $name"
-    else
-        echo -e "[\033[1;31mFAIL\033[0m] Could not stop: $name"
-    fi
+    local extra="${3:-}"
+    
+    case "$status" in
+        success)
+            echo -e "[${GREEN} OK ${RESET}] Stopped: ${name}${extra:+ ($extra)}"
+            ;;
+        skip)
+            echo -e "[${GRAY}SKIP${RESET}] Not running: ${name}${extra:+ ($extra)}"
+            ;;
+        fail)
+            echo -e "[${RED}FAIL${RESET}] Could not stop: ${name}${extra:+ ($extra)}"
+            ((FAILURE_COUNT++))
+            ;;
+    esac
 }
 
 stop_process() {
     local name="$1"
-    if pgrep -x "$name" &> /dev/null; then
-        pkill -x "$name"
-        # Quick wait to ensure it dies
-        for _ in {1..10}; do
-            if ! pgrep -x "$name" &> /dev/null; then
-                print_status "success" "$name"
-                return
-            fi
-            sleep 0.1
-        done
-        print_status "fail" "$name"
-    else
+    local i
+    
+    # Check if process exists
+    if ! pgrep -x "$name" &>/dev/null; then
         print_status "skip" "$name"
+        return 0
+    fi
+    
+    # Try graceful termination (SIGTERM)
+    pkill -x "$name" 2>/dev/null
+    
+    # Wait for process to terminate
+    for ((i = 0; i < PROCESS_WAIT_ATTEMPTS; i++)); do
+        if ! pgrep -x "$name" &>/dev/null; then
+            print_status "success" "$name" "SIGTERM"
+            return 0
+        fi
+        sleep "$PROCESS_WAIT_INTERVAL"
+    done
+    
+    # Escalate to SIGKILL
+    pkill -9 -x "$name" 2>/dev/null
+    sleep 0.3
+    
+    # Final check
+    if ! pgrep -x "$name" &>/dev/null; then
+        print_status "success" "$name" "SIGKILL"
+    else
+        print_status "fail" "$name"
     fi
 }
 
 stop_system_service() {
     local name="$1"
-    if systemctl is-active --quiet "$name"; then
-        systemctl stop "$name"
-        if ! systemctl is-active --quiet "$name"; then
-            print_status "success" "$name"
-        else
-            print_status "fail" "$name"
-        fi
-    else
+    
+    # Check if service exists and is active
+    if ! systemctl is-active --quiet "$name" 2>/dev/null; then
         print_status "skip" "$name"
+        return 0
     fi
+    
+    # Attempt to stop with timeout
+    if timeout "$STOP_TIMEOUT" systemctl stop "$name" 2>/dev/null; then
+        # Verify stopped
+        if ! systemctl is-active --quiet "$name" 2>/dev/null; then
+            print_status "success" "$name"
+            return 0
+        fi
+    fi
+    
+    print_status "fail" "$name"
+}
+
+run_as_user() {
+    # Helper to run systemctl --user with proper environment
+    sudo -u "$REAL_USER" \
+        XDG_RUNTIME_DIR="$USER_RUNTIME_DIR" \
+        DBUS_SESSION_BUS_ADDRESS="$USER_DBUS_ADDRESS" \
+        "$@"
 }
 
 stop_user_service() {
     local name="$1"
-    # Check status as the real user
-    if sudo -u "$REAL_USER" XDG_RUNTIME_DIR="/run/user/$REAL_UID" systemctl --user is-active --quiet "$name"; then
-        # Stop as the real user
-        sudo -u "$REAL_USER" XDG_RUNTIME_DIR="/run/user/$REAL_UID" systemctl --user stop "$name"
-        
-        # Verify stop
-        if ! sudo -u "$REAL_USER" XDG_RUNTIME_DIR="/run/user/$REAL_UID" systemctl --user is-active --quiet "$name"; then
-            print_status "success" "$name"
-        else
-            print_status "fail" "$name"
-        fi
-    else
-        print_status "skip" "$name"
+    
+    # Skip if running as actual root (no user session)
+    if [[ "$REAL_USER" == "root" ]]; then
+        print_status "skip" "$name" "no user session"
+        return 0
     fi
+    
+    # Check if user runtime directory exists
+    if [[ ! -d "$USER_RUNTIME_DIR" ]]; then
+        print_status "skip" "$name" "no runtime dir"
+        return 0
+    fi
+    
+    # Check if service is active
+    if ! run_as_user systemctl --user is-active --quiet "$name" 2>/dev/null; then
+        print_status "skip" "$name"
+        return 0
+    fi
+    
+    # Attempt to stop with timeout
+    if run_as_user timeout "$STOP_TIMEOUT" systemctl --user stop "$name" 2>/dev/null; then
+        # Verify stopped
+        if ! run_as_user systemctl --user is-active --quiet "$name" 2>/dev/null; then
+            print_status "success" "$name"
+            return 0
+        fi
+    fi
+    
+    print_status "fail" "$name"
 }
 
-# --- EXECUTION ---
+print_header() {
+    local width=44
+    local title="Performance Terminator"
+    local user_info="User: ${REAL_USER} (UID: ${REAL_UID})"
+    
+    echo ""
+    printf '%*s\n' "$width" '' | tr ' ' '-'
+    printf " %-*s\n" $((width - 2)) "$title"
+    printf " %-*s\n" $((width - 2)) "$user_info"
+    printf '%*s\n' "$width" '' | tr ' ' '-'
+}
 
-echo "----------------------------------------"
-echo " Performance Terminator (Mode: AUTO)    "
-echo " User Context: $REAL_USER               "
-echo "----------------------------------------"
+print_footer() {
+    local width=44
+    
+    echo ""
+    printf '%*s\n' "$width" '' | tr ' ' '-'
+    if [[ $FAILURE_COUNT -eq 0 ]]; then
+        echo -e " ${GREEN}Cleanup complete. All operations successful.${RESET}"
+    else
+        echo -e " ${YELLOW}Cleanup complete with ${FAILURE_COUNT} failure(s).${RESET}"
+    fi
+    printf '%*s\n' "$width" '' | tr ' ' '-'
+}
 
-echo -e "\n\033[1;34m:: Processes\033[0m"
-for p in "${TARGET_PROCESSES[@]}"; do
-    stop_process "$p"
-done
+# --- MAIN ---
 
-echo -e "\n\033[1;34m:: System Services\033[0m"
-for s in "${TARGET_SYSTEM_SERVICES[@]}"; do
-    stop_system_service "$s"
-done
+main() {
+    local item
+    
+    check_root
+    check_dependencies
+    detect_real_user
+    
+    print_header
+    
+    echo -e "\n${BLUE}:: Processes${RESET}"
+    for item in "${TARGET_PROCESSES[@]}"; do
+        stop_process "$item"
+    done
+    
+    echo -e "\n${BLUE}:: System Services${RESET}"
+    for item in "${TARGET_SYSTEM_SERVICES[@]}"; do
+        stop_system_service "$item"
+    done
+    
+    echo -e "\n${BLUE}:: User Services${RESET}"
+    for item in "${TARGET_USER_SERVICES[@]}"; do
+        stop_user_service "$item"
+    done
+    
+    print_footer
+    
+    # Exit with appropriate code
+    if [[ $FAILURE_COUNT -gt 0 ]]; then
+        exit 1
+    fi
+    exit 0
+}
 
-echo -e "\n\033[1;34m:: User Services\033[0m"
-for u in "${TARGET_USER_SERVICES[@]}"; do
-    stop_user_service "$u"
-done
-
-echo -e "\n----------------------------------------"
-echo "Cleanup Complete."
-echo "----------------------------------------"
+main "$@"

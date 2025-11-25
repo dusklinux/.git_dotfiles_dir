@@ -8,7 +8,7 @@ PartOf=graphical-session.target
 [Service]
 Type=simple
 # Use %h for home directory compatibility
-ExecStart=%h/user_scripts/battery/battery_notify.sh
+ExecStart=%h/user_scripts/battery/notify/battery_notify.sh
 Restart=on-failure
 RestartSec=5
 

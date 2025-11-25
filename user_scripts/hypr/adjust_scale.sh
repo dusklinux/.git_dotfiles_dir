@@ -1,150 +1,175 @@
 #!/usr/bin/env bash
-
 # ==============================================================================
 # Hyprland Monitor Scale Adjustment Script
 # Precision-engineered for Arch Linux / Hyprland
 # ==============================================================================
 
-# Strict Mode: Exit on error, error on unset vars, error on pipe failure
+# Strict mode: exit on error, undefined variables, and pipe failures
 set -euo pipefail
 
-# Force standard locale to ensure '.' is used for decimals (prevents bugs in non-English regions)
+# Force C locale for consistent decimal point handling
 export LC_ALL=C
 
 # --- Configuration ---
 
-# Set your primary monitor name here. Leave empty to auto-detect the focused one.
-# You can find names via `hyprctl monitors` (e.g., "DP-1", "eDP-1")
-TARGET_MONITOR=""
+# Target monitor (leave empty to auto-detect focused monitor)
+# Override via environment: HYPR_SCALE_MONITOR="DP-1" ./script.sh +
+readonly TARGET_MONITOR="${HYPR_SCALE_MONITOR:-}"
 
-# Notification tag to prevent stacking/flickering
-NOTIFY_TAG="hypr_scale_adjust"
+# Notification settings
+readonly NOTIFY_TAG="hypr_scale_adjust"
+readonly NOTIFY_TIMEOUT=2000
 
-# Define known good scales (Must be sorted ascending)
-readonly GOOD_SCALES=("1.00" "1.20" "1.25" "1.333333" "1.50" "1.60" "1.666667" "2.00" "2.40" "2.50" "3.00")
+# Known good scale values (MUST be sorted ascending)
+readonly GOOD_SCALES=(1.00 1.20 1.25 1.333333 1.50 1.60 1.666667 2.00 2.40 2.50 3.00)
 
-# --- Functions ---
+# --- Helper Functions ---
 
-usage() {
-    echo "Usage: $(basename "$0") [+|-]"
-    echo "  +  Increase scale"
-    echo "  -  Decrease scale"
+die() {
+    printf '%s: %s\n' "$(basename "$0")" "$*" >&2
     exit 1
 }
 
-send_notification() {
-    local scale="$1"
-    local monitor="$2"
-    
-    if command -v notify-send &> /dev/null; then
-        # -h string:x-canonical-private-synchronous:... replaces the previous notification
-        # immediately, eliminating the need for sleep/delays.
-        notify-send \
-            -h string:x-canonical-private-synchronous:"$NOTIFY_TAG" \
-            -u low \
-            -t 2000 \
-            "Display Scale: ${scale}" \
-            "Monitor: ${monitor}"
-    fi
+usage() {
+    cat <<-EOF
+	Usage: $(basename "$0") [+|-]
+	
+	Options:
+	  +   Increase display scale to next preset
+	  -   Decrease display scale to previous preset
+	
+	Environment:
+	  HYPR_SCALE_MONITOR   Override target monitor (e.g., "DP-1")
+	
+	Example:
+	  $(basename "$0") +
+	  HYPR_SCALE_MONITOR="eDP-1" $(basename "$0") -
+	EOF
+    exit 1
 }
 
-get_monitor_info() {
-    # Fetch monitor data once
-    hyprctl -j monitors
+check_dependencies() {
+    local missing=() cmd
+    for cmd in hyprctl jq awk; do
+        command -v "$cmd" &>/dev/null || missing+=("$cmd")
+    done
+    
+    ((${#missing[@]} == 0)) || die "missing required commands: ${missing[*]}"
+}
+
+send_notification() {
+    local -r scale="$1" monitor="$2"
+    
+    # notify-send is optional - fail silently if unavailable
+    command -v notify-send &>/dev/null || return 0
+    
+    notify-send \
+        -h "string:x-canonical-private-synchronous:${NOTIFY_TAG}" \
+        -u low \
+        -t "$NOTIFY_TIMEOUT" \
+        "Display Scale: ${scale}" \
+        "Monitor: ${monitor}" 2>/dev/null || true
+}
+
+calculate_new_scale() {
+    local -r current="$1" direction="$2"
+    
+    awk -v cur="$current" -v dir="$direction" -v scales="${GOOD_SCALES[*]}" '
+    BEGIN {
+        n = split(scales, arr, " ")
+        
+        # Find index of scale closest to current value
+        best_idx = 1
+        min_diff = 1e9
+        for (i = 1; i <= n; i++) {
+            diff = cur - arr[i]
+            if (diff < 0) diff = -diff
+            if (diff < min_diff) {
+                min_diff = diff
+                best_idx = i
+            }
+        }
+        
+        # Compute target index based on direction
+        target = (dir == "+") ? best_idx + 1 : best_idx - 1
+        
+        # Clamp to valid range
+        if (target < 1) target = 1
+        if (target > n) target = n
+        
+        print arr[target]
+    }'
+}
+
+# Floating-point safe comparison using awk
+# Returns 0 (true) if values differ, 1 (false) if equal
+scales_differ() {
+    awk -v a="$1" -v b="$2" 'BEGIN { exit (a == b) }'
 }
 
 # --- Main Logic ---
 
-# 1. Validate Dependencies
-for cmd in hyprctl jq awk notify-send; do
-    if ! command -v "$cmd" &> /dev/null; then
-        echo "Error: Required command '$cmd' is not installed." >&2
-        exit 1
+main() {
+    check_dependencies
+    
+    # Validate command-line arguments
+    if [[ $# -ne 1 ]] || [[ "$1" != "+" && "$1" != "-" ]]; then
+        usage
     fi
-done
-
-# 2. Validate Input
-if [[ $# -ne 1 ]] || [[ "$1" != "+" && "$1" != "-" ]]; then
-    usage
-fi
-DIRECTION="$1"
-
-# 3. Get Monitor Data
-MONITORS_JSON=$(get_monitor_info)
-
-# 4. Identify Target Monitor
-if [[ -z "$TARGET_MONITOR" ]]; then
-    TARGET_MONITOR=$(echo "$MONITORS_JSON" | jq -r '.[] | select(.focused == true) | .name')
-fi
-
-# Extract data for the specific monitor
-CURRENT_DATA=$(echo "$MONITORS_JSON" | jq -r --arg NAME "$TARGET_MONITOR" '.[] | select(.name == $NAME)')
-
-if [[ -z "$CURRENT_DATA" ]]; then
-    echo "Error: Monitor '$TARGET_MONITOR' not found." >&2
-    exit 1
-fi
-
-# 5. Parse Current Settings
-# We use awk to format the Refresh Rate to avoid floating point issues (e.g. 143.99 -> 144)
-# while keeping the raw values for resolution and position.
-read -r CUR_RES_X CUR_RES_Y CUR_REFRESH CUR_POS_X CUR_POS_Y CUR_SCALE <<< "$(echo "$CURRENT_DATA" | jq -r '.width, .height, .refreshRate, .x, .y, .scale' | tr '\n' ' ')"
-
-# Round refresh rate to nearest integer for the config string (standard Hyprland practice)
-CUR_REFRESH_INT=$(awk -v val="$CUR_REFRESH" 'BEGIN {printf "%.0f", val}')
-
-# 6. Calculate New Scale using AWK
-# We pass the Bash array string and current scale to awk for processing
-NEW_SCALE=$(awk -v cur="$CUR_SCALE" -v dir="$DIRECTION" -v scales="${GOOD_SCALES[*]}" '
-BEGIN {
-    # Split the scales string into an array
-    n = split(scales, arr, " ");
+    local -r direction="$1"
     
-    # Find the index of the closest current scale
-    best_idx = 1;
-    min_diff = 1000;
+    # Fetch all monitor data in a single call
+    local monitors_json
+    if ! monitors_json=$(hyprctl -j monitors 2>/dev/null); then
+        die "failed to query hyprctl (is Hyprland running?)"
+    fi
     
-    for (i = 1; i <= n; i++) {
-        diff = cur - arr[i];
-        if (diff < 0) diff = -diff;
+    # Determine which monitor to adjust
+    local monitor="$TARGET_MONITOR"
+    if [[ -z "$monitor" ]]; then
+        monitor=$(jq -r '.[] | select(.focused) | .name // empty' <<< "$monitors_json")
+        [[ -n "$monitor" ]] || die "no focused monitor detected"
+    fi
+    
+    # Extract data for target monitor with error checking
+    local monitor_json
+    if ! monitor_json=$(jq -e --arg m "$monitor" '.[] | select(.name == $m)' <<< "$monitors_json" 2>/dev/null); then
+        die "monitor '${monitor}' not found"
+    fi
+    
+    # Parse all values in a single jq invocation
+    local width height refresh pos_x pos_y scale
+    IFS=$'\t' read -r width height refresh pos_x pos_y scale < <(
+        jq -r '[.width, .height, .refreshRate, .x, .y, .scale] | @tsv' <<< "$monitor_json"
+    )
+    
+    # Validate critical parsed value
+    if [[ -z "$scale" || "$scale" == "null" ]]; then
+        die "failed to parse current scale for '${monitor}'"
+    fi
+    
+    # Round refresh rate to nearest integer (Hyprland convention)
+    local refresh_int
+    printf -v refresh_int '%.0f' "$refresh"
+    
+    # Determine new scale
+    local new_scale
+    new_scale=$(calculate_new_scale "$scale" "$direction")
+    
+    # Apply changes only if scale actually changed
+    if scales_differ "$new_scale" "$scale"; then
+        # Construct Hyprland monitor rule: NAME,WxH@HZ,POSxPOS,SCALE
+        local -r rule="${monitor},${width}x${height}@${refresh_int},${pos_x}x${pos_y},${new_scale}"
         
-        if (diff < min_diff) {
-            min_diff = diff;
-            best_idx = i;
-        }
-    }
+        if ! hyprctl keyword monitor "$rule" &>/dev/null; then
+            die "failed to apply monitor rule: ${rule}"
+        fi
+        
+        send_notification "$new_scale" "$monitor"
+    else
+        # We're at the scale limit
+        send_notification "${new_scale} (Limit)" "$monitor"
+    fi
+}
 
-    # Calculate target index
-    if (dir == "+") {
-        target_idx = best_idx + 1;
-    } else {
-        target_idx = best_idx - 1;
-    }
-
-    # Bounds checking
-    if (target_idx < 1) target_idx = 1;
-    if (target_idx > n) target_idx = n;
-
-    # Print the new scale
-    print arr[target_idx];
-}')
-
-# 7. Apply Changes
-# Only apply if the scale actually changed
-if (( $(awk 'BEGIN {print ("'"$NEW_SCALE"'" != "'"$CUR_SCALE"'")}') )); then
-    
-    # Construct the Hyprland monitor rule string
-    # Format: monitor=NAME,RES@HZ,POS,SCALE
-    NEW_RULE="${TARGET_MONITOR},${CUR_RES_X}x${CUR_RES_Y}@${CUR_REFRESH_INT},${CUR_POS_X}x${CUR_POS_Y},${NEW_SCALE}"
-    
-    # Apply immediately
-    hyprctl keyword monitor "$NEW_RULE" > /dev/null
-    
-    # Send notification
-    send_notification "$NEW_SCALE" "$TARGET_MONITOR"
-else
-    # Optional: Notify that we hit the limit (comment out if you prefer silence)
-    send_notification "${NEW_SCALE} (Limit)" "$TARGET_MONITOR"
-fi
-
-exit 0
+main "$@"
