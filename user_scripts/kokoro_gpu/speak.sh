@@ -76,6 +76,8 @@ mpv \
   --no-terminal \
   --force-window \
   --title="Kokoro TTS" \
+  --x11-name=kokoro \
+  --wayland-app-id=kokoro \
   --geometry=400x100 \
   --keep-open=yes \
   --speed="$MPV_PLAYBACK_SPEED" \
