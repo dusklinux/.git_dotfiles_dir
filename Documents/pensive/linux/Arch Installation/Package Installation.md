@@ -99,7 +99,7 @@ pacman -S --needed networkmanager iwd nm-connection-editor inetutils wget curl o
 _Zsh, terminal emulator, and modern Rust-based CLI replacements._
 
 ```
-pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza fd tealdeer yazi zellij gum man-db ttyper tree fzf less ripgrep
+pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza fd tealdeer yazi zellij gum man-db ttyper tree fzf less ripgrep expac zsh-autosuggestions
 ```
 
 - [ ] Status

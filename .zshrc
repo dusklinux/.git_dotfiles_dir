@@ -12,6 +12,8 @@
 # 7. Auto login INTO UWSM HYPRLAND WITH TTY1
 # =============================================================================
 
+# Exit early if not interactive
+[[ -o interactive ]] || return
 
 # -----------------------------------------------------------------------------
 # [1] ENVIRONMENT VARIABLES & PATH
@@ -19,7 +21,7 @@
 # Set core applications and configure the system's search path for executables.
 # These are fundamental for defining your work environment.
 
-# Set the default text editor for command-line tools. Neovim is a wise choice.
+# Set the default text editor for command-line tools.
 export EDITOR='nvim'
 # Set the default terminal emulator.
 export TERMINAL='kitty'
@@ -31,6 +33,13 @@ export TERMINAL='kitty'
 # the CPU's hardware thread count (e.g., Intel i7-12700H has 20 threads).
 # This does NOT affect shell performance itself.
 export OMP_NUM_THREADS=$(nproc)
+
+# --- Compilation Optimization ---
+# 1. Parallelism: Use ALL available processing units.
+#    $(nproc) dynamically counts cores on any machine this runs on.
+local _cores=$(nproc)
+local _jobs=$((_cores > 2 ? _cores - 2 : 1))
+export MAKEFLAGS="-j${_jobs}"
 
 # --- Pyenv (Python Version Management) ---
 # Initializes pyenv to manage multiple Python versions.
@@ -45,7 +54,6 @@ export OMP_NUM_THREADS=$(nproc)
 # Configure the path where Zsh looks for commands.
 # Uncomment and modify if you have local binaries (e.g., in ~/.local/bin).
 # export PATH="$HOME/.local/bin:$PATH"
-
 
 # -----------------------------------------------------------------------------
 # [2] HISTORY CONFIGURATION
@@ -64,23 +72,29 @@ HISTFILE=~/.zsh_history
 setopt APPEND_HISTORY          # Append new history entries instead of overwriting.
 setopt INC_APPEND_HISTORY      # Write history to file immediately after command execution.
 setopt SHARE_HISTORY           # Share history between all concurrent shell sessions.
-setopt HIST_IGNORE_ALL_DUPS    # If a new command is a duplicate, remove the older entry.
-setopt HIST_IGNORE_SPACE       # Do not save commands that start with a leading space.
-setopt HIST_REDUCE_BLANKS      # Remove superfluous blanks from each command line.
-setopt HIST_FIND_NO_DUPS       # When searching, do not display duplicates of a command.
-
+setopt HIST_EXPIRE_DUPS_FIRST  # When trimming history, delete duplicates first.
+setopt HIST_IGNORE_DUPS        # Don't record an entry that was just recorded again.
+setopt HIST_IGNORE_SPACE       # Ignore commands starting with space.
+setopt HIST_VERIFY             # Expand history (!!) into the buffer, don't run immediately.
 
 # -----------------------------------------------------------------------------
 # [3] COMPLETION SYSTEM
 # -----------------------------------------------------------------------------
-# Configure Zsh's powerful tab-completion system.
 
-# Initialize the completion system. The -U flag prevents re-initialization,
-# and `compinit` generates the completion function cache.
-autoload -U compinit && compinit
+setopt EXTENDED_GLOB        # Enable extended globbing features (e.g., `^` for negation).
 
-# Load the `colors` module for styling.
-autoload -U colors && colors
+# Optimized initialization: Only regenerate cache once every 24 hours.
+autoload -Uz compinit
+# If .zcompdump exists AND was modified within the last 24 hours (.mh-24)
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh-24) ]]; then
+  compinit -C  # Trust the fresh cache, skip checks (FAST)
+else
+  compinit     # Cache is old or missing, regenerate it (SLOW)
+  # Optional: Explicitly touch the file to reset the timer if compinit doesn't
+  touch "${ZDOTDIR:-$HOME}/.zcompdump"
+fi
+
+
 
 # Style the completion menu.
 # ':completion:*' is a pattern that applies to all completion widgets.
@@ -89,7 +103,6 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" # Colorize the completio
 zstyle ':completion:*:descriptions' format '%B%d%b'  # Format descriptions for clarity (bold).
 zstyle ':completion:*' group-name ''               # Group completions by type without showing group names.
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' # Case-insensitive matching.
-
 
 # -----------------------------------------------------------------------------
 # [4] KEYBINDINGS & SHELL OPTIONS
@@ -101,12 +114,25 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' # Case-insensitive mat
 bindkey -v
 # Set the timeout for ambiguous key sequences (e.g., after pressing ESC).
 # A low value makes the transition to normal mode in Vi mode feel instantaneous.
-export KEYTIMEOUT=1
+export KEYTIMEOUT=40
+
+# --- Neovim Integration ---
+# Press 'v' in normal mode to edit the current command in Neovim.
+autoload -U edit-command-line
+zle -N edit-command-line
+bindkey -M vicmd v edit-command-line
+
+# --- Search History with Up/Down ---
+# If you type "git" and press Up, it finds the last "git" command.
+autoload -U history-search-end
+zle -N history-beginning-search-backward-end history-search-end
+zle -N history-beginning-search-forward-end history-search-end
+bindkey "${terminfo[kcuu1]:-^[[A}" history-beginning-search-backward-end
+bindkey "${terminfo[kcud1]:-^[[B}" history-beginning-search-forward-end
 
 # --- General Shell Options (`setopt`) ---
 setopt INTERACTIVE_COMMENTS # Allow comments (like this one) in an interactive shell.
 setopt GLOB_DOTS            # Include dotfiles (e.g., .config) in globbing results.
-setopt EXTENDED_GLOB        # Enable extended globbing features (e.g., `^` for negation).
 setopt NO_CASE_GLOB         # Perform case-insensitive globbing.
 setopt AUTO_PUSHD           # Automatically push directories onto the directory stack.
 setopt PUSHD_IGNORE_DUPS    # Don't push duplicate directories onto the stack.
@@ -125,17 +151,33 @@ setopt PUSHD_IGNORE_DUPS    # Don't push duplicate directories onto the stack.
 # alias ll='ls -alF'         # List all files in long format.
 # alias l='ls -CF'           # List entries by columns.
 
-alias ls='eza'
+# Safety First
+alias cp='cp -iv'
+alias mv='mv -iv'
+alias rm='rm -I'
+alias ln='ln -v'
+
+alias disk_usage='sudo btrfs filesystem usage /' # The TRUTH about BTRFS space
+alias df='df -hT'                           # Show filesystem types
+
+# Check if eza is installed
+if command -v eza >/dev/null; then
+    alias ls='eza --icons --group-directories-first'
+    alias ll='eza --icons --group-directories-first -l --git'
+    alias la='eza --icons --group-directories-first -la --git'
+    alias lt='eza --icons --group-directories-first --tree --level=2'
+else
+    # Fallback to standard ls if eza is missing
+    alias ls='ls --color=auto'
+    alias ll='ls -lh'
+    alias la='ls -A'
+fi
 
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 
 #alias cat='bat'
-
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
 
 # alias for git dotfiles bear repo
 alias git_dotfiles='/usr/bin/git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=$HOME'
@@ -155,8 +197,9 @@ alias lock='$HOME/user_scripts/drives/drive_manager.sh lock'
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
 	yazi "$@" --cwd-file="$tmp"
-	IFS= read -r -d '' cwd < "$tmp"
-	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		builtin cd -- "$cwd"
+	fi
 	rm -f -- "$tmp"
 }
 
@@ -164,7 +207,10 @@ function y() {
 alias run_sysbench='~/user_scripts/performance/sysbench_benchmark.sh'
 
 #-- LM- Studio-- 
-alias llm='/mnt/media/Documents/do_not_delete_linux/appimages/LM-Studio*'
+llm() {
+    /mnt/media/Documents/do_not_delete_linux/appimages/LM-Studio*(Om[1]) "$@"
+}
+# The (om[1]) glob qualifier picks the most recently modified file
 
 # --- Functions ---
 # Creates a directory and changes into it.
@@ -178,32 +224,63 @@ sort_size() {
 }
 
 # List installed Arch packages, sorted by installation date.
-list_installed() {
-  awk 'NR==FNR { if (/\[ALPM\] installed/) { ts = $1; gsub(/^\[|\]$/, "", ts); pkg = $4; if (!(pkg in fit)) fit[pkg] = ts; } next; } { if ($0 in fit) print fit[$0], $0; }' /var/log/pacman.log <(pacman -Qq) | sort -k1,1 | awk '{print $2}'
-}
+list_installed() { expac --timefmt='%Y-%m-%d %T' '%l\t%n' | sort }
 
 # -----------------------------------------------------------------------------
 # [6] PLUGINS & PROMPT INITIALIZATION
 # -----------------------------------------------------------------------------
-# Load external plugins and initialize the shell prompt.
-# IMPORTANT: The order of sourcing matters. Syntax highlighting should be last.
-
-# --- Fuzzy Finder (fzf) ---
-# Set up fzf key bindings and fuzzy completion
-source <(fzf --zsh)
+# Self-Healing Cache:
+# 1. Checks if the static init file exists.
+# 2. Checks if the binary (starship/fzf) has been updated (is newer than the cache).
+# 3. Regenerates the cache automatically if needed.
 
 # --- Starship Prompt ---
-# Hand off prompt rendering to Starship for a powerful, customizable prompt.
-# `eval` executes the output of `starship init zsh`.
-eval "$(starship init zsh)"
+# Define paths
+_starship_cache="$HOME/.starship-init.zsh"
+_starship_bin="$(command -v starship)"
 
+# Only proceed if starship is actually installed
+if [[ -n "$_starship_bin" ]]; then
+  if [[ ! -f "$_starship_cache" || "$_starship_bin" -nt "$_starship_cache" ]]; then
+    starship init zsh --print-full-init >! "$_starship_cache"
+  fi
+  source "$_starship_cache"
+fi
 
-# --- Zsh Syntax Highlighting ---
-# This plugin provides real-time syntax highlighting for the command line.
-# NOTE: This MUST be the last plugin sourced to function correctly.
+# --- Fuzzy Finder (fzf) ---
+_fzf_cache="$HOME/.fzf-init.zsh"
+_fzf_bin="$(command -v fzf)"
+
+if [[ -n "$_fzf_bin" ]];
+then
+  # Check if fzf supports the --zsh flag
+if $_fzf_bin --zsh > /dev/null 2>&1; then
+      if [[ ! -f "$_fzf_cache" || "$_fzf_bin" -nt "$_fzf_cache" ]]; then
+        $_fzf_bin --zsh >! "$_fzf_cache"
+      fi
+      source "$_fzf_cache"
+  else
+      # Fallback for older fzf versions
+      if [[ -f ~/.fzf.zsh ]]; then
+          source ~/.fzf.zsh
+      fi
+  fi
+fi
+
+# --- Autosuggestions ---
+if [ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
+    # Config MUST be set before sourcing
+    ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=60'
+    source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+
+# --- Syntax Highlighting (Must be last) ---
 if [[ -f "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
   source "/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 fi
+
+# Cleanup variables to keep environment clean
+unset _starship_cache _starship_bin _fzf_cache _fzf_bin
 
 # -----------------------------------------------------------------------------
 # [7] Auto login INTO UWSM HYPRLAND WITH TTY1
@@ -211,7 +288,7 @@ fi
 
 # Check if we are on tty1 and no display server is running
 
-if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+if [[ -z "$DISPLAY" ]] && [[ "$(tty)" == "/dev/tty1" ]]; then
   if uwsm check may-start; then
     exec uwsm start hyprland.desktop
   fi
@@ -220,8 +297,3 @@ fi
 # =============================================================================
 # End of ~/.zshrc
 # =============================================================================
-
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:/home/dusk/.lmstudio/bin"
-# End of LM Studio CLI section
-
