@@ -1,199 +1,420 @@
 #!/bin/bash
+#===============================================================================
+# HYPRIDLE CONFIGURATION EDITOR
+# A TUI tool to configure hypridle timeouts using gum
+#===============================================================================
 
-# ==============================================================================
+# Strict mode - catch errors early
+set -o errexit
+set -o nounset
+set -o pipefail
+
+#===============================================================================
 # CONFIGURATION
-# ==============================================================================
-CONFIG_FILE="$HOME/.config/hypr/hypridle.conf"
+#===============================================================================
+readonly CONFIG_FILE="${HOME}/.config/hypr/hypridle.conf"
+readonly BACKUP_FILE="${CONFIG_FILE}.bak"
+readonly SCRIPT_NAME="${0##*/}"
 
-# Unique strings to identify which listener block is which
-# We look for these specific commands inside the blocks
-SIG_DIM="brightnessctl -s set 1"
-SIG_LOCK="loginctl lock-session"
-SIG_OFF="dispatch dpms off"
-SIG_SUSPEND="systemctl suspend"
+# Listener block signatures (used for matching, not regex)
+readonly SIG_DIM="brightnessctl -s set"
+readonly SIG_LOCK="loginctl lock-session"
+readonly SIG_OFF="dispatch dpms off"
+readonly SIG_SUSPEND="systemctl suspend"
 
 # Colors for Gum
-C_TEXT="212"    # Pink
-C_ACCENT="99"   # Purple
-C_WARN="208"    # Orange
-C_ERR="196"     # Red
+readonly C_TEXT="212"    # Pink
+readonly C_ACCENT="99"   # Purple
+readonly C_WARN="208"    # Orange
+readonly C_ERR="196"     # Red
+readonly C_OK="35"       # Green
 
-# ==============================================================================
-# SETUP & CLEANUP
-# ==============================================================================
+#===============================================================================
+# UTILITY FUNCTIONS
+#===============================================================================
+TEMP_FILE=""
 
-# Ensure temporary files are deleted on exit or interrupt (Cleanliness)
-TEMP_FILE=$(mktemp)
-trap "rm -f $TEMP_FILE" EXIT
+cleanup() {
+    if [[ -n "${TEMP_FILE:-}" && -f "$TEMP_FILE" ]]; then
+        rm -f "$TEMP_FILE"
+    fi
+}
 
-# Check for Gum on Arch
-if ! command -v gum &> /dev/null; then
-    echo "Error: 'gum' is required."
-    read -p "Install it now via pacman? (y/n) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        sudo pacman -S gum
+# Trap multiple signals for robust cleanup
+trap cleanup EXIT INT TERM HUP
+
+die() {
+    local msg="$1"
+    if command -v gum &>/dev/null; then
+        gum style --foreground "$C_ERR" "✗ Error: $msg" >&2
     else
+        printf '\033[1;31m✗ Error: %s\033[0m\n' "$msg" >&2
+    fi
+    exit 1
+}
+
+warn() {
+    gum style --foreground "$C_WARN" "⚠ $1"
+}
+
+success() {
+    gum style --foreground "$C_OK" "✓ $1"
+}
+
+info() {
+    gum style --foreground "$C_ACCENT" "$1"
+}
+
+# Validate positive integer
+is_positive_int() {
+    local val="$1"
+    [[ -n "$val" && "$val" =~ ^[0-9]+$ && "$val" -gt 0 ]]
+}
+
+#===============================================================================
+# SETUP & VALIDATION
+#===============================================================================
+
+# Must be interactive
+if [[ ! -t 0 || ! -t 1 ]]; then
+    echo "Error: ${SCRIPT_NAME} must be run in an interactive terminal." >&2
+    exit 1
+fi
+
+# Check and optionally install gum
+if ! command -v gum &>/dev/null; then
+    echo "Error: 'gum' is required but not installed."
+    read -rp "Install it now via pacman? [y/N] " -n 1 REPLY
+    echo
+    if [[ "${REPLY:-n}" =~ ^[Yy]$ ]]; then
+        echo "Installing gum..."
+        if ! sudo pacman -S --needed --noconfirm gum; then
+            echo "Failed to install gum." >&2
+            exit 1
+        fi
+        # Verify installation succeeded
+        if ! command -v gum &>/dev/null; then
+            echo "gum installation appeared to succeed but binary not found." >&2
+            exit 1
+        fi
+        echo "gum installed successfully."
+    else
+        echo "Cannot continue without gum." >&2
         exit 1
     fi
 fi
 
-# ==============================================================================
-# FUNCTIONS
-# ==============================================================================
+# Validate config file
+[[ -f "$CONFIG_FILE" ]] || die "Config file not found: $CONFIG_FILE"
+[[ -r "$CONFIG_FILE" ]] || die "Config file not readable: $CONFIG_FILE"
+[[ -w "$CONFIG_FILE" ]] || die "Config file not writable: $CONFIG_FILE"
 
+# Create temp file (after gum check so we can use die())
+TEMP_FILE=$(mktemp) || die "Failed to create temporary file"
+
+#===============================================================================
+# CORE FUNCTIONS
+#===============================================================================
+
+# Extract timeout value for a given signature
+# Uses string matching (index()) instead of regex for reliability
 get_timeout() {
     local signature="$1"
-    # awk: parses file paragraph-style or line-buffer style to find the timeout associated with the command signature
+    
     awk -v sig="$signature" '
-    BEGIN { in_block=0; block="" }
-    /listener/ { in_block=1; block="" }
-    in_block { block = block $0 "\n" }
-    /}/ { 
-        in_block=0; 
-        if (block ~ sig) {
-            match(block, /timeout = [0-9]+/);
-            val = substr(block, RSTART, RLENGTH);
-            split(val, arr, " ");
-            print arr[3];
-            exit;
+    BEGIN { in_block = 0; block = "" }
+    
+    /^[[:space:]]*listener[[:space:]]*\{?[[:space:]]*$/ {
+        in_block = 1
+        block = ""
+        next
+    }
+    
+    in_block {
+        block = block $0 "\n"
+        if (/^[[:space:]]*\}[[:space:]]*$/) {
+            in_block = 0
+            if (index(block, sig) > 0) {
+                # Flexible matching: timeout followed by = and digits
+                # Handles: timeout=300, timeout = 300, timeout  =  300
+                if (match(block, /timeout[[:space:]]*=[[:space:]]*[0-9]+/)) {
+                    val = substr(block, RSTART, RLENGTH)
+                    gsub(/[^0-9]/, "", val)
+                    print val
+                    exit
+                }
+            }
+            block = ""
         }
     }
-    ' "$CONFIG_FILE"
+    ' "$CONFIG_FILE" 2>/dev/null
 }
 
-update_file() {
-    local signature="$1"
-    local new_val="$2"
+# Update all timeout values in a single atomic pass
+update_all_timeouts() {
+    local dim_val="$1"
+    local lock_val="$2"
+    local off_val="$3"
+    local susp_val="$4"
     
-    # awk: Rewrite the file into the temp file
-    awk -v sig="$signature" -v nv="$new_val" '
-    BEGIN { in_block=0 }
-    /listener/ { in_block=1; buffer=$0; next }
+    awk -v dim_sig="$SIG_DIM" -v dim_val="$dim_val" \
+        -v lock_sig="$SIG_LOCK" -v lock_val="$lock_val" \
+        -v off_sig="$SIG_OFF" -v off_val="$off_val" \
+        -v susp_sig="$SIG_SUSPEND" -v susp_val="$susp_val" '
+    BEGIN { in_block = 0; buffer = "" }
+    
+    /^[[:space:]]*listener[[:space:]]*\{?[[:space:]]*$/ {
+        in_block = 1
+        buffer = $0
+        next
+    }
     
     in_block {
         buffer = buffer "\n" $0
-        if ($0 ~ /}/) {
-            in_block=0
-            if (buffer ~ sig) {
-                sub(/timeout = [0-9]+/, "timeout = " nv, buffer)
+        if (/^[[:space:]]*\}[[:space:]]*$/) {
+            in_block = 0
+            new_val = ""
+            
+            if (index(buffer, dim_sig) > 0) new_val = dim_val
+            else if (index(buffer, lock_sig) > 0) new_val = lock_val
+            else if (index(buffer, off_sig) > 0) new_val = off_val
+            else if (index(buffer, susp_sig) > 0) new_val = susp_val
+            
+            if (new_val != "") {
+                gsub(/timeout[[:space:]]*=[[:space:]]*[0-9]+/, "timeout = " new_val, buffer)
             }
             print buffer
-            buffer=""
+            buffer = ""
         }
         next
     }
     
+    # Print non-listener lines as-is
     { print }
+    
+    # Handle unclosed block at EOF
+    END {
+        if (buffer != "") print buffer
+    }
     ' "$CONFIG_FILE" > "$TEMP_FILE"
     
-    # Overwrite original
-    cat "$TEMP_FILE" > "$CONFIG_FILE"
+    # Verify output is valid (non-empty and similar size)
+    if [[ ! -s "$TEMP_FILE" ]]; then
+        die "Generated config is empty - aborting to prevent data loss"
+    fi
+    
+    local orig_size new_size
+    orig_size=$(wc -c < "$CONFIG_FILE")
+    new_size=$(wc -c < "$TEMP_FILE")
+    
+    # Sanity check: new file shouldn't be drastically different in size
+    if (( new_size < orig_size / 2 )); then
+        die "Generated config is suspiciously small (${new_size} vs ${orig_size} bytes) - aborting"
+    fi
+    
+    # Create backup before modifying
+    if ! cp -f "$CONFIG_FILE" "$BACKUP_FILE"; then
+        warn "Could not create backup at $BACKUP_FILE"
+    fi
+    
+    # Atomic-ish update (mv is atomic on same filesystem)
+    if ! mv -f "$TEMP_FILE" "$CONFIG_FILE"; then
+        # Try to restore from backup
+        if [[ -f "$BACKUP_FILE" ]]; then
+            cp -f "$BACKUP_FILE" "$CONFIG_FILE" 2>/dev/null || true
+        fi
+        die "Failed to update config file"
+    fi
+    
+    # Recreate temp file for potential future use
+    TEMP_FILE=$(mktemp) || true
 }
 
-# ==============================================================================
-# MAIN LOGIC
-# ==============================================================================
-
-# 1. Check Config Exists
-if [ ! -f "$CONFIG_FILE" ]; then
-    gum style --foreground "$C_ERR" "Error: $CONFIG_FILE not found."
-    exit 1
-fi
-
-# 2. Load Current State
-gum style --border normal --margin "1" --padding "1 2" --border-foreground "$C_TEXT" \
-    "$(gum style --foreground "$C_TEXT" --bold "HYPRIDLE") $(gum style --foreground "$C_ACCENT" "ARCH CONTROLLER")"
-
-# Load values (defaulting to safe nums if parsing fails)
-CUR_DIM=$(get_timeout "$SIG_DIM"); CUR_DIM=${CUR_DIM:-150}
-CUR_LOCK=$(get_timeout "$SIG_LOCK"); CUR_LOCK=${CUR_LOCK:-300}
-CUR_OFF=$(get_timeout "$SIG_OFF"); CUR_OFF=${CUR_OFF:-310}
-CUR_SUSPEND=$(get_timeout "$SIG_SUSPEND"); CUR_SUSPEND=${CUR_SUSPEND:-500}
-
-NEW_DIM=$CUR_DIM
-NEW_LOCK=$CUR_LOCK
-NEW_OFF=$CUR_OFF
-NEW_SUSPEND=$CUR_SUSPEND
-
-# 3. Interactive Loop
-while true; do
-    clear
+show_header() {
     gum style --border normal --margin "1" --padding "1 2" --border-foreground "$C_TEXT" \
-    "$(gum style --foreground "$C_TEXT" --bold "HYPRIDLE") $(gum style --foreground "$C_ACCENT" "ARCH CONTROLLER")"
+        "$(gum style --foreground "$C_TEXT" --bold "HYPRIDLE") $(gum style --foreground "$C_ACCENT" "CONFIGURATION")"
+}
 
-    CHOICE=$(gum choose --cursor.foreground="$C_TEXT" --header "Select value to edit (ESC to exit)" \
-        "1. Dim Screen     [${NEW_DIM}s]" \
-        "2. Lock Session   [${NEW_LOCK}s]" \
-        "3. Screen Off     [${NEW_OFF}s]" \
-        "4. System Suspend [${NEW_SUSPEND}s]" \
-        " " \
-        "Apply & Restart" \
-        "Exit")
-
-    case "$CHOICE" in
-        *"Dim Screen"*)
-            NEW_DIM=$(gum input --placeholder "$NEW_DIM" --value "$NEW_DIM" --header "Seconds until screen dims:") ;;
-        *"Lock Session"*)
-            NEW_LOCK=$(gum input --placeholder "$NEW_LOCK" --value "$NEW_LOCK" --header "Seconds until lock:") ;;
-        *"Screen Off"*)
-            NEW_OFF=$(gum input --placeholder "$NEW_OFF" --value "$NEW_OFF" --header "Seconds until screen off:") ;;
-        *"System Suspend"*)
-            NEW_SUSPEND=$(gum input --placeholder "$NEW_SUSPEND" --value "$NEW_SUSPEND" --header "Seconds until suspend:") ;;
-        "Apply & Restart")
-            break ;;
-        "Exit")
-            exit 0 ;;
-    esac
-done
-
-# 4. Logic Validation
-# Ensure the timeline makes sense (Dim -> Lock -> Off -> Suspend)
-WARNINGS=""
-if (( NEW_DIM >= NEW_LOCK )); then WARNINGS+="[!] Dim ($NEW_DIM) >= Lock ($NEW_LOCK)\n"; fi
-if (( NEW_LOCK >= NEW_OFF )); then WARNINGS+="[!] Lock ($NEW_LOCK) >= Screen Off ($NEW_OFF)\n"; fi
-if (( NEW_OFF >= NEW_SUSPEND )); then WARNINGS+="[!] Screen Off ($NEW_OFF) >= Suspend ($NEW_SUSPEND)\n"; fi
-
-if [ -n "$WARNINGS" ]; then
-    gum style --border double --border-foreground "$C_WARN" --padding "1" \
-        "$(gum style --foreground "$C_WARN" "LOGIC WARNING")" \
-        "Your timeline seems out of order:" \
-        "$(echo -e "$WARNINGS")" \
-        "Typically: Dim < Lock < Off < Suspend"
+prompt_timeout() {
+    local current="$1"
+    local header="$2"
+    local result
     
-    if ! gum confirm "Apply anyway?"; then
+    while true; do
+        result=$(gum input \
+            --placeholder "$current" \
+            --value "$current" \
+            --header "$header" \
+            --header.foreground "$C_ACCENT") || {
+            # User cancelled (ESC/Ctrl+C)
+            echo "$current"
+            return
+        }
+        
+        if is_positive_int "$result"; then
+            echo "$result"
+            return
+        elif [[ -z "$result" ]]; then
+            # Empty input - keep current value
+            echo "$current"
+            return
+        else
+            warn "Please enter a positive integer (got: '$result')"
+            sleep 1
+        fi
+    done
+}
+
+#===============================================================================
+# MAIN LOGIC
+#===============================================================================
+
+main() {
+    # Display header
+    show_header
+    
+    # Load current values with safe defaults
+    local CUR_DIM CUR_LOCK CUR_OFF CUR_SUSPEND
+    
+    CUR_DIM=$(get_timeout "$SIG_DIM")
+    CUR_LOCK=$(get_timeout "$SIG_LOCK")
+    CUR_OFF=$(get_timeout "$SIG_OFF")
+    CUR_SUSPEND=$(get_timeout "$SIG_SUSPEND")
+    
+    # Apply defaults if parsing failed
+    : "${CUR_DIM:=150}"
+    : "${CUR_LOCK:=300}"
+    : "${CUR_OFF:=310}"
+    : "${CUR_SUSPEND:=500}"
+    
+    # Working copies
+    local NEW_DIM="$CUR_DIM"
+    local NEW_LOCK="$CUR_LOCK"
+    local NEW_OFF="$CUR_OFF"
+    local NEW_SUSPEND="$CUR_SUSPEND"
+    
+    # Interactive editing loop
+    while true; do
+        clear
+        show_header
+        
+        local choice
+        choice=$(gum choose \
+            --cursor.foreground="$C_TEXT" \
+            --selected.foreground="$C_TEXT" \
+            --header "Select a value to edit:" \
+            "1. Dim Screen     [${NEW_DIM}s]" \
+            "2. Lock Session   [${NEW_LOCK}s]" \
+            "3. Screen Off     [${NEW_OFF}s]" \
+            "4. System Suspend [${NEW_SUSPEND}s]" \
+            "───────────────────────────" \
+            "▶ Apply Changes & Restart" \
+            "✗ Exit Without Saving") || {
+            # gum choose cancelled
+            info "Cancelled."
+            exit 0
+        }
+        
+        case "$choice" in
+            *"Dim Screen"*)
+                NEW_DIM=$(prompt_timeout "$NEW_DIM" "Seconds until screen dims:")
+                ;;
+            *"Lock Session"*)
+                NEW_LOCK=$(prompt_timeout "$NEW_LOCK" "Seconds until session locks:")
+                ;;
+            *"Screen Off"*)
+                NEW_OFF=$(prompt_timeout "$NEW_OFF" "Seconds until screen turns off:")
+                ;;
+            *"System Suspend"*)
+                NEW_SUSPEND=$(prompt_timeout "$NEW_SUSPEND" "Seconds until system suspends:")
+                ;;
+            *"Apply"*)
+                break
+                ;;
+            *"Exit"* | *"───"*)
+                info "No changes made."
+                exit 0
+                ;;
+        esac
+    done
+    
+    # Validate logical order of timeouts
+    local warnings=""
+    
+    if (( NEW_DIM >= NEW_LOCK )); then
+        warnings+="  • Dim (${NEW_DIM}s) should be < Lock (${NEW_LOCK}s)\n"
+    fi
+    if (( NEW_LOCK >= NEW_OFF )); then
+        warnings+="  • Lock (${NEW_LOCK}s) should be < Screen Off (${NEW_OFF}s)\n"
+    fi
+    if (( NEW_OFF >= NEW_SUSPEND )); then
+        warnings+="  • Screen Off (${NEW_OFF}s) should be < Suspend (${NEW_SUSPEND}s)\n"
+    fi
+    
+    if [[ -n "$warnings" ]]; then
+        echo
+        gum style --border double --border-foreground "$C_WARN" --padding "1" --margin "0 1" \
+            "$(gum style --foreground "$C_WARN" --bold "⚠ TIMELINE WARNING")" \
+            "" \
+            "Your timeout order may not make sense:" \
+            "" \
+            "$(printf '%b' "$warnings")" \
+            "Expected order: Dim < Lock < Screen Off < Suspend"
+        
+        echo
+        if ! gum confirm --affirmative="Apply Anyway" --negative="Go Back"; then
+            exec "$0"  # Restart script to re-edit
+        fi
+    fi
+    
+    # Check if anything actually changed
+    if [[ "$NEW_DIM" == "$CUR_DIM" && \
+          "$NEW_LOCK" == "$CUR_LOCK" && \
+          "$NEW_OFF" == "$CUR_OFF" && \
+          "$NEW_SUSPEND" == "$CUR_SUSPEND" ]]; then
+        echo
+        info "No values changed. Nothing to do."
         exit 0
     fi
-fi
-
-# 5. Apply Changes
-echo ""
-# Only update if changed to be efficient
-if [ "$NEW_DIM" != "$CUR_DIM" ]; then
-    gum spin --spinner dot --title "Setting Dim to ${NEW_DIM}s..." -- sleep 0.5
-    update_file "$SIG_DIM" "$NEW_DIM"
-fi
-if [ "$NEW_LOCK" != "$CUR_LOCK" ]; then
-    gum spin --spinner dot --title "Setting Lock to ${NEW_LOCK}s..." -- sleep 0.5
-    update_file "$SIG_LOCK" "$NEW_LOCK"
-fi
-if [ "$NEW_OFF" != "$CUR_OFF" ]; then
-    gum spin --spinner dot --title "Setting Screen Off to ${NEW_OFF}s..." -- sleep 0.5
-    update_file "$SIG_OFF" "$NEW_OFF"
-fi
-if [ "$NEW_SUSPEND" != "$CUR_SUSPEND" ]; then
-    gum spin --spinner dot --title "Setting Suspend to ${NEW_SUSPEND}s..." -- sleep 0.5
-    update_file "$SIG_SUSPEND" "$NEW_SUSPEND"
-fi
-
-# 6. Restart Service
-if systemctl --user is-active --quiet hypridle; then
-    gum spin --spinner monkey --title "Restarting hypridle..." -- systemctl --user restart hypridle
-    gum style --foreground "35" "Done. Hypridle restarted successfully."
-else
-    gum style --foreground "$C_WARN" "Hypridle was not running."
-    if gum confirm "Start hypridle now?"; then
-        gum spin --spinner monkey --title "Starting hypridle..." -- systemctl --user start hypridle
-        gum style --foreground "35" "Done. Hypridle started."
+    
+    # Show pending changes
+    echo
+    gum style --foreground "$C_ACCENT" --bold "Pending changes:"
+    [[ "$NEW_DIM" != "$CUR_DIM" ]] && echo "  Dim:        ${CUR_DIM}s → ${NEW_DIM}s"
+    [[ "$NEW_LOCK" != "$CUR_LOCK" ]] && echo "  Lock:       ${CUR_LOCK}s → ${NEW_LOCK}s"
+    [[ "$NEW_OFF" != "$CUR_OFF" ]] && echo "  Screen Off: ${CUR_OFF}s → ${NEW_OFF}s"
+    [[ "$NEW_SUSPEND" != "$CUR_SUSPEND" ]] && echo "  Suspend:    ${CUR_SUSPEND}s → ${NEW_SUSPEND}s"
+    echo
+    
+    # Apply all changes in one atomic operation
+    gum spin --spinner dot --title "Writing configuration..." -- sleep 0.2
+    update_all_timeouts "$NEW_DIM" "$NEW_LOCK" "$NEW_OFF" "$NEW_SUSPEND"
+    success "Configuration saved (backup: $BACKUP_FILE)"
+    
+    # Handle service restart
+    echo
+    if systemctl --user is-active --quiet hypridle 2>/dev/null; then
+        if gum spin --spinner monkey --title "Restarting hypridle service..." -- \
+            systemctl --user restart hypridle; then
+            success "Hypridle restarted successfully!"
+        else
+            die "Failed to restart hypridle (check: systemctl --user status hypridle)"
+        fi
+    else
+        warn "Hypridle service is not currently running."
+        if gum confirm "Start hypridle now?"; then
+            if gum spin --spinner monkey --title "Starting hypridle service..." -- \
+                systemctl --user start hypridle; then
+                success "Hypridle started successfully!"
+            else
+                die "Failed to start hypridle (check: systemctl --user status hypridle)"
+            fi
+        fi
     fi
-fi
+    
+    echo
+    info "All done! Your new idle timeouts are now active."
+}
+
+# Run main function
+main "$@"

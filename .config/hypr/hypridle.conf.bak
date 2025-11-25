@@ -29,7 +29,7 @@ listener {
 # ==============================================================================
 # Action: Dim screen to minimum (1) but keep it visible as a warning.
 listener {
-    timeout = 120
+    timeout = 4
     on-timeout = brightnessctl -s set 1
     on-resume = brightnessctl -r
 }
@@ -39,7 +39,7 @@ listener {
 # ==============================================================================
 # Action: Lock the screen. 
 listener {
-    timeout = 180
+    timeout = 7
     on-timeout = loginctl lock-session
 }
 
@@ -49,7 +49,7 @@ listener {
 # Action: Turn off the monitor power completely.
 # This is critical for saving battery if the system doesn't fully suspend.
 listener {
-    timeout = 200
+    timeout = 12
     on-timeout = hyprctl dispatch dpms off
     on-resume = hyprctl dispatch dpms on
 }
@@ -61,6 +61,6 @@ listener {
 # Note: Hypridle automatically detects media playing (Youtube, etc.) and 
 # will NOT suspend if audio is active, thanks to standard dbus inhibition.
 listener {
-    timeout = 400
+    timeout = 50
     on-timeout = systemctl suspend
 }
