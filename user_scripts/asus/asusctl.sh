@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # ==============================================================================
-#  ASUS CONTROL CENTER (v2025.12.4 - Production Ready)
-#  Target: Arch Linux / Hyprland (TUF F15)
-#  Fixes: Reserved word bug, signal handling, validation, efficiency
+#  ASUS CONTROL CENTER (v2025.12.7 - Arch/Hyprland Edition)
+#  Target: ASUS TUF/ROG Laptops
+#  Features: Multi-State Power Monitor, Fan Curves, Aura RGB, Clean UI
 # ==============================================================================
 
 set -o pipefail
 
-# --- Colors (immutable constants) ---
+# --- Colors (Dracula Theme) ---
 readonly C_PURPLE="#bd93f9"
 readonly C_PINK="#ff79c6"
 readonly C_GREEN="#50fa7b"
@@ -16,24 +16,25 @@ readonly C_ORANGE="#ffb86c"
 readonly C_RED="#ff5555"
 readonly C_CYAN="#8be9fd"
 readonly C_TEXT="#f8f8f2"
+readonly C_GREY="#6272a4"
 
-# --- Safety & Environment ---
+# --- Environment ---
 export RUST_LOG=error
 
-# --- Cleanup & Signal Handling ---
+# --- Cleanup ---
 cleanup() {
-    tput cnorm 2>/dev/null  # Restore cursor visibility
-    stty echo 2>/dev/null   # Restore echo
+    tput cnorm 2>/dev/null
+    stty echo 2>/dev/null
     clear
     exit 0
 }
 trap cleanup SIGINT SIGTERM EXIT
 
 # --- Dependency Check ---
-readonly REQUIRED_CMDS=(gum asusctl grep sed cut head tr)
+readonly REQUIRED_CMDS=(gum asusctl grep sed awk cut)
 for cmd in "${REQUIRED_CMDS[@]}"; do
     if ! command -v "$cmd" &>/dev/null; then
-        printf '\e[31mError: Required command "%s" not found.\e[0m\n' "$cmd" >&2
+        echo "Error: Required command '$cmd' not found."
         exit 1
     fi
 done
@@ -44,196 +45,27 @@ if (( EUID != 0 )); then
     exit 1
 fi
 
-# --- Helper: Trim Whitespace (Pure Bash) ---
+# --- Helpers ---
+
 trim() {
     local s="$1"
-    s="${s#"${s%%[![:space:]]*}"}"   # Remove leading
-    s="${s%"${s##*[![:space:]]}"}"   # Remove trailing
+    s="${s#"${s%%[![:space:]]*}"}"
+    s="${s%"${s##*[![:space:]]}"}"
     printf '%s' "$s"
 }
 
-# --- Helper: Press Any Key ---
 press_any_key() {
-    printf '%s\n' "${1:-Press any key to continue...}"
+    gum style --foreground "$C_GREY" "${1:-Press any key to continue...}"
     read -r -n 1 -s
 }
 
-# --- Helper: Clean asusctl Execution ---
+# --- Core Execution Wrapper ---
+# Filters out the zbus/tracing noise provided in the logs
 exec_asus() {
-    asusctl "$@" 2>&1 | grep -vE '^(\[|INFO|WARN|ERRO|ERROR|DEBUG|zbus)'
+    asusctl "$@" 2>&1 | grep -vE '^(\[|INFO|WARN|ERRO|ERROR|DEBUG|zbus|Optional|Starting)'
 }
 
-# --- Core Data Functions ---
-
-get_active_profile() {
-    local raw
-    raw=$(exec_asus profile -p 2>/dev/null | grep -o 'Active profile is.*')
-    if [[ -z "$raw" ]]; then
-        printf 'Unknown'
-        return 1
-    fi
-    raw="${raw#Active profile is }"
-    trim "$raw"
-}
-
-get_fan_status_string() {
-    local output
-    output=$(exec_asus fan-curve -g 2>/dev/null | grep "CPU:")
-    
-    if [[ -z "$output" ]]; then
-        gum style --foreground "$C_RED" "Error/BIOS"
-        return 1
-    fi
-
-    if [[ "$output" == *"enabled: true"* ]]; then
-        gum style --foreground "$C_GREEN" "ACTIVE (Custom)"
-    else
-        gum style --foreground "$C_ORANGE" "BIOS DEFAULT"
-    fi
-}
-
-get_curve_preview() {
-    local raw
-    raw=$(exec_asus fan-curve -g 2>/dev/null | grep "CPU:" | cut -d',' -f2- | head -c 20)
-    if [[ -z "$raw" ]]; then
-        printf 'No Data'
-    else
-        printf '%s...' "$raw"
-    fi
-}
-
-# --- The Dashboard ---
-show_dashboard() {
-    clear
-    
-    local profile fan_state curve_prev
-    profile=$(get_active_profile)
-    fan_state=$(get_fan_status_string)
-    curve_prev=$(get_curve_preview)
-    
-    gum style --foreground "$C_PURPLE" --border-foreground "$C_PURPLE" \
-        --border double --align center --width 50 --margin "1 1" \
-        "ASUS CONTROL CENTER" "Ultimate Edition"
-
-    gum style --foreground "$C_TEXT" --border rounded --padding "0 1" --margin "0 1" \
-        " Profile:    $(gum style --foreground "$C_PINK" "$profile")" \
-        " Fan State:  $fan_state" \
-        " Curve Data: $(gum style --foreground "$C_ORANGE" "$curve_prev")"
-        
-    echo
-}
-
-# ==============================================================================
-#  FAN CURVE LOGIC
-# ==============================================================================
-
-apply_curve_logic() {
-    local profile_raw="$1"
-    local curve_data="$2"
-    local profile_clean
-    
-    profile_clean="${profile_raw,,}"
-    profile_clean=$(trim "$profile_clean")
-
-    if [[ -z "$profile_clean" ]]; then
-        gum style --foreground "$C_RED" "Error: No profile specified."
-        sleep 2
-        return 1
-    fi
-
-    if [[ "$profile_clean" == "quiet" || "$profile_clean" == "silent" ]]; then
-        gum style --foreground "$C_ORANGE" \
-            "WARNING: 'Quiet' profile is often locked by BIOS."
-        gum style --foreground "$C_ORANGE" \
-            "Using Balanced profile is recommended."
-        sleep 2
-    fi
-
-    gum style --foreground "$C_PURPLE" "Applying curves to profile: '$profile_clean'..."
-
-    # Apply CPU curve
-    if ! asusctl fan-curve -m "$profile_clean" -f cpu -D "$curve_data" >/dev/null 2>&1; then
-        gum style --foreground "$C_RED" "Failed to write CPU curve."
-        press_any_key
-        return 1
-    fi
-    
-    # Apply GPU curve
-    if ! asusctl fan-curve -m "$profile_clean" -f gpu -D "$curve_data" >/dev/null 2>&1; then
-        gum style --foreground "$C_RED" "Failed to write GPU curve."
-        press_any_key
-        return 1
-    fi
-
-    # Enable custom curves
-    if asusctl fan-curve -m "$profile_clean" -e true >/dev/null 2>&1; then
-        gum style --foreground "$C_GREEN" "SUCCESS: Custom curves enabled!"
-    else
-        gum style --foreground "$C_RED" "Failed to enable curves."
-        gum style --foreground "$C_ORANGE" "Try switching profiles first, then retry."
-    fi
-    sleep 2
-}
-
-run_fan_wizard() {
-    gum style --foreground "$C_CYAN" "Fan Curve Wizard (8 Points)"
-    echo
-    
-    # NOTE: Using descriptive names to avoid reserved word 'fi'
-    local start_temp start_fan temp_incr fan_incr
-    
-    start_temp=$(gum input --placeholder "Start Temp (e.g. 30)" --width 25)
-    [[ -z "$start_temp" ]] && return 1
-    
-    start_fan=$(gum input --placeholder "Start Fan % (e.g. 10)" --width 25)
-    [[ -z "$start_fan" ]] && return 1
-    
-    temp_incr=$(gum input --placeholder "Temp Increment (e.g. 10)" --width 25)
-    [[ -z "$temp_incr" ]] && return 1
-    
-    fan_incr=$(gum input --placeholder "Fan % Increment (e.g. 12)" --width 25)
-    [[ -z "$fan_incr" ]] && return 1
-
-    # Validate all inputs are positive integers
-    local var
-    for var in "$start_temp" "$start_fan" "$temp_incr" "$fan_incr"; do
-        if ! [[ "$var" =~ ^[0-9]+$ ]]; then
-            gum style --foreground "$C_RED" "Invalid input: All values must be positive integers."
-            sleep 2
-            return 1
-        fi
-    done
-
-    # Generate 8-point curve
-    local -a points=()
-    local i curr_temp curr_fan
-    
-    for i in {0..7}; do
-        curr_temp=$(( start_temp + i * temp_incr ))
-        (( curr_temp > 100 )) && curr_temp=100
-        
-        curr_fan=$(( start_fan + i * fan_incr ))
-        (( curr_fan > 100 )) && curr_fan=100
-        
-        points+=("${curr_temp}c:${curr_fan}%")
-    done
-    
-    local final_curve
-    IFS=',' final_curve="${points[*]}"
-    
-    echo
-    gum style --foreground "$C_ORANGE" "Generated curve:"
-    gum style --foreground "$C_TEXT" "$final_curve"
-    echo
-    
-    if gum confirm "Apply this curve to current profile?"; then
-        apply_curve_logic "$(get_active_profile)" "$final_curve"
-    fi
-}
-
-# ==============================================================================
-#  AURA RGB LOGIC
-# ==============================================================================
+# --- RGB & Color Logic (Ported & Integrated) ---
 
 rgb_to_hex() {
     local input="$1"
@@ -241,17 +73,14 @@ rgb_to_hex() {
     
     IFS=',' read -r r g b <<< "$input"
     
-    # Trim whitespace (pure bash)
     r=$(trim "$r")
     g=$(trim "$g")
     b=$(trim "$b")
 
-    # Validate all are numeric
+    # Validate numeric and range 0-255
     if ! [[ "$r" =~ ^[0-9]+$ && "$g" =~ ^[0-9]+$ && "$b" =~ ^[0-9]+$ ]]; then
         return 1
     fi
-    
-    # Validate range 0-255
     if (( r > 255 || g > 255 || b > 255 )); then
         return 1
     fi
@@ -266,7 +95,6 @@ pick_color() {
         "Red" "Green" "Blue" "White" "Cyan" "Magenta" "Yellow" "Orange" "Purple" "Pink" \
         "Custom Hex" "Custom RGB" "Back")
 
-    # Handle Cancellation (Esc) or Back
     [[ -z "$choice" || "$choice" == "Back" ]] && return 1
 
     case "$choice" in
@@ -283,8 +111,6 @@ pick_color() {
         "Custom Hex")
             input=$(gum input --placeholder "e.g. #FF0000 or FF0000")
             [[ -z "$input" ]] && return 1
-            
-            # Remove # prefix, trim, uppercase (pure bash)
             hex="${input#\#}"
             hex=$(trim "$hex")
             hex="${hex^^}"
@@ -292,18 +118,17 @@ pick_color() {
         "Custom RGB")
             input=$(gum input --placeholder "e.g. 255,0,0")
             [[ -z "$input" ]] && return 1
-            
             if ! hex=$(rgb_to_hex "$input"); then
-                gum style --foreground "$C_RED" "Invalid RGB. Values must be 0-255."
+                gum style --foreground "$C_RED" "Invalid RGB. Values must be 0-255." >&2
                 sleep 1
                 return 1
             fi
             ;;
     esac
     
-    # Final validation: Must be exactly 6 hex characters
+    # Validation
     if ! [[ "$hex" =~ ^[0-9A-Fa-f]{6}$ ]]; then
-        gum style --foreground "$C_RED" "Invalid hex format. Use 6 hex characters."
+        gum style --foreground "$C_RED" "Invalid hex format. Use 6 hex characters." >&2
         sleep 1
         return 1
     fi
@@ -311,173 +136,339 @@ pick_color() {
     printf '%s' "${hex^^}"
 }
 
-pick_speed() {
-    local spd
-    spd=$(gum choose --header "Select Speed" "Low" "Med" "High")
-    [[ -z "$spd" ]] && return 1
-    printf '%s' "${spd,,}"
+# --- Data Fetching ---
+
+# Fetches Active, AC, and Battery profiles in one go
+get_power_states() {
+    local raw active ac bat
+    raw=$(exec_asus profile -p)
+    
+    # Parse based on standard output format:
+    active=$(echo "$raw" | grep "Active profile" | awk '{print $NF}')
+    ac=$(echo "$raw" | grep "Profile on AC" | awk '{print $NF}')
+    bat=$(echo "$raw" | grep "Profile on Battery" | awk '{print $NF}')
+
+    [[ -z "$active" ]] && active="Unknown"
+    [[ -z "$ac" ]] && ac="Unknown"
+    [[ -z "$bat" ]] && bat="Unknown"
+
+    printf "%s|%s|%s" "$active" "$ac" "$bat"
 }
 
-menu_aura() {
-    local mode color speed
+get_fan_status() {
+    local output
+    output=$(exec_asus fan-curve -g 2>/dev/null | grep "CPU:")
+    if [[ "$output" == *"enabled: true"* ]]; then
+        gum style --foreground "$C_GREEN" "CUSTOM CURVE"
+    else
+        gum style --foreground "$C_ORANGE" "BIOS DEFAULT"
+    fi
+}
+
+# --- Dashboard ---
+show_dashboard() {
+    clear
+    local p_states fan_state active ac bat
     
+    p_states=$(get_power_states)
+    IFS='|' read -r active ac bat <<< "$p_states"
+    
+    fan_state=$(get_fan_status)
+    
+    gum style --foreground "$C_PURPLE" --border double --align center --width 60 --margin "1 1" \
+        "ASUS CONTROL CENTER"
+    
+    # Grid layout for power states
+    gum join --horizontal --align center \
+        "$(gum style --width 20 --border rounded --padding "0 1" --foreground "$C_PINK" "ACTIVE" "$active")" \
+        "$(gum style --width 20 --border rounded --padding "0 1" --foreground "$C_CYAN" "AC POLICY" "$ac")" \
+        "$(gum style --width 20 --border rounded --padding "0 1" --foreground "$C_ORANGE" "BAT POLICY" "$bat")"
+
+    gum style --align center --foreground "$C_TEXT" --margin "0 1" \
+        "Fan Strategy: $fan_state"
+    echo
+}
+
+# ==============================================================================
+#  KEYBOARD (Aura & Brightness)
+# ==============================================================================
+
+set_brightness() {
+    local choice level_arg led_path int_val
+    
+    choice=$(gum choose --header "Select Brightness Level" \
+        "Off (0)" \
+        "Low (1)" \
+        "Medium (2)" \
+        "High (3)" \
+        "Back")
+
+    [[ "$choice" == "Back" || -z "$choice" ]] && return
+
+    # Map text to integer
+    case "$choice" in
+        "Off"*)    int_val=0; level_arg="off" ;;
+        "Low"*)    int_val=1; level_arg="low" ;;
+        "Medium"*) int_val=2; level_arg="med" ;;
+        "High"*)   int_val=3; level_arg="high" ;;
+    esac
+
+    gum style --foreground "$C_PURPLE" "Setting brightness to: $choice..."
+    
+    if exec_asus -k "$level_arg" >/dev/null 2>&1; then
+        gum style --foreground "$C_GREEN" "Done."
+    else
+        led_path="/sys/class/leds/asus::kbd_backlight/brightness"
+        if [[ -f "$led_path" ]]; then
+            echo "$int_val" > "$led_path"
+            gum style --foreground "$C_GREEN" "Applied via sysfs."
+        else
+            gum style --foreground "$C_RED" "Failed: Could not control keyboard brightness."
+        fi
+    fi
+    sleep 0.5
+}
+
+menu_keyboard() {
+    local hex
     while true; do
         clear
-        gum style --foreground "$C_CYAN" --border rounded \
-            --padding "0 1" --align center "Keyboard Aura Manager"
+        gum style --foreground "$C_CYAN" --border rounded "Keyboard Control"
         echo
         
-        mode=$(gum choose --cursor="➜ " --header "Select Mode" \
-            "Static (Single Color)" \
-            "Breathe (Fade In/Out)" \
-            "Rainbow Cycle (Global)" \
-            "Pulse (Fast Blink)" \
-            "Next Mode (Toggle)" \
+        local choice
+        choice=$(gum choose --cursor="➜ " --header "Select Action" \
+            "Set Brightness (0-3)" \
+            "Aura: Static Color" \
+            "Aura: Breathe" \
+            "Aura: Rainbow Cycle" \
+            "Aura: Pulse" \
             "Back")
 
-        # Handle Escape or empty selection
-        [[ -z "$mode" || "$mode" == "Back" ]] && break
+        [[ -z "$choice" || "$choice" == "Back" ]] && break
 
-        case "$mode" in
-            "Static (Single Color)")
-                if color=$(pick_color); then
-                    gum style --foreground "$C_PURPLE" "Setting Static: #$color"
-                    exec_asus aura static -c "$color" >/dev/null
+        case "$choice" in
+            "Set Brightness"*) 
+                set_brightness 
+                ;;
+            "Aura: Static"*)
+                if hex=$(pick_color); then
+                    exec_asus aura static -c "${hex}" >/dev/null
+                    gum style --foreground "$C_GREEN" "Static color applied ($hex)"
                     sleep 0.5
                 fi
                 ;;
-            "Breathe (Fade In/Out)")
-                if color=$(pick_color); then
-                    if speed=$(pick_speed); then
-                        gum style --foreground "$C_PURPLE" "Setting Breathe: #$color @ $speed"
-                        exec_asus aura breathe -c "$color" -s "$speed" >/dev/null
-                        sleep 0.5
-                    fi
+            "Aura: Breathe"*)
+                if hex=$(pick_color); then
+                     exec_asus aura breathe -c "${hex}" -s "med" >/dev/null
+                     gum style --foreground "$C_GREEN" "Breath effect active ($hex)"
+                     sleep 0.5
                 fi
                 ;;
-            "Pulse (Fast Blink)")
-                if color=$(pick_color); then
-                    if speed=$(pick_speed); then
-                        gum style --foreground "$C_PURPLE" "Setting Pulse: #$color @ $speed"
-                        exec_asus aura pulse -c "$color" -s "$speed" >/dev/null
-                        sleep 0.5
-                    fi
-                fi
-                ;;
-            "Rainbow Cycle (Global)")
-                if speed=$(pick_speed); then
-                    gum style --foreground "$C_PURPLE" "Setting Rainbow Cycle @ $speed"
-                    exec_asus aura rainbow-cycle -s "$speed" >/dev/null
-                    sleep 0.5
-                fi
-                ;;
-            "Next Mode (Toggle)")
-                exec_asus aura -n >/dev/null
-                gum style --foreground "$C_GREEN" "Toggled to next mode"
+            "Aura: Rainbow"*)
+                exec_asus aura rainbow-cycle -s "med" >/dev/null
+                gum style --foreground "$C_GREEN" "Rainbow cycle active"
                 sleep 0.5
+                ;;
+            "Aura: Pulse"*)
+                if hex=$(pick_color); then
+                    exec_asus aura pulse -c "${hex}" -s "med" >/dev/null
+                    gum style --foreground "$C_GREEN" "Pulse active ($hex)"
+                    sleep 0.5
+                fi
                 ;;
         esac
     done
 }
 
 # ==============================================================================
-#  MENU FUNCTIONS
+#  POWER PROFILES
 # ==============================================================================
-
-menu_fans() {
-    local active_prof choice curve
-    active_prof=$(get_active_profile)
-    
-    choice=$(gum choose --cursor="➜ " --header "Fan Controls ($active_prof)" \
-        "1. Wizard: Create Custom Curve" \
-        "2. Preset: Silentish (Slow)" \
-        "3. Preset: Balanced (Medium)" \
-        "4. Preset: Turbo (Max)" \
-        "5. Reset to BIOS Defaults" \
-        "b. Back")
-
-    # Handle empty (Escape pressed)
-    [[ -z "$choice" || "$choice" == "b. Back" ]] && return
-        
-    case "$choice" in
-        "1. Wizard: Create Custom Curve")
-            run_fan_wizard
-            return
-            ;;
-        "2. Preset: Silentish (Slow)")
-            curve="50c:0%,60c:20%,70c:40%,80c:60%,90c:80%,95c:100%,100c:100%,100c:100%"
-            ;;
-        "3. Preset: Balanced (Medium)")
-            curve="40c:10%,50c:25%,60c:40%,70c:55%,80c:70%,90c:85%,100c:100%,100c:100%"
-            ;;
-        "4. Preset: Turbo (Max)")
-            curve="30c:100%,40c:100%,50c:100%,60c:100%,70c:100%,80c:100%,90c:100%,100c:100%"
-            ;;
-        "5. Reset to BIOS Defaults")
-            if gum confirm "Reset fan curves to BIOS defaults?"; then
-                local lower_prof="${active_prof,,}"
-                lower_prof=$(trim "$lower_prof")
-                if asusctl fan-curve -m "$lower_prof" -e false >/dev/null 2>&1; then
-                    gum style --foreground "$C_GREEN" "Reset to BIOS defaults complete."
-                else
-                    gum style --foreground "$C_RED" "Failed to reset."
-                fi
-                sleep 1
-            fi
-            return
-            ;;
-    esac
-
-    [[ -n "$curve" ]] && apply_curve_logic "$active_prof" "$curve"
-}
 
 menu_profiles() {
     local -a profiles
-    local selected
-    
+    # Get available profiles
     mapfile -t profiles < <(exec_asus profile -l 2>/dev/null | grep -E '^[a-zA-Z]+$' | grep -v "Active")
-    
-    # Fallback if no profiles detected
     (( ${#profiles[@]} == 0 )) && profiles=("Quiet" "Balanced" "Performance")
+
+    local target
+    target=$(gum choose --header "Apply Profile To..." \
+        "Active Session Only" \
+        "AC Power Default" \
+        "Battery Default" \
+        "GLOBAL (All Sources)" \
+        "Back")
+
+    [[ "$target" == "Back" || -z "$target" ]] && return
+
+    local selected_prof
+    selected_prof=$(gum choose --header "Select Profile" "${profiles[@]}")
+    [[ -z "$selected_prof" ]] && return
+
+    gum style --foreground "$C_PURPLE" "Applying $selected_prof..."
+
+    case "$target" in
+        "Active"*)  exec_asus profile -P "$selected_prof" ;;
+        "AC"*)      exec_asus profile -a "$selected_prof" ;;
+        "Battery"*) exec_asus profile -b "$selected_prof" ;;
+        "GLOBAL"*)
+            exec_asus profile -P "$selected_prof" >/dev/null
+            exec_asus profile -a "$selected_prof" >/dev/null
+            exec_asus profile -b "$selected_prof" >/dev/null
+            ;;
+    esac
     
-    profiles+=("Back")
+    gum style --foreground "$C_GREEN" "Profile Updated."
+    sleep 1
+}
+
+# ==============================================================================
+#  FAN CURVES
+# ==============================================================================
+
+run_fan_wizard() {
+    gum style --foreground "$C_CYAN" "Fan Curve Wizard (Interpolation)" >&2
+    echo >&2
     
-    selected=$(gum choose --header "Switch Power Profile" "${profiles[@]}")
+    local min_temp max_temp min_fan max_fan
     
-    if [[ -n "$selected" && "$selected" != "Back" ]]; then
-        if asusctl profile -P "$selected" >/dev/null 2>&1; then
-            gum style --foreground "$C_GREEN" "Switched to: $selected"
-        else
-            gum style --foreground "$C_RED" "Failed to switch profile."
+    # 1. Get Start/End Points instead of increments
+    min_temp=$(gum input --placeholder "Start Temp (e.g. 30)" --width 25)
+    [[ -z "$min_temp" ]] && return 1
+    
+    max_temp=$(gum input --placeholder "End Temp (e.g. 90)" --value "95" --width 25)
+    [[ -z "$max_temp" ]] && return 1
+
+    min_fan=$(gum input --placeholder "Start Fan % (e.g. 0)" --width 25)
+    [[ -z "$min_fan" ]] && return 1
+
+    max_fan=$(gum input --placeholder "End Fan % (e.g. 100)" --value "100" --width 25)
+    [[ -z "$max_fan" ]] && return 1
+
+    # Validate inputs
+    for var in "$min_temp" "$max_temp" "$min_fan" "$max_fan"; do
+        if ! [[ "$var" =~ ^[0-9]+$ ]]; then
+            gum style --foreground "$C_RED" "Invalid input: Integers only." >&2
+            sleep 2
+            return 1
         fi
+    done
+
+    # Logic Check: Start must be less than End
+    if (( min_temp >= max_temp || min_fan > max_fan )); then
+        gum style --foreground "$C_RED" "Error: Start values must be lower than End values." >&2
+        sleep 2
+        return 1
+    fi
+
+    # 2. Calculate the 8 points using Linear Interpolation (awk for precision)
+    # Formula: v = start + (end - start) * (i / 7)
+    local raw_points
+    raw_points=$(awk -v t1="$min_temp" -v t2="$max_temp" \
+                     -v f1="$min_fan"  -v f2="$max_fan" '
+    BEGIN {
+        for(i=0; i<8; i++) {
+            # Calculate ratio (0.0 to 1.0)
+            r = i / 7;
+            
+            # Interpolate Temp
+            t = t1 + (t2 - t1) * r;
+            
+            # Interpolate Fan
+            f = f1 + (f2 - f1) * r;
+            
+            # Round to integer and print
+            printf "%.0fc:%.0f%%", t, f;
+            
+            if(i<7) printf ",";
+        }
+    }')
+    
+    echo >&2
+    gum style --foreground "$C_ORANGE" "Generated smooth curve:" >&2
+    gum style --foreground "$C_TEXT" "$raw_points" >&2
+    echo >&2
+    
+    if gum confirm "Apply this curve?"; then
+        echo "$raw_points"
+    else
+        return 1
+    fi
+}
+
+menu_fans() {
+    local p_states active ac bat choice curve
+    
+    # Get just the active profile for display
+    p_states=$(get_power_states)
+    IFS='|' read -r active ac bat <<< "$p_states"
+    
+    choice=$(gum choose --cursor="➜ " --header "Fan Controls ($active)" \
+        "Wizard: Create Custom Curve" \
+        "Preset: Silentish" \
+        "Preset: Balanced" \
+        "Preset: Turbo" \
+        "Reset to BIOS Defaults" \
+        "Back")
+
+    [[ -z "$choice" || "$choice" == "Back" ]] && return
+
+    case "$choice" in
+        "Wizard"*) 
+             curve=$(run_fan_wizard)
+             # If wizard was cancelled/failed, curve will be empty
+             [[ -z "$curve" ]] && return
+             ;;
+        "Preset: Silentish") curve="50c:0%,60c:20%,70c:40%,80c:60%,90c:80%,95c:100%,100c:100%,100c:100%" ;;
+        "Preset: Balanced")  curve="40c:10%,50c:25%,60c:40%,70c:55%,80c:70%,90c:85%,100c:100%,100c:100%" ;;
+        "Preset: Turbo")     curve="30c:100%,40c:100%,50c:100%,60c:100%,70c:100%,80c:100%,90c:100%,100c:100%" ;;
+        "Reset"*)
+            if gum confirm "Reset to BIOS defaults?"; then
+                local prof_arg="${active,,}"
+                prof_arg=$(trim "$prof_arg")
+                exec_asus fan-curve -m "$prof_arg" -e false >/dev/null 2>&1
+                gum style --foreground "$C_GREEN" "Reset complete."
+                sleep 1
+            fi
+            return 
+            ;;
+    esac
+
+    if [[ -n "$curve" ]]; then
+        local prof_arg="${active,,}"
+        prof_arg=$(trim "$prof_arg")
+        gum style --foreground "$C_PURPLE" "Applying curve to $active..."
+        exec_asus fan-curve -m "$prof_arg" -f cpu -D "$curve" >/dev/null
+        exec_asus fan-curve -m "$prof_arg" -f gpu -D "$curve" >/dev/null
+        exec_asus fan-curve -m "$prof_arg" -e true >/dev/null
+        gum style --foreground "$C_GREEN" "Curve Applied."
         sleep 1
     fi
 }
 
 # ==============================================================================
-#  MAIN ENTRY POINT
+#  MAIN LOOP
 # ==============================================================================
 
 main() {
     local action
-    
     while true; do
         show_dashboard
         
+        # Pure list selection (Vim/Arrow keys only)
         action=$(gum choose --cursor="➜ " --header "Main Menu" \
-            "1. Manage Fan Curves" \
-            "2. Switch Power Profile" \
-            "3. Keyboard Aura (RGB)" \
-            "q. Quit")
+            "Manage Fan Curves" \
+            "Power Profiles" \
+            "Keyboard Control" \
+            "Quit")
         
         case "$action" in
-            "1. Manage Fan Curves")    menu_fans ;;
-            "2. Switch Power Profile") menu_profiles ;;
-            "3. Keyboard Aura (RGB)")  menu_aura ;;
-            "q. Quit"|"")              break ;;
+            "Manage Fan Curves")          menu_fans ;;
+            "Power Profiles")             menu_profiles ;;
+            "Keyboard Control")           menu_keyboard ;;
+            "Quit"|"")                    break ;;
         esac
     done
-    
     clear
 }
 

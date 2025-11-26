@@ -3,22 +3,6 @@
 # =============================================================================
 # SYSBENCH ULTIMATE DASHBOARD (v14.0 - Fully Optimized & Bug-Fixed)
 # =============================================================================
-# Fixes from v13.2:
-#   - All read commands now use -r flag (prevents backslash interpretation)
-#   - Proper quoting of all variables throughout
-#   - Consistent UPPER_SNAKE_CASE variable naming
-#   - Fixed calc_threads() to handle reversed ranges correctly
-#   - Custom time now validates range (1-86400 seconds)
-#   - Added quit option to duration menu
-#   - TASKSET_CMD now uses arrays (proper command handling)
-#   - Multi-distro package installation instructions
-#   - Locale-safe CPU model detection with fallback
-#   - Trap handles both INT and TERM signals
-#   - Invalid main menu options now show feedback
-#   - Cached nproc value for efficiency
-#   - ShellCheck compliant
-# =============================================================================
-
 # --- Strict Mode (partial - no errexit for interactive script) ---
 set -o nounset    # Error on undefined variables
 set -o pipefail   # Pipeline fails on first error

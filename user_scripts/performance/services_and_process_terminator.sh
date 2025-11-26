@@ -83,7 +83,7 @@ declare -ra DEFAULT_USER_SERVICES=(
     "swaync"
     "gvfs-daemon"
     "gvfs-metadata"
-#    "network_meter"
+    "network_meter"
     "waybar"
 )
 declare -ra OPTIONAL_USER_SERVICES=(

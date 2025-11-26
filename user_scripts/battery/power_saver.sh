@@ -17,11 +17,13 @@ readonly VOLUME_CAP=50
 readonly BLUR_SCRIPT="${HOME}/user_scripts/hypr/hypr_blur_opacity_shadow_toggle.sh"
 readonly THEME_SCRIPT="${HOME}/user_scripts/swww/theme_switcher.sh"
 readonly TERMINATOR_SCRIPT="${HOME}/user_scripts/battery/process_terminator.sh"
+readonly ASUS_PROFILE_SCRIPT="${HOME}/user_scripts/battery/asus_tuf_profile/quiet_profile_and_keyboard_light.sh"
 readonly ANIM_SOURCE="${HOME}/.config/hypr/source/animations/disable.conf"
 readonly ANIM_TARGET="${HOME}/.config/hypr/source/animations/active/active.conf"
 
 # State
 SWITCH_THEME_LATER=false
+TURN_OFF_WIFI=false
 
 # -----------------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -106,8 +108,9 @@ main() {
         --foreground 212 \
         "ASUS TUF F15: POWER SAVER MODE"
 
-    # --- 1. Interactive Light Mode Prompt ---
+    # --- 1. Interactive Prompts ---
     if [[ -t 0 ]]; then
+        # Theme Prompt
         echo ""
         gum style --foreground 245 --italic \
             "Rationale: Light mode often allows for lower backlight brightness" \
@@ -120,8 +123,17 @@ main() {
         else
             log_step "Keeping current theme."
         fi
+
+        # Wi-Fi Prompt
+        echo ""
+        if gum confirm "Turn off Wi-Fi to save power?" --affirmative "Yes, disable Wi-Fi" --negative "No, keep connected"; then
+            log_step "Wi-Fi disable queued."
+            TURN_OFF_WIFI=true
+        else
+            log_step "Keeping Wi-Fi active."
+        fi
     else
-        log_step "Non-interactive shell detected. Skipping Light Mode prompt."
+        log_step "Non-interactive shell detected. Skipping prompts."
     fi
 
     # --- 2. Visual Effects ---
@@ -153,6 +165,14 @@ main() {
     fi
     log_step "Resource monitors killed & media paused."
 
+    # Warp Cleanup
+    # FIX: Use sh -c directly instead of the function `run_quiet` inside spin_exec
+    if has_cmd warp-cli; then
+        spin_exec "Disconnecting Warp..." \
+             sh -c "warp-cli disconnect >/dev/null 2>&1 || true"
+        log_step "Warp disconnected."
+    fi
+
     # --- 4. Screen Brightness ---
     if has_cmd brightnessctl; then
         spin_exec "Lowering brightness to ${BRIGHTNESS_LEVEL}..." \
@@ -176,7 +196,26 @@ main() {
         log_warn "hyprctl not found. Skipping animation toggle."
     fi
 
-    # --- 6. Root Level Operations ---
+    # --- 6. ASUS Hardware Profile (User Level) ---
+    # Placed before sudo to ensure hardware profile applies even if sudo is cancelled
+    if [[ -x "$ASUS_PROFILE_SCRIPT" ]]; then
+        # Use uwsm-app if available to ensure correct DBus/Scope context, else direct
+        if has_cmd uwsm-app; then
+            spin_exec "Applying Quiet Profile & KB Lights..." \
+                uwsm-app -- "$ASUS_PROFILE_SCRIPT"
+        else
+            spin_exec "Applying Quiet Profile & KB Lights..." \
+                "$ASUS_PROFILE_SCRIPT"
+        fi
+        log_step "ASUS Quiet profile & lighting applied."
+    elif [[ -f "$ASUS_PROFILE_SCRIPT" ]]; then
+        log_warn "ASUS script found but not executable: $ASUS_PROFILE_SCRIPT"
+    else
+        # Optional: warn only if you expect it to always be there
+        log_warn "ASUS profile script not found: $ASUS_PROFILE_SCRIPT"
+    fi
+
+    # --- 7. Root Level Operations ---
     echo ""
     gum style \
         --border normal \
@@ -184,7 +223,7 @@ main() {
         --padding "0 1" \
         --foreground 196 \
         "PRIVILEGE ESCALATION REQUIRED" \
-        "Need root for TLP and Process Terminator."
+        "Need root for TLP, Wi-Fi, and Process Terminator."
 
     echo ""
 
@@ -199,6 +238,17 @@ main() {
             log_step "Bluetooth blocked."
         else
             log_warn "rfkill not found. Skipping Bluetooth block."
+        fi
+
+        # --- Wi-Fi Block ---
+        if [[ "$TURN_OFF_WIFI" == true ]]; then
+            if has_cmd rfkill; then
+                spin_exec "Blocking Wi-Fi (Hardware)..." rfkill block wifi
+                sleep 0.5
+                log_step "Wi-Fi blocked."
+            else
+                log_warn "rfkill not found. Skipping Wi-Fi block."
+            fi
         fi
 
         # --- Volume Cap ---
@@ -243,7 +293,7 @@ main() {
         log_error "Authentication failed. Root operations skipped."
     fi
 
-    # --- 7. Deferred Theme Switch ---
+    # --- 8. Deferred Theme Switch ---
     if [[ "$SWITCH_THEME_LATER" == true ]]; then
         echo ""
 
