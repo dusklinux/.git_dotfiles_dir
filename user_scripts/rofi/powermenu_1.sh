@@ -38,7 +38,7 @@ declare -Ar MENU=(
 )
 
 # Display order
-declare -ar ORDER=(shutdown reboot suspend lock logout soft_reboot )
+declare -ar ORDER=(lock logout suspend reboot soft_reboot shutdown)
 
 # Actions requiring confirmation
 declare -Ar CONFIRM=([shutdown]=1 [reboot]=1 [logout]=1 [soft_reboot]=1)
@@ -54,11 +54,8 @@ execute() {
     case $1 in
         lock)
             # Idempotent: skip if already locked
-            # FIX 1: Redirect stdout/stderr to tmp to prevent Rofi log spam
-            # FIX 2: Use 'uwsm-app' for systemd-scope correctness
-            if ! pgrep -x hyprlock >/dev/null; then
-                uwsm-app -- hyprlock > /tmp/hyprlock.log 2>&1 &
-            fi
+            # FIX: Redirect stdout/stderr to tmp to prevent Rofi log spam
+            pgrep -x hyprlock >/dev/null || setsid -f hyprlock > /tmp/hyprlock.log 2>&1
             ;;
         logout)
             # UWSM gracefully terminates Wayland session
@@ -109,10 +106,11 @@ fi
 
 # Phase 5: Requires confirmation — show dialog
 if [[ -v CONFIRM[$key] ]]; then
-    # Strip the icon from the label for the prompt text (removes up to the first two spaces)
+    # Strip the icon from the label for the prompt text
     label=${MENU[$key]#* }
     printf '\0prompt\x1f%s?\n' "$label"
     printf 'Yes, %s\0info\x1f%s:confirmed\n' "$label" "$key"
+    # Added your cancel icon here for consistency
     printf '%s No, Cancel\0info\x1fcancel\n' "${ICONS[cancel]}"
     exit 0
 fi
