@@ -40,10 +40,24 @@ sudo nvim /etc/pam.d/login
 ```
 
 2.  Add the following lines to the file. A good practice is to place them at the end of their respective sections (`auth`, `session`, `password`).
-
+   just copy paste the entire file there and replace existing data. 
 ```ini
+#%PAM-1.0
+
+# 1. Standard Checks
+auth       requisite    pam_nologin.so
+auth       include      system-local-login
 auth       optional     pam_gnome_keyring.so
+
+# 2. Account Management (Leave as is)
+account    include      system-local-login
+
+# 3. Session Setup
+session    include      system-local-login
 session    optional     pam_gnome_keyring.so auto_start
+
+# 4. Password Changes
+password   include      system-local-login
 password   optional     pam_gnome_keyring.so
 ```
 

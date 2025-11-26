@@ -1,106 +1,97 @@
 #!/usr/bin/env bash
-# waybar-netd: Zero-overhead, signal-driven network monitor
-# ELITE OPTIMIZATION: 100% Pure Bash. No forks.
-# FIX: Solved race condition in cleanup trap.
-
+# waybar-netd: Signal-driven network speed daemon
 set -euo pipefail
 
-# --- Configuration ---
 RUNTIME="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 STATE_DIR="$RUNTIME/waybar-net"
 STATE_FILE="$STATE_DIR/state"
-PID_FILE="$STATE_DIR/pid"
-
-# Ensure dir exists on start
+HEARTBEAT_FILE="$STATE_DIR/heartbeat"
 mkdir -p "$STATE_DIR"
-echo $$ > "$PID_FILE"
 
-# --- State Variables ---
-last_contact=$SECONDS
+# Initialize heartbeat
+touch "$HEARTBEAT_FILE"
+
+# Cleanup on exit
+trap 'rm -rf "$STATE_DIR"' EXIT
+
+# SIGNAL TRAP: Use no-op. 
+# This interrupts 'wait', allowing the loop to continue.
+trap ':' USR1
+
+get_primary_iface() {
+    # FIX: ( ... || true ) prevents the script from crashing if network is unreachable
+    (ip route get 1.1.1.1 2>/dev/null || true) | awk '{for(i=1;i<=NF;i++) if($i=="dev"){print $(i+1); exit}}'
+}
+
 rx_prev=0
 tx_prev=0
-active_iface=""
-force_reset=1
+iface=""
 
-# --- Signal & Cleanup ---
-cleanup() {
-    # FIX: Do NOT remove the whole directory. This causes race conditions
-    # if the service restarts quickly (the old process deletes the dir
-    # while the new process is trying to use it).
-    rm -f "$PID_FILE"
-    
-    # Kill any child processes (sleeps) in our process group
-    pkill -P $$ || true
-    exit
-}
-trap cleanup EXIT INT TERM
-
-# SIGNAL TRAP:
-trap 'last_contact=$SECONDS' USR1
-
-# --- Functions ---
-get_active_iface() {
-    while read -r iface dest _ _ _ _ _ _ _ _; do
-        if [[ "$dest" == "00000000" ]]; then
-            echo "$iface"
-            return
-        fi
-    done < /proc/net/route
-}
-
-# --- Main Loop ---
 while :; do
-    # 1. WATCHDOG (Deep Sleep Logic)
-    if (( SECONDS - last_contact > 5 )); then
-        sleep 60 &
+    # --- OPTIMIZED WATCHDOG ---
+    now=$(printf '%(%s)T' -1)
+    
+    if [[ -f "$HEARTBEAT_FILE" ]]; then
+        last_heartbeat=$(stat -c %Y "$HEARTBEAT_FILE" 2>/dev/null || echo 0)
+    else
+        last_heartbeat=0
+    fi
+    
+    diff=$(( now - last_heartbeat ))
+
+    # If Waybar hasn't touched the file in 3 seconds:
+    if (( diff > 3 )); then
+        # Sleep for 60 seconds (background)
+        sleep 600 &
         sleep_pid=$!
-        wait $sleep_pid || true 
+        
+        # Wait blocks until sleep finishes OR signal USR1 arrives.
+        # If signal arrives, wait returns >128. We catch that with || true
+        wait $sleep_pid || true
+        
+        # If we woke up early due to signal, kill the sleep process
         kill $sleep_pid 2>/dev/null || true
         
-        force_reset=1
-        last_contact=$SECONDS
+        # Restart loop immediately to process data
         continue
     fi
+    # ----------------
 
-    # 2. INTERFACE CHECK
-    curr_iface=$(get_active_iface)
+    start_time=$(date +%s%N)
+    current_iface=$(get_primary_iface)
     
-    if [[ -z "$curr_iface" ]]; then
-        # Safety Check: Ensure dir exists before write
-        [[ -d "$STATE_DIR" ]] || mkdir -p "$STATE_DIR"
-        
-        echo "KB 0 0 network-disconnected" > "$STATE_FILE.tmp"
+    # Graceful handling if no interface found (e.g. network down)
+    if [[ -z "$current_iface" ]]; then
+        # Write safe zeros
+        echo "KB 0 0 network-kb" > "$STATE_FILE.tmp"
         mv -f "$STATE_FILE.tmp" "$STATE_FILE"
-        force_reset=1
+        rx_prev=0; tx_prev=0
         sleep 1
         continue
     fi
 
-    if [[ "$curr_iface" != "$active_iface" ]]; then
-        active_iface="$curr_iface"
-        force_reset=1
+    # Interface switching logic
+    if [[ "$current_iface" != "$iface" ]]; then
+        iface="$current_iface"
+        rx_prev=0; tx_prev=0
     fi
 
-    # 3. DATA COLLECTION
-    rx_path="/sys/class/net/$active_iface/statistics/rx_bytes"
-    tx_path="/sys/class/net/$active_iface/statistics/tx_bytes"
-
-    if [[ -r "$rx_path" ]]; then
-        read -r rx_now < "$rx_path" || rx_now=0
-        read -r tx_now < "$tx_path" || tx_now=0
+    # Read stats safely
+    if [[ -r "/sys/class/net/$iface/statistics/rx_bytes" ]]; then
+        read -r rx_now < "/sys/class/net/$iface/statistics/rx_bytes"
+        read -r tx_now < "/sys/class/net/$iface/statistics/tx_bytes"
     else
         rx_now=0; tx_now=0
     fi
 
-    if [[ $force_reset -eq 1 ]]; then
+    # Handle first run (prev=0) to avoid spikes
+    if [[ $rx_prev -eq 0 && $tx_prev -eq 0 ]]; then
         rx_prev=$rx_now
         tx_prev=$tx_now
-        force_reset=0
         sleep 1
         continue
     fi
 
-    # 4. MATH
     rx_delta=$(( rx_now - rx_prev ))
     tx_delta=$(( tx_now - tx_prev ))
     (( rx_delta < 0 )) && rx_delta=0
@@ -109,43 +100,41 @@ while :; do
     rx_prev=$rx_now
     tx_prev=$tx_now
 
-    # 5. FORMATTING
-    max_val=$(( rx_delta > tx_delta ? rx_delta : tx_delta ))
-
-    if (( max_val >= 1048576 )); then
-        unit="MB"
-        cls="network-mb"
-        calc_mb() {
-            local val=$1
-            local mb_x10=$(( (val * 10) / 1048576 ))
-            if (( mb_x10 < 100 )); then
-                local int_part="${mb_x10:0:-1}"
-                local dec_part="${mb_x10: -1}"
-                [[ -z "$int_part" ]] && int_part="0"
-                echo "${int_part}.${dec_part}"
-            else
-                echo $(( mb_x10 / 10 ))
-            fi
+    # Math and formatting (MB/KB switching)
+    awk -v rx="$rx_delta" -v tx="$tx_delta" '
+    function fmt(val, is_mb) {
+        if (is_mb) {
+            val = val / 1048576
+            if (val < 10) return sprintf("%.1f", val)
+            return sprintf("%.0f", val)
+        } else {
+            val = val / 1024
+            return sprintf("%.0f", val)
         }
-        up=$(calc_mb "$tx_delta")
-        down=$(calc_mb "$rx_delta")
-    else
-        unit="KB"
-        cls="network-kb"
-        up=$(( tx_delta / 1024 ))
-        down=$(( rx_delta / 1024 ))
-    fi
+    }
+    BEGIN {
+        max = (rx > tx ? rx : tx)
+        if (max >= 1048576) {
+            unit="MB"
+            cls="network-mb"
+            up_str=fmt(tx, 1)
+            down_str=fmt(rx, 1)
+        } else {
+            unit="KB"
+            cls="network-kb"
+            up_str=fmt(tx, 0)
+            down_str=fmt(rx, 0)
+        }
+        printf "%s %s %s %s\n", unit, up_str, down_str, cls
+    }' > "$STATE_FILE.tmp"
 
-    # 6. ATOMIC WRITE
-    # Safety Check: Ensure dir exists before write (Self-healing)
-    [[ -d "$STATE_DIR" ]] || mkdir -p "$STATE_DIR"
-
-    printf "%s %s %s %s\n" "$unit" "$up" "$down" "$cls" > "$STATE_FILE.tmp"
     mv -f "$STATE_FILE.tmp" "$STATE_FILE"
 
-    # Wait for next cycle (interruptible by signal)
-    sleep 1 &
-    loop_pid=$!
-    wait $loop_pid || true
-    kill $loop_pid 2>/dev/null || true
+    # Precision sleep
+    end_time=$(date +%s%N)
+    elapsed=$(( (end_time - start_time) / 1000000 ))
+    sleep_sec=$(( 1000 - elapsed ))
+    if (( sleep_sec > 0 )); then
+        sleep "0.$(printf "%03d" $sleep_sec)"
+    fi
 done
