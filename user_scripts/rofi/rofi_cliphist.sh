@@ -35,7 +35,7 @@ shopt -s nullglob
 
 readonly XDG_DATA_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}"
 readonly PINS_DIR="${XDG_DATA_HOME}/rofi-cliphist/pins"
-readonly PIN_ICON="📌"
+readonly PIN_ICON=" |"
 readonly MAX_PREVIEW_LENGTH=80
 
 # Determine hash command once at startup (prefer fastest secure option)
