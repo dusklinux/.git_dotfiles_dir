@@ -127,6 +127,7 @@ keymap = [
 	{ on = [ "g", "h" ],       run = "cd ~",             desc = "Go home" },
 	{ on = [ "g", "c" ],       run = "cd ~/.config",     desc = "Go ~/.config" },
 	{ on = [ "g", "t" ],       run = "cd ~/.local/share/Trash/files/",     desc = "Go ~/.local/share/Trash/files" },
+	{ on = [ "g", "s" ],       run = "cd ~/user_scripts/",   desc = "Go ~/user_scripts/" },
 	{ on = [ "g", "z" ],       run = "cd /mnt/zram1/",   desc = "Go ~/zram1" },
 	{ on = [ "g", "f" ],       run = "follow",           desc = "Follow hovered symlink" },
 	{ on = [ "g", "m" ],       run = "cd /mnt/media/Documents/do_not_delete_linux/",   desc = "/mnt/media/Documents/do_not_delete_linux" },
