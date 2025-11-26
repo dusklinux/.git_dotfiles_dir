@@ -301,7 +301,7 @@ process_battery_event() {
     if [[ "$state" == "Charging" ]] && ((percentage >= BATTERY_FULL_THRESHOLD)); then
         if ((now - STATE_LAST_FULL_NOTIFY >= REPEAT_FULL_MIN * 60)); then
             fn_notify "normal" "🔋 Battery Full" \
-                "Level: $percentage% - Consider unplugging" \
+                "Level: $percentage% - Congratulatons!" \
                 "battery-full-charged-symbolic" ""
             STATE_LAST_FULL_NOTIFY=$now
         fi

@@ -4,21 +4,46 @@
  */
 
 configuration {
-    /* Modi */
+    /* ─────────────────────────────────────────────────────────────────────
+       Modi Configuration
+       ───────────────────────────────────────────────────────────────────── */
     modi: "drun,run,clipboard:~/user_scripts/rofi/rofi_cliphist.sh";
     
-    /* Display & Font */
+    /* ─────────────────────────────────────────────────────────────────────
+       Display & Font
+       ───────────────────────────────────────────────────────────────────── */
     show-icons:     true;
     icon-theme:     "Papirus-Dark";
     font:           "JetBrainsMono Nerd Font 11";
 
-    /* Text Layout */
-    display-drun:       " Apps";
-    display-run:        " Run";
-    display-clipboard:  " Clip";
+    /* ─────────────────────────────────────────────────────────────────────
+       Text Layout / Mode Labels
+       ───────────────────────────────────────────────────────────────────── */
+    display-drun:       " Apps";
+    display-run:        " Run";
+    display-clipboard:  "󰅌 Clip";
     
-    /* Interaction */
-    kb-cancel:      "Escape";
+    /* ─────────────────────────────────────────────────────────────────────
+       Keybindings - General
+       ───────────────────────────────────────────────────────────────────── */
+    kb-cancel:              "Escape";
+    kb-remove-char-back:    "BackSpace,Shift+BackSpace";
+    kb-accept-entry:        "Return,KP_Enter";
+    
+    /* ─────────────────────────────────────────────────────────────────────
+       Keybindings - Custom Actions (for clipboard script)
+       
+       kb-custom-1 (Alt+u) → Pin/Unpin item     → Returns exit code 10
+       kb-custom-2 (Alt+y) → Delete item        → Returns exit code 11
+       ───────────────────────────────────────────────────────────────────── */
+    kb-custom-1:            "Alt+u";
+    kb-custom-2:            "Alt+y";
+    
+    /* ─────────────────────────────────────────────────────────────────────
+       Behavior Tweaks
+       ───────────────────────────────────────────────────────────────────── */
+    scroll-method:          0;
+    click-to-exit:          true;
 }
 
 /* --- Import Colors --- */
@@ -34,6 +59,7 @@ configuration {
     var-input-bg:         @surface-container-high;
     var-urgent-bg:        @error-container;
     var-active-bg:        @primary;
+    var-message-bg:       @surface-container;
     
     /* Text Colors */
     var-text-def:         @on-surface;
@@ -55,7 +81,6 @@ configuration {
     border-color:         @var-border;
 
     /* Element States (Normal) */
-    /* Transparent here means 'show the window background', not actual transparency */
     normal-background:            transparent; 
     normal-foreground:            @var-text-def;
     alternate-normal-background:  transparent;
@@ -79,7 +104,6 @@ configuration {
    ===================================================================== */
 
 window {
-    /* Removed transparency: "real" to ensure solid opaque look */
     location:           center;
     anchor:             center;
     width:              40%;
@@ -91,7 +115,7 @@ window {
 }
 
 mainbox {
-    children:           [ inputbar, listview ];
+    children:           [ inputbar, message, listview ];
     spacing:            15px;
     background-color:   transparent;
     border:             0;
@@ -127,6 +151,26 @@ entry {
 }
 
 /* =====================================================================
+   Message Bar (Help text for clipboard mode)
+   ===================================================================== */
+
+message {
+    background-color:   transparent;
+    border:             0;
+    padding:            0;
+}
+
+textbox {
+    background-color:   @var-message-bg;
+    text-color:         @var-text-dim;
+    padding:            8px 12px;
+    border-radius:      6px;
+    markup:             true;
+    font:               "JetBrainsMono Nerd Font 9";
+    horizontal-align:   0.5;
+}
+
+/* =====================================================================
    List View
    ===================================================================== */
 
@@ -135,22 +179,26 @@ listview {
     lines:              8;
     cycle:              true;
     scrollbar:          false;
-    spacing:            10px;
+    spacing:            8px;
     fixed-height:       false;
     background-color:   transparent;
     border:             0;
+    /* Add this - reduces left margin */
+    padding:            0;
 }
 
 element {
-    padding:            10px 12px;
+    padding:            8px 12px;
     border-radius:      8px;
     cursor:             pointer;
-    spacing:            10px;
+    /* Reduce spacing between icon and text */
+    spacing:            6px;
     border:             0;
 }
 
 element-icon {
-    size:               1.5em;
+    /* Smaller icon = less wasted space when no icon present */
+    size:               1.2em;
     vertical-align:     0.5;
     background-color:   transparent;
     text-color:         inherit;
@@ -163,6 +211,8 @@ element-text {
     text-color:         inherit;
     highlight:          bold underline;
     cursor:             inherit;
+    /* Left-align text tightly */
+    horizontal-align:   0;
 }
 
 /* =====================================================================

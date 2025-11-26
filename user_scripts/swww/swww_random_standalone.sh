@@ -20,7 +20,7 @@ readonly -a SWWW_OPTS=(
     --transition-fps 60
 )
 
-readonly theme_mode="light"
+readonly theme_mode="dark"
 
 # Daemon init: retry count × 0.2s = max wait time (25 × 0.2 = 5 seconds)
 readonly DAEMON_INIT_RETRIES=25

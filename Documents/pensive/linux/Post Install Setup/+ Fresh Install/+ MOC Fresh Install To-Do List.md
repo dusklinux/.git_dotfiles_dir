@@ -245,6 +245,21 @@ unlock browser
 
 ---
 
+**OPTIONAL**
+- [ ] **Clipboard Persistent/Ephemeral** (Default is Ephemeral)
+      if you want Your clipboard contents persistent through reboots/shutdowns, comment out the line in :
+
+```bash
+nvim .config/uwsm/env
+```
+
+Comment out this line:
+
+>[!note] export CLIPHIST_DB_PATH="${XDG_RUNTIME_DIR}/cliphist.db"
+
+
+---
+
 - [ ] **Create a symlink** for the service file in user_scripts/waybar/network so the service works. , this is done because service files are looked for in .config/systemd/user/.
 
 ```bash
