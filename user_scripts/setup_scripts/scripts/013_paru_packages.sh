@@ -1,0 +1,186 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Script Name: install_pkg_manifest.sh
+# Description: Autonomous AUR/Repo package installer with intervention timeout.
+# Context:     Arch Linux (Rolling) | Hyprland | UWSM
+# Author:      Gemini (Elite DevOps Persona)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. STRICT SAFETY & SETTINGS
+# ------------------------------------------------------------------------------
+# -u: Treat unset variables as an error
+# -o pipefail: Pipeline fails if any command fails
+# We do NOT use -e globally because we need to continue if one package fails.
+set -uo pipefail
+
+# ------------------------------------------------------------------------------
+# 2. VISUALS & LOGGING
+# ------------------------------------------------------------------------------
+# ANSI Colors for clean output
+readonly C_RESET='\033[0m'
+readonly C_BOLD='\033[1m'
+readonly C_GREEN='\033[1;32m'
+readonly C_BLUE='\033[1;34m'
+readonly C_YELLOW='\033[1;33m'
+readonly C_RED='\033[1;31m'
+readonly C_CYAN='\033[1;36m'
+
+log_info() { printf "${C_BLUE}[INFO]${C_RESET} %s\n" "$1"; }
+log_success() { printf "${C_GREEN}[SUCCESS]${C_RESET} %s\n" "$1"; }
+log_warn() { printf "${C_YELLOW}[WARN]${C_RESET} %s\n" "$1"; }
+log_err() { printf "${C_RED}[ERROR]${C_RESET} %s\n" "$1"; }
+log_task() { printf "\n${C_BOLD}${C_CYAN}:: %s${C_RESET}\n" "$1"; }
+
+# ------------------------------------------------------------------------------
+# 3. CLEANUP & TRAPS
+# ------------------------------------------------------------------------------
+cleanup() {
+  # Restore cursor if it was hidden
+  tput cnorm
+  # Reset colors
+  printf "${C_RESET}"
+}
+trap cleanup EXIT INT TERM
+
+# ------------------------------------------------------------------------------
+# 4. PRE-FLIGHT CHECKS
+# ------------------------------------------------------------------------------
+# Constraint: Paru should NOT be run as root.
+if [[ $EUID -eq 0 ]]; then
+  log_err "This script must NOT be run as root."
+  log_err "AUR helpers like 'paru' handle sudo privileges internally."
+  log_err "Please run as your normal user."
+  exit 1
+fi
+
+# Check if paru exists
+if ! command -v paru &>/dev/null; then
+  log_err "Critical dependency 'paru' is missing."
+  exit 1
+fi
+
+# ------------------------------------------------------------------------------
+# 5. CONFIGURATION
+# ------------------------------------------------------------------------------
+# User Package Manifest - Edit this array to add/remove packages.
+readonly PACKAGES=(
+  "wlogout"
+  "acpi_call"
+  "pscircle"
+  "adwaita-qt6"
+  "adwaita-qt5"
+  "pacseek"
+  "jdownloader2"
+  "otf-atkinson-hyperlegible-next"
+  "fluent-icon-theme-git"
+  "bibata-cursor-theme"
+  "wordbook"
+  "keypunch-git"
+  "python-pywalfox"
+  "hyprshade"
+  "waypaper"
+  "peaclock"
+  "tray-tui"
+  "wifitui-bin"
+  "pinta"
+  "youtube-dl-gui-bin"
+  "xdg-terminal-exec"
+)
+
+readonly TIMEOUT_SEC=120
+
+# ------------------------------------------------------------------------------
+# 6. MAIN LOGIC
+# ------------------------------------------------------------------------------
+main() {
+  log_task "Starting Autonomous Package Installation Sequence"
+  log_info "Target Packages: ${#PACKAGES[@]}"
+  log_info "Timeout Policy: ${TIMEOUT_SEC}s per package for manual intervention."
+
+  local success_count=0
+  local fail_count=0
+  local failed_pkgs=()
+
+  # Perform a system update first (Standard Arch Practice)
+  log_task "Synchronizing Repositories (paru -Sy)..."
+  if ! paru -Sy; then
+    log_err "Failed to synchronize repositories. Aborting to prevent partial states."
+    exit 1
+  fi
+
+  for pkg in "${PACKAGES[@]}"; do
+    log_task "Processing: ${pkg}"
+
+    # 1. Check if already installed
+    if paru -Qi "$pkg" &>/dev/null; then
+      log_success "${pkg} is already installed. Skipping."
+      continue
+    fi
+
+    # 2. Intervention Window
+    # We cannot easily timeout paru's internal prompt, so we prompt BEFORE execution.
+    printf "${C_YELLOW}  -> Waiting %ss. Press [m] for manual mode, or [Enter] to auto-install... ${C_RESET}" "$TIMEOUT_SEC"
+
+    local user_input=""
+
+    # read -t returns >128 on timeout, 0 on successful input
+    if read -t "$TIMEOUT_SEC" -n 1 -s user_input; then
+      # User pressed a key
+      if [[ "$user_input" == "m" || "$user_input" == "M" ]]; then
+        printf "\n"
+        log_info "Manual Mode Triggered for ${pkg}."
+        # Run paru interactively (allows user to pick providers)
+        if paru -S "$pkg"; then
+          log_success "Installed ${pkg} (Manual)."
+          ((success_count++))
+        else
+          log_err "Failed to install ${pkg}."
+          ((fail_count++))
+          failed_pkgs+=("$pkg")
+        fi
+        continue
+      fi
+    fi
+
+    # Fallthrough: Timeout reached OR User pressed Enter (or any key other than m)
+    printf "\n"
+    log_info "Auto-installing ${pkg} (Default Options)..."
+
+    # 3. Autonomous Installation
+    # --needed: don't reinstall up to date
+    # --noconfirm: accept all defaults
+    if paru -S --needed --noconfirm "$pkg"; then
+      log_success "Installed ${pkg} (Auto)."
+      ((success_count++))
+    else
+      log_err "Failed to install ${pkg}. Proceeding to next..."
+      ((fail_count++))
+      failed_pkgs+=("$pkg")
+    fi
+
+  done
+
+  # --------------------------------------------------------------------------
+  # 7. SUMMARY
+  # --------------------------------------------------------------------------
+  printf "\n"
+  printf "${C_BOLD}========================================${C_RESET}\n"
+  printf "${C_BOLD} INSTALLATION SUMMARY ${C_RESET}\n"
+  printf "${C_BOLD}========================================${C_RESET}\n"
+  log_info "Successful: ${success_count}"
+
+  if [[ $fail_count -gt 0 ]]; then
+    log_err "Failed: ${fail_count}"
+    log_err "The following packages failed to install:"
+    for f in "${failed_pkgs[@]}"; do
+      printf "   - %s\n" "$f"
+    done
+  else
+    log_success "All requested packages processed successfully."
+  fi
+
+  printf "\n"
+}
+
+main "$@"

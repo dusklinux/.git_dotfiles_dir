@@ -252,7 +252,7 @@ The output should be `/bin/zsh` or `/usr/bin/zsh`.
 - [ ] **Install Warp and connect to it** or some packages might download excruciatingly slowly [[Warp Cloudflare]]
 
 ---
-
+*Script*
 **OPTIONAL**
 - [ ] Arch extra repo has a history of messing up the packaging for the plugins with hyprland resulting in mismatched headers leading to errors. Enable/disable plugins entirely. [[Toggling Hypr Plugins Manager]]
 
