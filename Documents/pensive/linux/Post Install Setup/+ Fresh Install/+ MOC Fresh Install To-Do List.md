@@ -399,7 +399,7 @@ unlock browser
 *Script*
 **OPTIONAL**
 - [ ] **Clipboard Persistent/Ephemeral** (Default is Ephemeral)
-      if you want Your clipboard contents persistent through reboots/shutdowns, comment out the line in :
+      if you want Your clipboard contents to persistent through reboots/shutdowns, comment out the line in :
 
 ```bash
 nvim .config/uwsm/env

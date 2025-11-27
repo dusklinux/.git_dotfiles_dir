@@ -36,7 +36,7 @@ export SDL_VIDEODRIVER=wayland
 export CLUTTER_BACKEND=wayland
 
 #commentout for persistant clipboard through reboots, uncomment for ephimeral clipboard that resets on reboot (with the exception of pinned clip units)
-export CLIPHIST_DB_PATH="${XDG_RUNTIME_DIR}/cliphist.db"
+# export CLIPHIST_DB_PATH="${XDG_RUNTIME_DIR}/cliphist.db"
 
 # Modern Electron apps (VSCode, Discord, Obsidian) support this auto-negotiation now.
 export ELECTRON_OZONE_PLATFORM_HINT=auto
