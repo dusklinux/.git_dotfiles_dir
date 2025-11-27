@@ -439,7 +439,8 @@ systemctl --user enable --now battery_notify
 
 ---
 
-*Script*
+(NO LONGER NEEDED, MOVED TO USER CONFIG , SKIP TO NEXT) 
+*Script* 
 - [ ] Preferred system and terminal fonts.  if you want you could refer to this note for more info [[+ MOC Fonts]] but reading it is not needed, just follow the steps below. 
 
 - **Copy the Pre Configured Configuration file to the  system fonts directory**

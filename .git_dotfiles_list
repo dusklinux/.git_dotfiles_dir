@@ -2,6 +2,7 @@
 .config/btop/btop.conf
 .config/cava/config
 .config/fastfetch/
+.config/fontconfig/
 .config/hypr/
 .config/kitty/
 .config/matugen/config.toml
