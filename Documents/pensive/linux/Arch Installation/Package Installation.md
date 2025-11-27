@@ -109,7 +109,7 @@ pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza 
 _Build tools, languages, and image previewers for Neovim/Yazi._
 
 ```
-pacman -S --needed git meson cmake clang python-pipx uv rq jq bc luarocks viu chafa ueberzugpp ccache nodejs npm python-pynvim
+pacman -S --needed git meson cmake clang python-pipx uv rq jq bc luarocks viu chafa ueberzugpp ccache nodejs npm python-pynvim mold
 ```
 
 Installing using npm

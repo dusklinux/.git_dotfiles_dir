@@ -28,18 +28,11 @@ export TERMINAL='kitty'
 # Set the default web browser.
 #export BROWSER='firefox'
 
-# --- OpenMP Performance Tuning ---
-# Instructs OpenMP-aware applications to use a number of threads matching
-# the CPU's hardware thread count (e.g., Intel i7-12700H has 20 threads).
-# This does NOT affect shell performance itself.
-export OMP_NUM_THREADS=$(nproc)
 
 # --- Compilation Optimization ---
 # 1. Parallelism: Use ALL available processing units.
 #    $(nproc) dynamically counts cores on any machine this runs on.
-local _cores=$(nproc)
-local _jobs=$((_cores > 2 ? _cores - 2 : 1))
-export MAKEFLAGS="-j${_jobs}"
+export MAKEFLAGS="-j$(nproc)"
 
 # --- Pyenv (Python Version Management) ---
 # Initializes pyenv to manage multiple Python versions.
