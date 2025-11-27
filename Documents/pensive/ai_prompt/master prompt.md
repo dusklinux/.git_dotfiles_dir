@@ -1,4 +1,4 @@
-As an expert technical writer, please revise my manual for setup for this on linux arch,  make sure to make it clear, concise, and aesthetically pleasing.
+As an expert technical writer, please revise my manual for setup for this on linux arch, make sure to make it clear, concise, and aesthetically pleasing.
 
     Add proper Markdown formatting (headings, lists, tables) and make it look Aesthetically pleasing and beautiful and intuitive this is for obsidian the second brain app.
 
@@ -10,8 +10,8 @@ As an expert technical writer, please revise my manual for setup for this on lin
 
     Use succinct, precise phrasing and an appealing visual style throughout.
 
- I want to go at it slowly and methodically. 
-make sure the language is clear and easy to understand. 
+I want to go at it slowly and methodically.
+make sure the language is clear and easy to understand.
 
 I want you to make sure to fill in the missing pieces where required it is Incredibly critical that you get this right so I want you to research extensively and think long and hard before responding
 
