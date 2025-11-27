@@ -177,16 +177,6 @@ install_group "Filesystem Tools" "${pkgs_filesystem[@]}"
 install_group "Networking" "${pkgs_network[@]}"
 install_group "Terminal & CLI" "${pkgs_terminal[@]}"
 install_group "Development" "${pkgs_dev[@]}"
-
-# NPM Handling - Only run if npm actually exists and works
-if command -v npm &>/dev/null; then
-  printf "\n${BOLD}${CYAN}:: Installing Neovim (NPM Adapter)${RESET}\n"
-  # Attempt install, allow failure without exiting script
-  npm install -g neovim || printf "${YELLOW}[!] NPM install failed (Check permissions).${RESET}\n"
-else
-  printf "\n${YELLOW}[!] NPM not found. Skipping Node Neovim adapter.${RESET}\n"
-fi
-
 install_group "Multimedia" "${pkgs_multimedia[@]}"
 install_group "System Admin" "${pkgs_sysadmin[@]}"
 install_group "Gnome Utilities" "${pkgs_gnome[@]}"
