@@ -21,7 +21,7 @@ First, you need to install the core components. `gnome-keyring` is the backgroun
 Execute the following command to install the necessary packages:
 
 ```bash
-sudo pacman -S --needed gnome-keyring libsecret
+sudo pacman -S --needed gnome-keyring libsecret seahorse
 ```
 
 ---

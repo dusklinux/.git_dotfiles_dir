@@ -21,6 +21,7 @@
 .config/qt6ct/
 .config/rofi/
 .config/systemd/user/swaync.service.d/
+.config/xdg-terminals.list
 .config/xsettingsd/
 .config/yazi/
 .config/zellij/

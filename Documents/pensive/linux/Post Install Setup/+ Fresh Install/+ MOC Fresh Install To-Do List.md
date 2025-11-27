@@ -2,6 +2,8 @@
 
 This checklist provides a structured overview of essential tasks to perform after a fresh Arch Linux installation. Follow these steps to configure your system, restore your environment, and set up your applications.
 
+> [!NOTE] Sections with "*Script*" at the top indicate that section has been automated with a script or in process of being written a script for.  
+
 > [!IMPORTANT]+
 > Steps to be followed Sequentially. 
 > there are going to be a few errorw displayed on the top of the screen by hyprland, ignore those, they will eventually go away as each step is followed to the T
@@ -27,7 +29,7 @@ sudo systemctl start sshd && ip a
 ```
 
 ---
-
+*Script*
 **OPTIONAL**
 - [ ] limit battery temperately (asus tuf f15) (might need to change `BAT1`to see what's available for your laptop for this command to work)
 
@@ -47,6 +49,7 @@ echo 60 | sudo tee /sys/class/power_supply/BAT1/charge_control_end_threshold
 > change`left_handed = true` to `left_handed = false`
 
 ---
+
 **OPTIONAL**
 - [ ] If you want to quickly find out how to do something using an existing keybind, hold down `ALT` + `6` for the rofi menu to list the keybind list
 
@@ -60,11 +63,11 @@ echo 60 | sudo tee /sys/class/power_supply/BAT1/charge_control_end_threshold
 - You can then copy paste commands from Obsidian on the same PC, no SSHing required
 
 ---
-
+*Script*
 - [ ] **Set up GNOME Keyring:** Configure GNOME Keyring with PAM for password management. [[Gnome Keyring PAM]]
 
 ---
-
+*Script*
 - [ ] **Enable UserSession Services**. 
 
 ```bash
@@ -72,7 +75,7 @@ systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.
 ```
 
 ---
-
+*Script*
 - [ ] configure Reflector config. 
 ```bash
 sudo nvim /etc/xdg/reflector/reflector.conf
@@ -96,6 +99,7 @@ replace the entire content of the file with this.
 # Sort the mirrors by synchronization time (--sort).
 --sort rate 
 ```
+
 **OPTIONAL**
 - [ ] Syncing Pacman Mirrors for faster Download Speeds
 
@@ -106,7 +110,7 @@ sudo reflector --protocol https --country India --latest 6 --sort rate --save /e
 
 
 ---
-
+*Script*
 **OPTIONAL**
 - [ ] enabling better pacman visuals while downloading packages and faster downloads
 ```bash
@@ -127,7 +131,7 @@ DownloadUser = alpm
 ILoveCandy
 ```
 ---
-
+*Script*
 - [ ] **Set Default Shell:** Change the default shell from `bash` to `zsh` 
 - To make Zsh your login shell, use the `chsh` (change shell) command and then enter your Password
 
@@ -153,21 +157,21 @@ echo $SHELL
 The output should be `/bin/zsh` or `/usr/bin/zsh`.
 
 ---
-
+*Script*
 - [ ] **Install `paru`:** Set up the `paru` AUR helper. [[Installing an AUR Helper]]
 
 ---
-
+*Script*
 **OPTIONAL** (Recommanded to circumvent geo blocking of aur url's by the ISP) 
 - [ ] **Install Warp and connect to it** or some packages might download excruciatingly slowly [[Warp Cloudflare]]
 
 ---
-
+*Script*
 **OPTIONAL**
 - [ ] Arch extra repo has a history of messing up the packaging for the plugins with hyprland resulting in mismatched headers leading to errors. Enable/disable plugins entirely. [[Toggling Hypr Plugins Manager]]
 
 ---
-
+*Script*
 **OPTIONAL** but Recommanded
 Run this only if you have the plugins enabled and want to use them. 
 
@@ -190,11 +194,11 @@ hyprpm enable hyprexpo
 ```
 
 ---
-
+*Script*
 - [ ] **Install Core Applications:** Use `paru` to install your essential packages from the repositories and the AUR. [[AUR Packages]]
 
 ---
-
+*Script*
 - [ ] **Enable Aur packages' services** [[AUR Package services]]
 
 ```bash
@@ -202,7 +206,7 @@ sudo systemctl enable --now fwupd.service warp-svc.service asusd.service
 ```
 
 ---
-
+*Script*
 - [ ] **Create Directories** for Block device mount points. (only create the ones you have drives for)
 
 ```bash
@@ -210,7 +214,7 @@ sudo mkdir /mnt/{browser,windows,wdslow,wdfast,media,fast,slow,enclosure}
 ```
 
 ---
-
+**OPTIONAL**
 - [ ] **Update `fstab`:** Edit the fstab to reflect the new drives' UUIDs. **fstab requires unlocked UUIDs of block devices** [[fstab reference]] 
 - find out UUID's of your relevant disks. boot, home & root are already set. don't touch those in fstab. 
 
@@ -221,7 +225,12 @@ or
 ```bash
 sudo blkid
 ```
+or 
+```bash
+lsblk -o NAME,MODEL,TYPE,SIZE,MOUNTPOINT,FSTYPE,FSVER,UUID,STATE
+```
 
+then :
 ```bash 
 sudo nvim /etc/fstab
 ```
@@ -244,7 +253,7 @@ unlock browser
 ```
 
 ---
-
+*Script*
 **OPTIONAL**
 - [ ] **Clipboard Persistent/Ephemeral** (Default is Ephemeral)
       if you want Your clipboard contents persistent through reboots/shutdowns, comment out the line in :
@@ -259,7 +268,7 @@ Comment out this line:
 
 
 ---
-
+*Script*
 - [ ] **Create a symlink** for the service file in user_scripts/waybar/network so the service works. , this is done because service files are looked for in .config/systemd/user/.
 
 ```bash
@@ -272,7 +281,7 @@ systemctl --user enable --now network_meter
 ```
 
 ---
-
+*Script*
 - [ ] **Create a symlink** for the service file in user_scripts/battery/battery_notify.service, so the service works. , this is done because service files are looked for in .config/systemd/user/.
 
 ```bash
@@ -287,7 +296,7 @@ systemctl --user enable --now battery_notify
 
 ---
 
-
+*Script*
 - [ ] Preferred system and terminal fonts.  if you want you could refer to this note for more info [[+ MOC Fonts]] but reading it is not needed, just follow the steps below. 
 
 - **Copy the Pre Configured Configuration file to the  system fonts directory**
@@ -303,6 +312,7 @@ sudo fc-cache -fv
 ```
 
 ---
+*Script*
 ## Theming (matugen)
 
 - [ ] First create the following directories for gtk4, btop, wal for firefox. 
@@ -312,7 +322,7 @@ mkdir -p $HOME/.config/gtk-4.0 && mkdir -p $HOME/.config/btop/themes && mkdir -p
 ```
 
 ---
-
+*Script*
 **Optional**
 - [ ] You can place pictures for the wallpaper selector in the wallpapers directory at:- 
 
@@ -347,7 +357,7 @@ matugen image $HOME/Pictures/Wallpapers/image.jpg
 ```
 
 ---
-
+*Script*
 `Check carefully before changing the following qtct files, these might already be as they should becase they should have been restored from github but sometimes the lines change on a fresh install. And if this step needs to be carried out, only change the lines specified below and nothing else. leave everything as is.`
 
 - [ ] **for qt5ct**  Theming with matugen
@@ -385,7 +395,7 @@ style=Fusion
 if qt apps still aren't follwing the color pallete of matugen. *sometimes you might need to open `qt5ct` and `qt6ct` and mess around with its settings*
 
 ---
-
+*Script*
 ` This step, again, is usually not needed to be done but check if its needed, by setting a wallpaper with waypaper and see if the theme has switched, open and close the terminal/thunar/or anyother app,  to see if it's switched colors, if not, then preceed with the following:` if themes did switch sucessfuly, this step is not required. 
 
 - [ ] Might need to recreate the config file for waypaper because sometimes it's got issues when it's restored from git. so delete the entire file, open waypaper> change any setting> when a new config is auto created, edit it just the post_command line to include the command. 
@@ -403,7 +413,7 @@ post_command = matugen --mode dark image $wallpaper
 ```
 
 --- 
-
+*Script*
 **OPTIONAL**
 DARK/LIGHT THEME SWITCH
 
@@ -425,15 +435,16 @@ first, make sure you've set the appropriate colro scheme for your current theme 
 then open obsidian's settings > Appearance > Scroll to the bottom to `CSS snippets`> Toggle on the `matugen-theme` option, and not the other one (if it exists). if you toggle on both, sometimes they will both be toggled off the next time you open Obsidian
 
 ---
-
+*Script*
 - [ ] Set over all animations with just one click. 
 hold down `ALT` + `SUPER(windows key)` + `A`  after you hold down all these at once, rofi menu will show up for you to select from a list of animations. pick anyone. (`fluid` is recommended but pick the one you like.)
 
 ---
-
+*Script*
 - [ ] **Sound notify when usb plugin/disconnect** [[Configure udev auditory notify usb plugin]]
 
 ---
+*Script*
 - [ ] Set kitty as your defualt terminal. 
 ```bash
 nvim ~/.config/xdg-terminals.list
@@ -444,7 +455,7 @@ kitty.desktop
 ```
 
 ---
-
+*Script*
 **OPTIONAL**
 - [ ] block attention sucking sites. 
 
@@ -472,6 +483,7 @@ sudo nvim /etc/hosts
 
 ---
 
+*Script*
 **OPTIONAL** 
 - [ ] *Optional* : Link Browser data to existing drive (only do if you have a separate browser drive where you want for browser data to be stored)
 
@@ -506,7 +518,7 @@ sudo ln -nfs /mnt/browser/.mozilla ~/.mozilla
 install the extention `Pywalfox` from the mozilla store. and then open the plugin and select `Fetch Pywal colors`
 
 ---
-
+*Script*
 **OPTIONAL**
 
 - [ ] **Comment out anything beyond  the end line of zshrc, if there is anything there,  to speed up your terminal:** :- 
@@ -521,30 +533,30 @@ nvim ~/.zshrc
 > ============================
 
 ---
-
+*Script*
 - [ ] *Optional*: **TLP config** : copy the tlp config to /etc/tlp.conf [[+ MOC tlp config]]
 
 ---
-
+*Script*
 - [ ] *Optional*:**Create Disk Swap** [[Disk Swap]] 
       zram swap should already have been created during installation process, you can check if zram block drives are active. usually zram0 and zram 1 if you followed the instruction during arch install. 
 
 	If you Still want more swap and can spare some disk storage for it, you can create disk swap, it's recommanded to create one if you have =<4gb of ram. 
 
 ---
-
+*Script*
 - [ ] *Optional*: **Configure Auto-Login:** Set up automatic login on TTY1. [[+ MOC Auto Login]]
 
 ---
-
+*Script*
 - [ ] *Optional*:**Configure swapiness for zram** Optimal if you have sufficiant ram ie equal to or more than 4GB [[Optimizing Kernel Parameters for ZRAM]]
 
 ---
-
+*Script*
 - [ ] *Optional*: **Configure Power Key:** Define the system's behavior when the power key is pressed. [[Power Key Behaviour]]
 
 ---
-
+*Script*
 **OPTIONAL**
 - [ ] Fix logratate by uncommenting size and compress in 
 
@@ -553,7 +565,7 @@ sudo nvim /etc/logrotate.conf
 ```
 
 ---
-
+*Script*
 **OPTIONAL**
 - [ ] fix being locked out if you enter incorrect password [[Incorrect Password Attempt Timeout]]
 
@@ -590,7 +602,7 @@ Fine-tune your Hyprland compositor and shell environment. These steps are often 
 nvim ~/.config/uwsm/env
 ```
 
-> [!tip]- Comment OUT Everything Beyond This Line
+> [!error]+ Comment OUT Everything Beyond This Line
 > #-------------------------NVIDIA-------------------------------
 > #COMMENT OUT ANY SET ENVIRONMENT VARIABLE IF YOU DONT HAVE NVIDIA
 > #--------------------------------------------------------------
@@ -603,11 +615,11 @@ nvim ~/.config/uwsm/env
 nvim ~/.config/uwsm/env-hyprland
 ```
 
-> [!tip]- Comment OUT this line
+> [!error]+ Comment OUT this line
 > export AQ_DRM_DEVICES=/dev/dri/card1
 
 ---
-
+*Script*
 **HYPRLAND CONFIG** changes. 
 
 ```bash
@@ -616,48 +628,68 @@ nvim ~/.config/hypr/hyprland.conf
 
  - [ ] This line is to run a script for configuring asus profiles for Asus specific hardware and for changing keyboard color along with fan control. 
  
->[!note]- Comment out Asus specific Script
+ ```bash
+ nvim .config/hypr/source/keybinds.conf
+ ```
+
+
+>[!error]+ Comment out Asus specific Script
 >bindl = , XF86Launch3, exec, kitty -e sudo ~/user_scripts/asus/asus-control.sh
-
-
-- [ ] **Configure Monitor Output:** Here one line needs to be Un-Commented and another Commented out. 
-
-> [!tip]- Un-Comment this line to auto detect Your Screen configuration
-> #monitor=,preferred,auto,auto  # Generic rule for most laptops
-
-> [!tip]- Comment OUT this line (specifically for 144 hz asus laptop)
-> monitor=eDP-1,1920x1080@60,0x0,1.6 # Specific for ASUS TUF F15 Laptop
-
-- [ ] Mouse left/right click buttons are swapped by default, switch them back to normal. 
-
-> [!tip]- Comment OUT this line 
-> left_handed = true
 
 - [ ] Comment OUT the custom key-binds for changing refresh rate that are specific to asus laptops with 144 hz with  `Alt+6` and `Alt+7`.
 
-> [!tip]- Comment OUT these two lines
+> [!error]+ Comment OUT these two lines
 > bind = ALT, 6, exec, hyprctl keyword monitor eDP-1,1920x1080@60,0x0,1.6
 > bind = ALT, 7, exec, hyprctl keyword monitor eDP-1,1920x1080@144,0x0,1.6
 
-- [ ] Comment out this and replace it with this. 
+- [ ] IF you dont have an nvidia GPU, Comment out this and replace it with this. 
 
-> [!tip]- Comment out these lines 
-> ```ini
+> [!error]+ Comment out these lines 
+>```ini
 >#FASTERWHISPER TTS
-bind = $mainMod SHIFT, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst.sh
+>bind = $mainMod SHIFT, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst.sh
 >
 >#Nvidia Parakeet
 >bind = $mainMod, I, exec, ~/user_scripts/parakeet/parakeet.sh
 >```  
 
-> [!tip]- And add this line instead
+> [!tip]+ And add this line instead
 > ```ini
 > bind = $mainMod, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst.sh
 >```
 
+
+---
+*Script*
+- [ ] **Configure Monitor Output:** Here one line needs to be Un-Commented and another Commented out. 
+
+```bash
+nvim .config/hypr/source/monitors.conf
+```
+
+> [!tip]+ Un-Comment this line to auto detect Your Screen configuration
+> #monitor=,preferred,auto,auto  # Generic rule for most laptops
+
+> [!error]+ Comment OUT this line (specifically for 144 hz asus laptop)
+> monitor=eDP-1,1920x1080@60,0x0,1.6 # Specific for ASUS TUF F15 Laptop
+
+---
+*Script*
+- [ ] Mouse left/right click buttons are swapped by default, switch them back to normal. 
+
+```bash
+nvim .config/hypr/source/input.conf
+```
+
+> [!error]+ Comment OUT this line 
+> left_handed = true
+
+
+---
+*Script*
 - [ ] for changing default file manager from yazi to thunar. 
 
-> [!tip]- to change yazi to thunar as default
+> [!tip]+ to change yazi to thunar as default
 >replace this line `$fileManager = yazi` with 
 >```ini
 >$fileManager = thunar
@@ -677,19 +709,20 @@ bind = $mainMod SHIFT, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst
 >inode/directory: This is the official MIME type for a folder or directory.
 
 ---
-
+*Script*
+Dont do this, reserach what your specific gpu has.  (skip this)
 - [ ] Comment out this line from mpv's config if you don't have an av1 decoder. can be checked by running `vainfo`
 
 ```bash
 nvim ~/.config/mpv/mpv.conf
 ```
 
-> [!note]- Comment out this part
+> [!error]+ Comment out this part
 > hwdec-codecs=vp9,h264,hevc,av1
 
 
 ---
-
+*Script*
 - [ ] Delete the override service file for swaync to force it to use the intel GPU, For laptops with both dGPU and iGPU, for some reason swaync uses the dGPU by default which increases powerusage, IF you only have one GPU delete this file.
 
 ```bash
@@ -716,12 +749,12 @@ sudo cp ~/fonts_and_old_stuff/setup/etc/asusd /etc/
 nvim ~/.config/uwsm/env-hyprland
 ```
 
-> [!tip]- UN-Comment this line
+> [!tip]+ UN-Comment this line
 > ```ini
 >export AQ_DRM_DEVICES=/dev/dri/card1
 >```
 
-> [!tip]- No longer used because hyprland no longer uses wl-roots. it uses aquamarien
+> [!tip]+ No longer used because hyprland no longer uses wl-roots. it uses aquamarien
 > this should be commented in 
 > ```bash
 > nvim ~/.config/uwsm/env
@@ -754,7 +787,7 @@ nvim ~/.config/uwsm/env-hyprland
 >Thunar > Edit > Configure Custom Actions... > Open Terminal Here > Edit the Currenctly selected action > delete everything in the `Command:` box and type your terminal's name eg kitty. 
 
 ---
-
+*Script*
 ### 5. Services & Networking
 
 Enable essential background services and disable ones you don't need.
@@ -766,11 +799,11 @@ sudo systemctl disable NetworkManager-wait-online.service
 ```
 
 ---
-
+*Script*
 - [ ] **Set up FTP:** Configure your FTP client or server as needed. [[+ MOC FTP]]
 
 ---
-
+*Script*
 ### Application Configuration
 
 - [ ] terminal tldr update for commands example. 
@@ -780,11 +813,11 @@ tldr --update
 ```
 
 ---
-
+**OBSELETED** (SKIP this)
 - [ ] **`firefox`:** Apply your custom `userChrome.css` for the side-panel modifications., hardware acceleration and smoothscrooling and other stuff refer to [[+ MOC Firefox]]
 
 ---
-
+*Script*
 - [ ] **`spotify`:** without adds script [[Spotify]]
 
 ---
@@ -792,6 +825,7 @@ tldr --update
 - [ ] **Obsidian** download `hider`, `copilot` plugins and also downlaod the `primary` theme. 
 
 ---
+*Script*
 ### 7. Re-Link exisiting github repo to continue backing up to it. 
 
 - [ ] Follow these steps after you've already checked out and restored all the files from the github repo  [[Relink to my existing github repo for backup after Fresh Install]]
@@ -801,7 +835,7 @@ or
 - [ ] create a new github repo to start backing up. [[git_bare_repo_setup]]
 
 ---
-
+*Script*
 Free up storage by clearing package cache for paru and pacman 
   
 - [ ] **Free up storage by clearing pacman Cache**
