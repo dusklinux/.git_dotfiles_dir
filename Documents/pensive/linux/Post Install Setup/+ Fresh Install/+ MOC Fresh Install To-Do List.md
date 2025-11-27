@@ -38,10 +38,10 @@ echo 60 | sudo tee /sys/class/power_supply/BAT1/charge_control_end_threshold
 ```
 
 ---
-
+**OPTIONAL**
 - [ ] **Restore Dotfiles:** Download the `git` bare repository and deploy the files on your PC [[Restore Backup On a Fresh Install]].
 
->[!note]- Your mouse button will be reversed if you're using a physical mouse. 
+>[!error]+ Your mouse button will be reversed AFTER RESTORING THE DOTFILES, if you're using a physical mouse. 
 >Trackpad not effected. You'll later have the option to set it back to normal configuration in the steps below, or you could do it right now in the following file
 >```bash
 >nvim ~/.config/hypr/source/input.conf
