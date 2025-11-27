@@ -129,7 +129,7 @@ _Video players, recording (OBS), image editing, and screenshot tools._
 
 
 ```
-pacman -S --needed ffmpeg mpv mpv-mpris swappy swayimg imagemagick libheif obs-studio audacity handbrake guvcview ffmpegthumbnailer krita grim slurp wl-clipboard cliphist tesseract
+pacman -S --needed ffmpeg mpv mpv-mpris swappy swayimg imagemagick libheif obs-studio audacity handbrake guvcview ffmpegthumbnailer krita grim slurp wl-clipboard cliphist tesseract-data-eng
 ```
 
 - [ ] Status

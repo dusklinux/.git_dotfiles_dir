@@ -115,11 +115,11 @@ sudo reflector --protocol https --country India --latest 6 --sort rate --save /e
 keyring can then be populated with the keys of all official Arch Linux packagers with `pacman-key --populate archlinux`.
 
 ```bash
-pacman-key --init
+sudo pacman-key --init
 ```
 
 ```bash
-pacman-key --populate archlinux
+sudo pacman-key --populate archlinux
 ```
 
 
