@@ -109,6 +109,19 @@ if your downloads are currently slow, run this. (**Though Usually not needed**)
 sudo reflector --protocol https --country India --latest 6 --sort rate --save /etc/pacman.d/mirrorlist
 ```
 
+---
+*Script*
+- [ ] **pacman-keyring** You must run `pacman-key --init` before first using pacman; the local
+keyring can then be populated with the keys of all official Arch Linux packagers with `pacman-key --populate archlinux`.
+
+```bash
+pacman-key --init
+```
+
+```bash
+pacman-key --populate archlinux
+```
+
 
 ---
 *Script*
