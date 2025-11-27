@@ -754,7 +754,7 @@ nvim ~/.config/uwsm/env-hyprland
 >export AQ_DRM_DEVICES=/dev/dri/card1
 >```
 
-> [!tip]+ No longer used because hyprland no longer uses wl-roots. it uses aquamarien
+> [!error]+ No longer used because hyprland no longer uses wl-roots. it uses aquamarien
 > this should be commented in 
 > ```bash
 > nvim ~/.config/uwsm/env
