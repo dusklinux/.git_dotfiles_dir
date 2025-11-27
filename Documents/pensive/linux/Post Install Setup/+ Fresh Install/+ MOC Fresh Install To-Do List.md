@@ -228,6 +228,63 @@ sudo mkdir /mnt/{browser,windows,wdslow,wdfast,media,fast,slow,enclosure}
 ```
 
 ---
+
+- [ ] fix nvim's errors `WARNING {TreeSitter} regex parser is not installed.` `noice.nvim` uses this to highlight regex in the command line nicely. It's a purely visual thing, but fixing it stops the warning.
+
+**The Fix:** Open Neovim and run:
+
+```bash
+:TSInstall regex
+```
+
+and then intall Mason packages. 
+```bash
+:Mason
+```
+
+Search for the each of these words, and then just hit `i` to install it. 
+```ini
+clang-format
+
+isort
+
+prettier (for HTML/JS/CSS)
+
+prettierd (keywords: angular, css, flow, graphql, html, json, jsx, javascript, less, markdown, scss, typescript, vue, yaml)
+
+clang-format (for C/C++)
+
+shfmt (for Bash - you might already have this)
+
+stylua (for Lua)
+
+shfmt (The holy grail for Bash scripting)
+
+black (for Python)
+```
+
+>[!tip]- These are all the installed ones it should show you after you're done. 
+> ```ini
+>   Installed
+>      ✓ clang-format (keywords: c, c#, c++, json, java, javascript)
+> 	 ✓ isort (keywords: python)
+> 	 ✓ prettierd (keywords: angular, css, flow, graphql, html, json, jsx, javascript, less, markdown, scss, typescript, vue, yaml)
+>     ✓ prettier (keywords: angular, css, flow, graphql, html, json, jsx, javascript, less, markdown, scss, typescript, vue, yaml)
+>     ✓ bash-language-server bashls (keywords: bash, csh, ksh, sh, zsh)
+>     ✓ black (keywords: python)
+>     ✓ clangd (keywords: c, c++)
+>     ✓ css-lsp cssls (keywords: css, scss, less)
+>     ✓ html-lsp html (keywords: html)
+>     ✓ json-lsp jsonls (keywords: json)
+>     ✓ lua-language-server lua_ls (keywords: lua)
+>     ✓ marksman (keywords: markdown)
+>     ✓ pyright (keywords: python)
+>     ✓ shfmt (keywords: bash, mksh, shell)
+>     ✓ stylua (keywords: lua, luau)
+>     ✓ typescript-language-server ts_ls (keywords: typescript, javascript)
+> ```
+
+---
 **OPTIONAL**
 - [ ] **Update `fstab`:** Edit the fstab to reflect the new drives' UUIDs. **fstab requires unlocked UUIDs of block devices** [[fstab reference]] 
 - find out UUID's of your relevant disks. boot, home & root are already set. don't touch those in fstab. 

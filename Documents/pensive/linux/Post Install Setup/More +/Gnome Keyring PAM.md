@@ -1,7 +1,7 @@
 Of course. Here is a revised, clear, and aesthetically pleasing guide for setting up GNOME Keyring with PAM on Arch Linux, formatted for Obsidian.
 
 ***
-
+More info [[gnome PAM new]]
 # Guide: Configuring GNOME Keyring with PAM on Arch Linux
 
 This guide provides a step-by-step process for integrating GNOME Keyring with the Pluggable Authentication Modules (PAM) system. This configuration allows applications to securely store secrets like passwords and API keys, and it enables two key features:

@@ -35,9 +35,14 @@ require("lazy").setup({
 			"netrwPlugin",
 		},
   },
+
+  checker = { 
+    enabled = true, -- Check for updates periodically
+    notify = false, -- Do NOT notify you when updates are found
+  },
+
   -- Configure any other settings here. See the documentation for more details.
-  -- automatically check for plugin updates
-  checker = { enabled = true },
+
 })
 
 -- this is intentially kept here, becuase the order matters. this only needs to be loaded after lazy has loaded.

@@ -27,5 +27,16 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 			timeout = 200,
 		})
 	end,
+
+
+
+-- In autocmds.lua
+
+-- Auto-update plugins on startup (silently)
+-- uncomment next four lines to check if auto update works. 
+--vim.api.nvim_create_autocmd("VimEnter", {
+--  callback = function()
+--    require("lazy").update({ show = false }) -- update plugins, hide the UI window
+--  end,
 })
 

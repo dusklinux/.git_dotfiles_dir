@@ -19,9 +19,6 @@ end
 local function on_matugen_reload()
   source_matugen()
 
-  -- Reload your lualine theme (important since base16 overwrites)
-  dofile(os.getenv("HOME") .. "/.config/nvim/lua/config/lualine-nvim.lua")
-
   -- Any other post-theme refresh tweaks
   vim.api.nvim_set_hl(0, "Comment", { italic = true })
 end

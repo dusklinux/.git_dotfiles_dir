@@ -127,19 +127,25 @@ sudo nvim /etc/pam.d/sddm
 
 ```
 #%PAM-1.0
-auth     include      system-login
-# Unlock the keyring
-auth     optional     pam_gnome_keyring.so
 
-account  include      system-login
+# Authentication
+auth     include       system-login
+# Unlock gnome-keyring using the login password
+auth     optional      pam_gnome_keyring.so
 
-password include      system-login
-# Update keyring password on change
-password optional     pam_gnome_keyring.so
+# Account Management
+account  include       system-login
 
-session  include      system-login
-# Start daemon if needed
-session  optional     pam_gnome_keyring.so auto_start
+# Password Management (for changing passwords)
+password include       system-login
+# Update gnome-keyring password if the user changes their login password
+password optional      pam_gnome_keyring.so
+
+# Session Management
+session  optional      pam_keyinit.so force revoke
+session  include       system-login
+# Initialize the keyring daemon
+session  optional      pam_gnome_keyring.so auto_start
 ```
 
 > [!NOTE] Logic Check

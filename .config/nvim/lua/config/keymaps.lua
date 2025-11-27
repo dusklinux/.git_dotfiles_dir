@@ -46,7 +46,3 @@ vim.keymap.set("n", "<leader>hc", "<cmd>HighlightColorsToggle<CR>", { desc = "To
 
 -- lua/config/keymaps.lua (add somewhere inside)
 -- manual completion trigger (insert mode)
-vim.keymap.set({"i"}, "<C-Space>", function()
-  local cmp = require("cmp")
-  cmp.complete()
-end, { desc = "Trigger completion (manual)" })
