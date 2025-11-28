@@ -32,18 +32,46 @@
 #      ./matugen_config.sh --mode dark --contrast 0.4
 #      ./matugen_config.sh --defaults
 
-# Description:
-# Acts as a centralized configuration bridge for Matugen in a Hyprland/UWSM environment.
-# 1. Inputs: Accepts configuration via Rofi menu (interactive) or CLI flags (headless).
-# 2. Safety: Kills running Waypaper instances to prevent config conflicts.
-# 3. Config Updates:
-#    - Edits ~/.config/waypaper/config.ini to sync the post_command.
-#    - Edits random_theme.sh to inject selected flags (Mode, Type, Contrast).
-# 4. State Management:
-#    - Sets GTK color scheme (prefer-dark/prefer-light).
-#    - Triggers 'symlink_dark_light_directory.sh' to switch wallpaper sources based on Mode.
-# 5. Execution:
-#    - Immediately executes the random_theme script to refresh the wallpaper and apply the generated theme.
+# -----------------------------------------------------------------------------
+# Name:        matugen_config.sh
+# Description: Centralized configuration bridge for the Matugen wallpaper color 
+#              generator within a Hyprland/UWSM environment.
+#
+# Functionality:
+#   1. Input Resolution:
+#      - Interactive: Launches a hierarchical Rofi menu to select Mode (Light/Dark),
+#        Type (Scheme), and Contrast variables if no arguments are passed.
+#      - Headless (CLI): Accepts flags (--mode, --type, --contrast, --defaults)
+#        for automated execution via keybinds or external scripts.
+#
+#   2. Process Safety & State Management:
+#      - Gracefully terminates running 'waypaper' instances (SIGTERM -> wait -> SIGKILL)
+#        to prevent configuration overwrite race conditions during file edits.
+#
+#   3. Configuration Injection (Persistence):
+#      - Constructs a specific argument string (e.g., "-m dark -t scheme-fruit-salad")
+#        based on inputs.
+#      - Uses 'sed' to inject this string into the 'post_command' of 
+#        ~/.config/waypaper/config.ini.
+#      - Uses 'sed' to inject the same string into the 'uwsm-app' call within 
+#        ~/user_scripts/theme_matugen/random_theme.sh.
+#
+#   4. Environment Synchronization:
+#      - GTK: Updates 'org.gnome.desktop.interface color-scheme' via gsettings
+#        to match the selected mode (prefer-dark/prefer-light).
+#      - Filesystem: Triggers 'symlink_dark_light_directory.sh' to repoint 
+#        wallpaper source directories based on the selected mode.
+#
+#   5. Execution:
+#      - Syncs filesystem buffers.
+#      - Chains execution (exec) to 'random_theme.sh' to immediately generate
+#        the theme and refresh the wallpaper without forking a new shell.
+#
+# Usage:
+#   $ ./matugen_config.sh                      # Rofi Menu
+#   $ ./matugen_config.sh --mode light --defaults
+#   $ ./matugen_config.sh --mode dark --type scheme-vibrant --contrast 0.4
+# -----------------------------------------------------------------------------
 
 # --- Safety & Environment ---
 set -euo pipefail
