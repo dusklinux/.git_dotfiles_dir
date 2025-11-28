@@ -640,6 +640,10 @@ sudo nvim /etc/hosts
 
 > [!NOTE]- Hosts file blocking
 > ```ini
+> # Static table lookup for hostnames.
+> # See hosts(5) for details.
+> 127.0.0.1        localhost
+> ::1              localhost
 > 0.0.0.0 instagram.com
 > 0.0.0.0 www.instagram.com
 > 0.0.0.0 facebook.com
