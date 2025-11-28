@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 # Name:        matugen_config.sh
 # Description: Configures Matugen via Rofi or CLI. Updates Waypaper, random_theme,
-#              and Wallpaper Directory Symlinks cleanly.
+#              GTK Theme, and Wallpaper Directory Symlinks cleanly.
 # Author:      Gemini (Arch Linux Architect Persona)
 # -----------------------------------------------------------------------------
 # Usage Instructions:
@@ -35,12 +35,14 @@
 # Description:
 # Acts as a centralized configuration bridge for Matugen in a Hyprland/UWSM environment.
 # 1. Inputs: Accepts configuration via Rofi menu (interactive) or CLI flags (headless).
-# 2. Config Updates:
+# 2. Safety: Kills running Waypaper instances to prevent config conflicts.
+# 3. Config Updates:
 #    - Edits ~/.config/waypaper/config.ini to sync the post_command.
 #    - Edits random_theme.sh to inject selected flags (Mode, Type, Contrast).
-# 3. State Management:
+# 4. State Management:
+#    - Sets GTK color scheme (prefer-dark/prefer-light).
 #    - Triggers 'symlink_dark_light_directory.sh' to switch wallpaper sources based on Mode.
-# 4. Execution:
+# 5. Execution:
 #    - Immediately executes the random_theme script to refresh the wallpaper and apply the generated theme.
 
 # --- Safety & Environment ---
@@ -85,6 +87,37 @@ rofi_menu() {
     local prompt="$1"
     local options="$2"
     echo -e "$options" | rofi -dmenu -i -p "$prompt"
+}
+
+kill_process_safely() {
+    local proc_name="$1"
+    local -i i
+
+    # Check if process exists (suppress stderr for permission issues)
+    if ! pgrep -x "$proc_name" &>/dev/null; then
+        return 0
+    fi
+
+    log_info "Terminating ${proc_name}..."
+    pkill -x "$proc_name" 2>/dev/null
+
+    # Wait up to 2 seconds (20 iterations × 0.1s)
+    for ((i = 0; i < 20; i++)); do
+        if ! pgrep -x "$proc_name" &>/dev/null; then
+            log_succ "${proc_name} terminated gracefully."
+            return 0
+        fi
+        sleep 0.1
+    done
+
+    # Force kill if still running
+    if pgrep -x "$proc_name" &>/dev/null; then
+        log_err "${proc_name} did not exit gracefully, force killing..."
+        pkill -9 -x "$proc_name" 2>/dev/null
+        sleep 0.3
+    fi
+
+    log_succ "${proc_name} terminated."
 }
 
 # --- Parsing Logic ---
@@ -184,7 +217,10 @@ if [[ ! -x "$SYMLINK_SCRIPT" ]]; then
     exit 1
 fi
 
-# 3. Build Flag String
+# 3. Safety: Kill Waypaper to prevent config overwrite
+kill_process_safely "waypaper"
+
+# 4. Build Flag String
 build_flags="--mode $TARGET_MODE"
 
 if [[ "$TARGET_TYPE" != "disable" ]]; then
@@ -197,7 +233,7 @@ fi
 
 log_info "Configuration: $build_flags"
 
-# 4. Apply Configuration (sed)
+# 5. Apply Configuration (sed)
 
 # A. Update Waypaper Config
 log_info "Updating Waypaper configuration..."
@@ -207,9 +243,24 @@ sed -i "s|^post_command = matugen .* image \$wallpaper$|post_command = matugen $
 log_info "Updating random_theme script flags..."
 sed -i "s|^\s*setsid uwsm-app -- matugen .* image \"\$target_wallpaper\".*|    setsid uwsm-app -- matugen $build_flags image \"\$target_wallpaper\" \\\|" "$RANDOM_THEME"
 
-# 5. Execute Changes
+# 6. Sync Filesystem
+# Ensure file writes are committed before proceeding
+log_info "Syncing filesystem..."
+sync
+sleep 0.2
 
-# A. Update Symlinks
+# 7. Execute Changes
+
+# A. Set GTK Color Scheme (Integrated from old script)
+log_info "Setting GTK color scheme..."
+if gsettings set org.gnome.desktop.interface color-scheme "prefer-${TARGET_MODE}" 2>/dev/null; then
+    log_succ "GTK color scheme set to 'prefer-${TARGET_MODE}'."
+else
+    # Log as error but do not exit (maintain robustness)
+    log_err "Failed to set GTK color scheme (gsettings may be unavailable)."
+fi
+
+# B. Update Symlinks
 # Calls the script with --light or --dark based on TARGET_MODE
 log_info "Updating wallpaper directory symlinks..."
 if "$SYMLINK_SCRIPT" "--$TARGET_MODE"; then
@@ -219,6 +270,6 @@ else
     exit 1
 fi
 
-# B. Trigger Wallpaper Refresh
+# C. Trigger Wallpaper Refresh
 log_info "Triggering wallpaper refresh..."
 exec "$RANDOM_THEME"

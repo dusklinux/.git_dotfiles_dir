@@ -153,6 +153,10 @@ alias ln='ln -v'
 alias disk_usage='sudo btrfs filesystem usage /' # The TRUTH about BTRFS space
 alias df='df -hT'                           # Show filesystem types
 
+#Theme Switcher
+alias darkmode='~/user_scripts/theme_matugen/matugen_config.sh --mode dark'
+alias lightmode='~/user_scripts/theme_matugen/matugen_config.sh --mode light'
+
 # Check if eza is installed
 if command -v eza >/dev/null; then
     alias ls='eza --icons --group-directories-first'

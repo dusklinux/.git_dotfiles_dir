@@ -15,7 +15,7 @@ readonly VOLUME_CAP=50
 
 # Script paths
 readonly BLUR_SCRIPT="${HOME}/user_scripts/hypr/hypr_blur_opacity_shadow_toggle.sh"
-readonly THEME_SCRIPT="${HOME}/user_scripts/swww/theme_switcher.sh"
+readonly THEME_SCRIPT="${HOME}/user_scripts/theme_matugen/matugen_config.sh"
 readonly TERMINATOR_SCRIPT="${HOME}/user_scripts/battery/process_terminator.sh"
 readonly ASUS_PROFILE_SCRIPT="${HOME}/user_scripts/battery/asus_tuf_profile/quiet_profile_and_keyboard_light.sh"
 readonly ANIM_SOURCE="${HOME}/.config/hypr/source/animations/disable.conf"
@@ -302,8 +302,8 @@ main() {
             gum style --foreground 240 "(Terminal may close - this is expected)"
             sleep 1
 
-            # Execute and handle swww cleanup
-            if uwsm-app -- "$THEME_SCRIPT" --light; then
+            # Execute and handle swww-daemon cleanup
+            if uwsm-app -- "$THEME_SCRIPT" --mode light; then
                 sleep 3
                 run_quiet pkill swww-daemon
                 log_step "Theme switched to light mode."
