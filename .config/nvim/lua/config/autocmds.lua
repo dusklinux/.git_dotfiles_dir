@@ -19,24 +19,22 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 -- Highlight the yanked text for 200ms
 local highlight_yank_group = vim.api.nvim_create_augroup("HighlightYank", {})
 vim.api.nvim_create_autocmd("TextYankPost", {
-	group = highlight_yank_group,
-	pattern = "*",
-	callback = function()
-		vim.hl.on_yank({
-			higroup = "IncSearch",
-			timeout = 200,
-		})
-	end,
+    group = highlight_yank_group,
+    pattern = "*",
+    callback = function()
+        vim.hl.on_yank({ higroup = "IncSearch", timeout = 200 })
+    end,
+}) 
 
 
 
 -- In autocmds.lua
 
 -- Auto-update plugins on startup (silently)
--- uncomment next four lines to check if auto update works. 
+-- uncomment next five lines to check if auto update works. 
 --vim.api.nvim_create_autocmd("VimEnter", {
 --  callback = function()
 --    require("lazy").update({ show = false }) -- update plugins, hide the UI window
 --  end,
-})
+-- })
 

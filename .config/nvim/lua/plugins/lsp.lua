@@ -1,22 +1,17 @@
 -- ================================================================================================
 -- TITLE : LSP Configuration (The Brain)
--- ABOUT : Configures Language Servers for intelligence (Bash, Python, CSS, Lua, C++, JS, HTML, MD)
--- DEPENDENCIES:
---   1. neovim/nvim-lspconfig (The core client)
---   2. williamboman/mason.nvim (The installer UI)
---   3. hrsh7th/cmp-nvim-lsp (The bridge to your autocomplete)
+-- ABOUT : Configures Language Servers for intelligence
 -- ================================================================================================
 
 return {
 	"neovim/nvim-lspconfig",
 	dependencies = {
-		-- Mason handles the installation of the servers so you don't have to use pacman/pip
 		"williamboman/mason.nvim",
 		"williamboman/mason-lspconfig.nvim",
-		"hrsh7th/cmp-nvim-lsp", -- Links LSP to your Autocomplete (nvim-cmp)
+		"hrsh7th/cmp-nvim-lsp", 
 	},
 	config = function()
-		-- 1. Setup Mason (The Installer)
+		-- 1. Setup Mason
 		require("mason").setup({
 			ui = {
 				icons = {
@@ -27,12 +22,11 @@ return {
 			},
 		})
 
-		-- 2. Define which servers you want automatically installed
+		-- 2. Define servers
 		local servers = {
-			-- Scripting & System
-			bashls = {}, -- Bash
-			pyright = {}, -- Python
-			lua_ls = { -- Lua (Special config to know about Neovim globals)
+			bashls = {},
+			pyright = {},
+			lua_ls = {
 				settings = {
 					Lua = {
 						diagnostics = { globals = { "vim" } },
@@ -45,30 +39,25 @@ return {
 					},
 				},
 			},
-
-			-- Web Development
-			cssls = {}, -- CSS
-			html = {}, -- HTML
-			ts_ls = {}, -- JavaScript / TypeScript
-			jsonls = {}, -- JSON
-
-			-- Low Level
-			clangd = {}, -- C / C++
-
-			-- Writing
-			marksman = {}, -- Markdown (The new addition)
+			cssls = {},
+			html = {},
+			ts_ls = {}, 
+			jsonls = {},
+			clangd = {},
+			marksman = {},
 		}
 
-		-- 3. Ensure they are installed
+		-- 3. OPTIMIZATION: Define capabilities ONCE before the loop
+		local capabilities = require("cmp_nvim_lsp").default_capabilities()
+
+		-- 4. Ensure they are installed
 		require("mason-lspconfig").setup({
 			ensure_installed = vim.tbl_keys(servers),
 			handlers = {
 				function(server_name)
-					-- This function runs for every server in the list
 					local server_config = servers[server_name] or {}
 
-					-- This ties the LSP to your nvim-cmp autocomplete
-					local capabilities = require("cmp_nvim_lsp").default_capabilities()
+					-- Merge the capabilities we defined above
 					server_config.capabilities =
 						vim.tbl_deep_extend("force", {}, capabilities, server_config.capabilities or {})
 
@@ -77,7 +66,7 @@ return {
 			},
 		})
 
-		-- 4. Aesthetic Tweaks (Make errors look nice)
+		-- 5. Aesthetic Tweaks
 		vim.diagnostic.config({
 			virtual_text = true,
 			underline = true,

@@ -9,7 +9,7 @@ post_hook = "gsettings set org.gnome.desktop.interface icon-theme 'Fluent-teal-d
 [templates.gtk4]
 input_path = '~/.config/matugen/templates/gtk-colors.css'
 output_path = '~/.config/matugen/generated/gtk-4.css'
-post_hook = 'ln -nfs $HOME/.config/matugen/generated/gtk-3.css $HOME/.config/gtk-3.0/gtk.css; ln -nfs $HOME/.config/matugen/generated/gtk-4.css $HOME/.config/gtk-4.0/gtk.css; gsettings set org.gnome.desktop.interface gtk-theme "adw-gtk3"; systemctl --user restart hyprpolkitagent'
+post_hook = 'mkdir -p $HOME/.config/gtk-3.0 $HOME/.config/gtk-4.0; ln -nfs $HOME/.config/matugen/generated/gtk-3.css $HOME/.config/gtk-3.0/gtk.css; ln -nfs $HOME/.config/matugen/generated/gtk-4.css $HOME/.config/gtk-4.0/gtk.css; gsettings set org.gnome.desktop.interface gtk-theme "adw-gtk3"; systemctl --user reset-failed hyprpolkitagent; systemctl --user restart hyprpolkitagent || true'
 
 [templates.qt5ct]
 input_path = '~/.config/matugen/templates/qtct-colors.conf'
@@ -22,7 +22,7 @@ output_path = '~/.config/matugen/generated/qt6ct-colors.conf'
 [templates.swaync]
 input_path = '~/.config/matugen/templates/colors.css'
 output_path = '~/.config/matugen/generated/swaync-colors.css'
-post_hook = 'swaync-client -rs'
+post_hook = 'swaync-client -rs || true'
 
 [templates.swayosd]
 input_path = '~/.config/matugen/templates/swayosd-colors.css'
@@ -32,12 +32,12 @@ post_hook = '~/user_scripts/swayosd/restart_swayosd.sh'
 [templates.kitty]
 input_path = '~/.config/matugen/templates/kitty-colors.conf'
 output_path = '~/.config/matugen/generated/kitty-colors.conf'
-post_hook = 'ln -nfs $HOME/.config/matugen/generated/kitty-colors.conf $HOME/.config/kitty/kitty-colors.conf; pkill -SIGUSR1 kitty'
+post_hook = 'ln -nfs $HOME/.config/matugen/generated/kitty-colors.conf $HOME/.config/kitty/kitty-colors.conf; pkill -SIGUSR1 kitty || true'
 
 [templates.neovim]
 input_path = '~/.config/matugen/templates/neovim/template.lua'
 output_path = '~/.config/matugen/generated/neovim-colors.lua'
-post_hook = 'pkill -SIGUSR1 nvim'
+post_hook = 'pkill -SIGUSR1 nvim || true'
 
 [templates.yazi]
 input_path = '~/.config/matugen/templates/yazi-theme.toml'
@@ -62,12 +62,12 @@ post_hook = 'ln -nfs $HOME/.config/matugen/generated/zathura-colors $HOME/.confi
 [templates.pywalfox]
 input_path = '~/.config/matugen/templates/pywalfox-colors.json'
 output_path = '~/.config/matugen/generated/pywalfox-colors.json'
-post_hook = 'ln -nfs $HOME/.config/matugen/generated/pywalfox-colors.json $HOME/.cache/wal/colors.json; pywalfox update'
+post_hook = 'ln -nfs $HOME/.config/matugen/generated/pywalfox-colors.json $HOME/.cache/wal/colors.json; pywalfox update || true'
 
 [templates.btop]
 input_path = '~/.config/matugen/templates/btop.theme'
 output_path = '~/.config/matugen/generated/btop-colors.theme'
-post_hook = 'ln -nfs $HOME/.config/matugen/generated/btop-colors.theme $HOME/.config/btop/themes/matugen.theme'
+post_hook = 'mkdir -p $HOME/.config/btop/themes; ln -nfs $HOME/.config/matugen/generated/btop-colors.theme $HOME/.config/btop/themes/matugen.theme'
 
 [templates.rofi]
 input_path = '~/.config/matugen/templates/rofi-colors.rasi'
@@ -76,7 +76,7 @@ output_path = '~/.config/matugen/generated/rofi-colors.rasi'
 [templates.Obsidian]
 input_path = '~/.config/matugen/templates/obsidian-theme.css'
 output_path = '~/.config/matugen/generated/obsidian-theme.css'
-post_hook = 'ln -nfs $HOME/.config/matugen/generated/obsidian-theme.css $HOME/Documents/pensive/.obsidian/snippets/matugen-theme.css'
+post_hook = 'mkdir -p $HOME/Documents/pensive/.obsidian/snippets; ln -nfs $HOME/.config/matugen/generated/obsidian-theme.css $HOME/Documents/pensive/.obsidian/snippets/matugen-theme.css'
 
 [templates.hyprland]
 input_path = '~/.config/matugen/templates/hyprland-colors.conf'
@@ -94,7 +94,7 @@ output_path = '~/.config/matugen/generated/wlogout-colors.css'
 [templates.cava]
 input_path = '~/.config/matugen/templates/cava-colors.ini'
 output_path = '~/.config/matugen/generated/cava-colors.ini'
-post_hook = 'ln -nfs $HOME/.config/matugen/generated/cava-colors.ini $HOME/.config/cava/themes/cava-colors.ini; pkill -USR1 cava'
+post_hook = 'mkdir -p $HOME/.config/cava/themes; ln -nfs $HOME/.config/matugen/generated/cava-colors.ini $HOME/.config/cava/themes/cava-colors.ini; pkill -USR1 cava || true'
 
 [templates.alacritty]
 input_path = '~/.config/matugen/templates/alacritty.toml'
@@ -104,4 +104,4 @@ post_hook = 'ln -nfs $HOME/.config/matugen/generated/alacritty-colors.toml $HOME
 [templates.waybar]
 input_path = '~/.config/matugen/templates/colors.css'
 output_path = '~/.config/matugen/generated/waybar-colors.css'
-post_hook = 'pkill -SIGUSR2 waybar; notify-send "Theme Updated"' # Reloads Waybar after generation
+post_hook = 'pkill -SIGUSR2 waybar || true; notify-send "Theme Updated"'

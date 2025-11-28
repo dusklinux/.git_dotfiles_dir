@@ -6,20 +6,25 @@ local M = {}
 local matugen_path = os.getenv("HOME") .. "/.config/matugen/generated/neovim-colors.lua"
 
 local function source_matugen()
-  local file = io.open(matugen_path, "r")
-  if not file then
-    vim.cmd("colorscheme base16-catppuccin-mocha")
-    vim.notify("Matugen colors not found, using fallback theme.", vim.log.levels.WARN)
-    return
+  -- OPTIMIZATION: Check if file exists first
+  local f = io.open(matugen_path, "r")
+  if f ~= nil then
+    io.close(f)
+    
+    -- SAFETY: Use pcall (protected call) to prevent crashes if the generated file is corrupt
+    local ok, err = pcall(dofile, matugen_path)
+    if not ok then
+      vim.notify("Matugen Error: " .. err, vim.log.levels.ERROR)
+    end
+  else
+    -- Fallback if file doesn't exist
+    vim.notify("Matugen colors not found.", vim.log.levels.WARN)
   end
-  io.close(file)
-  dofile(matugen_path)
 end
 
 local function on_matugen_reload()
   source_matugen()
-
-  -- Any other post-theme refresh tweaks
+  -- Post-theme refresh tweaks
   vim.api.nvim_set_hl(0, "Comment", { italic = true })
 end
 

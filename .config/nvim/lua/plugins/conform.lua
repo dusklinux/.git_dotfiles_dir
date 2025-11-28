@@ -1,6 +1,6 @@
 -- ================================================================================================
 -- TITLE : conform.nvim (The Discipline)
--- ABOUT : Auto-formatting for all your code (Bash, Lua, Python, JS, C++, Markdown)
+-- ABOUT : Manual formatting only. Auto-save formatting is DISABLED.
 -- ================================================================================================
 
 return {
@@ -9,7 +9,6 @@ return {
 	cmd = { "ConformInfo" },
 	keys = {
 		{
-			-- "<leader>cf" = Code Format
 			"<leader>cf",
 			function()
 				require("conform").format({ async = true, lsp_fallback = true })
@@ -21,33 +20,24 @@ return {
 	opts = {
 		-- Define your formatters
 		formatters_by_ft = {
-			-- Scripting
 			lua = { "stylua" },
 			python = { "isort", "black" },
 			bash = { "shfmt" },
 			sh = { "shfmt" },
 			zsh = { "shfmt" },
-
-			-- Web Dev
 			javascript = { "prettierd", "prettier" },
 			typescript = { "prettierd", "prettier" },
 			html = { "prettierd", "prettier" },
 			css = { "prettierd", "prettier" },
 			json = { "prettierd", "prettier" },
-
-			-- Markdown (New Addition)
-			markdown = { "prettierd", "prettier" },
-			["markdown.mdx"] = { "prettierd", "prettier" },
-
-			-- Low Level
+			jsonc = { "prettierd", "prettier" },
+			markdown = { "prettier" },
+			["markdown.mdx"] = { "prettier" },
 			c = { "clang-format" },
 			cpp = { "clang-format" },
 		},
 
-		-- Set up format-on-save
-		format_on_save = {
-			timeout_ms = 500,
-			lsp_fallback = true,
-		},
+		-- format_on_save is intentionally REMOVED.
+		-- To format a file, you must press <leader>cf manually.
 	},
 }

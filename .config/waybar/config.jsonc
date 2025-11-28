@@ -146,7 +146,7 @@
         "timezone": "Asia/Kolkata",
         "interval": 60,
         "on-click": "uwsm-app -- gnome-clocks",
-        "on-click-middle": "uwsm-app -- kitty -e peaclock",
+        "on-click-middle": "uwsm-app -- kitty --class peaclock -e peaclock",
         "calendar": {
             "mode": "year",
             "mode-mon-col": 3,
