@@ -9,6 +9,10 @@ vim.keymap.set("n", "N", "Nzzzv", { desc = "Previous search result (centered)" }
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Half page down (centered)" })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Half page up (centered)" })
 
+-- Spell Check "Wizard" Mode
+-- Press <leader>z to jump to the next error and open the suggestion list instantly
+vim.keymap.set("n", "<leader>z", "]sz=", { desc = "Next Spell Suggestion" })
+
 -- Buffer navigation
 vim.keymap.set("n", "<leader>bn", "<Cmd>bnext<CR>", { desc = "Next buffer" })
 vim.keymap.set("n", "<leader>bp", "<Cmd>bprevious<CR>", { desc = "Previous buffer" })

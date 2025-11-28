@@ -31,6 +31,5 @@
   "nvim-tree.lua": { "branch": "master", "commit": "3fb91e18a727ecc0385637895ec397dea90be42a" },
   "nvim-treesitter": { "branch": "master", "commit": "42fc28ba918343ebfd5565147a42a26580579482" },
   "nvim-web-devicons": { "branch": "master", "commit": "8dcb311b0c92d460fac00eac706abd43d94d68af" },
-  "smear-cursor.nvim": { "branch": "main", "commit": "c85bdbb25db096fbcf616bc4e1357bd61fe2c199" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" }
 }

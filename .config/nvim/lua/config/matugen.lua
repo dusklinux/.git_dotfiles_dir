@@ -26,6 +26,12 @@ local function on_matugen_reload()
   source_matugen()
   -- Post-theme refresh tweaks
   vim.api.nvim_set_hl(0, "Comment", { italic = true })
+
+  -- SET CURSOR SHAPE:
+  -- n-v-c: Normal, Visual, Command modes
+  -- hor20: Horizontal Bar (20% height of the line)
+  -- blinkon0: Disable blinking (optional, remove if you like blinking)
+  vim.opt.guicursor = "n-v-c:hor20-Cursor,i-ci-ve:ver25-Cursor,r-cr-o:hor20-Cursor"
 end
 
 -- Listen for Matugen’s signal
