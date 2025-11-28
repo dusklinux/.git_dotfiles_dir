@@ -716,7 +716,7 @@ nvim ~/.zshrc
 - [ ] *Optional*: **TLP config** : copy the tlp config to /etc/tlp.conf [[+ MOC tlp config]]
 
 ---
-*Script*
+
 - [ ] *Optional*:**Create Disk Swap** [[Disk Swap]] 
       zram swap should already have been created during installation process, you can check if zram block drives are active. usually zram0 and zram 1 if you followed the instruction during arch install. 
 
@@ -742,6 +742,50 @@ nvim ~/.zshrc
 ```bash
 sudo nvim /etc/logrotate.conf
 ```
+
+or replace the entire content of the wile with this 
+
+> [!NOTE]- replace with this. 
+> ```ini
+> # see "man logrotate" for details
+> # rotate log files weekly
+> weekly
+> 
+> # keep 4 weeks worth of backlogs
+> rotate 4
+> 
+> # restrict maximum size of log files
+> size 20M
+> 
+> # create new (empty) log files after rotating old ones
+> create
+> 
+> # uncomment this if you want your log files compressed
+> compress
+> 
+> # Logs are moved into directory for rotation
+> # olddir /var/log/archive
+> 
+> # Ignore pacman saved files
+> tabooext + .pacorig .pacnew .pacsave
+> 
+> # Arch packages drop log rotation information into this directory
+> include /etc/logrotate.d
+> 
+> /var/log/wtmp {
+>     monthly
+>     create 0664 root utmp
+>     minsize 1M
+>     rotate 1
+> }
+> 
+> /var/log/btmp {
+>     missingok
+>     monthly
+>     create 0600 root utmp
+>     rotate 1
+> }
+> ```
 
 ---
 *Script*
