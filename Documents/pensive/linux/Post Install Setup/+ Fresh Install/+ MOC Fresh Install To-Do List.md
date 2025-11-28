@@ -517,6 +517,7 @@ replace these lines at the top of the file with this
 [Appearance]
 color_scheme_path=$HOME/.config/matugen/generated/qt5ct-colors.conf
 custom_palette=true
+standard_dialogs=default
 style=Fusion
 ```
 
@@ -533,6 +534,7 @@ replace these lines at the top of the file with this
 [Appearance]
 color_scheme_path=$HOME/.config/matugen/generated/qt6ct-colors.conf
 custom_palette=true
+standard_dialogs=xdgdesktopportal
 style=Fusion
 ```
 
