@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# Name:        matugen_config.sh
+# Description: Configures Matugen via Rofi or CLI. Updates Waypaper, random_theme,
+#              and Wallpaper Directory Symlinks cleanly.
+# Author:      Gemini (Arch Linux Architect Persona)
+# -----------------------------------------------------------------------------
+# Usage Instructions:
+# This script supports both interactive (Rofi) and headless (CLI) modes.
+#
+# 1. Interactive Mode:
+#    Run without arguments to launch the Rofi menu.
+#    $ ./matugen_config.sh
+#
+# 2. CLI Mode (Headless):
+#    Pass flags to skip the menu and apply settings directly.
+#    Any omitted flag defaults to "standard" (Mode: Dark, Type: Disable, Contrast: Disable).
+#
+#    Flags:
+#      --mode <dark|light>       : Sets the theme mode. (Default: dark)
+#      --type <scheme>           : Sets the Matugen scheme type.
+#                                  Options: scheme-content, scheme-expressive, scheme-fidelity,
+#                                  scheme-fruit-salad, scheme-monochrome, scheme-neutral,
+#                                  scheme-rainbow, scheme-tonal-spot, scheme-vibrant.
+#      --contrast <value>        : Sets contrast (-1.0 to 1.0).
+#                                  Increments of 0.2 (e.g., -0.8, 0.4). Use 0 or omit to disable.
+#      --defaults                : Immediately applies default settings (Dark, No Type, No Contrast).
+#      -h, --help                : Show this help message.
+#
+#    Examples:
+#      ./matugen_config.sh --mode light --type scheme-fruit-salad
+#      ./matugen_config.sh --mode dark --contrast 0.4
+#      ./matugen_config.sh --defaults
+
+# Description:
+# Acts as a centralized configuration bridge for Matugen in a Hyprland/UWSM environment.
+# 1. Inputs: Accepts configuration via Rofi menu (interactive) or CLI flags (headless).
+# 2. Config Updates:
+#    - Edits ~/.config/waypaper/config.ini to sync the post_command.
+#    - Edits random_theme.sh to inject selected flags (Mode, Type, Contrast).
+# 3. State Management:
+#    - Triggers 'symlink_dark_light_directory.sh' to switch wallpaper sources based on Mode.
+# 4. Execution:
+#    - Immediately executes the random_theme script to refresh the wallpaper and apply the generated theme.
+
+# --- Safety & Environment ---
+set -euo pipefail
+IFS=$'\n\t'
+
+# --- Configuration ---
+readonly WAYPAPER_CONFIG="${HOME}/.config/waypaper/config.ini"
+readonly RANDOM_THEME="${HOME}/user_scripts/theme_matugen/random_theme.sh"
+readonly SYMLINK_SCRIPT="${HOME}/user_scripts/theme_matugen/symlink_dark_light_directory.sh"
+
+# Colors for logging
+readonly C_RESET='\033[0m'
+readonly C_GREEN='\033[1;32m'
+readonly C_BLUE='\033[1;34m'
+readonly C_RED='\033[1;31m'
+
+# --- Defaults ---
+DEFAULT_MODE="dark"
+DEFAULT_TYPE="disable"
+DEFAULT_CONTRAST="disable"
+
+# Global variables
+TARGET_MODE="$DEFAULT_MODE"
+TARGET_TYPE="$DEFAULT_TYPE"
+TARGET_CONTRAST="$DEFAULT_CONTRAST"
+
+# --- Functions ---
+
+log_info() { printf "${C_BLUE}[INFO]${C_RESET} %s\n" "$1"; }
+log_succ() { printf "${C_GREEN}[OK]${C_RESET}   %s\n" "$1"; }
+log_err()  { printf "${C_RED}[ERR]${C_RESET}  %s\n" "$1" >&2; }
+
+cleanup() {
+    if [[ $? -ne 0 ]]; then
+        log_err "Script exited with errors."
+    fi
+}
+trap cleanup EXIT
+
+rofi_menu() {
+    local prompt="$1"
+    local options="$2"
+    echo -e "$options" | rofi -dmenu -i -p "$prompt"
+}
+
+# --- Parsing Logic ---
+
+usage() {
+    echo "Usage: $(basename "$0") [OPTIONS]"
+    echo "If no options are provided, launches Rofi menu."
+    echo
+    echo "Options:"
+    echo "  --mode <dark|light>      Set theme mode (Default: dark)"
+    echo "  --type <scheme>          Set scheme type (Default: disabled)"
+    echo "  --contrast <val>         Set contrast -1.0 to 1.0 (Default: disabled)"
+    echo "  --defaults               Run immediately with full defaults"
+    echo "  -h, --help               Show this help"
+    exit 0
+}
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --mode)     TARGET_MODE="$2"; shift 2 ;;
+            --type)     TARGET_TYPE="$2"; shift 2 ;;
+            --contrast) TARGET_CONTRAST="$2"; shift 2 ;;
+            --defaults) shift ;; # Defaults are already set
+            -h|--help)  usage ;;
+            *)          log_err "Unknown option: $1"; usage ;;
+        esac
+    done
+}
+
+run_rofi_mode() {
+    log_info "No arguments provided. Starting Rofi mode..."
+
+    # 1. Select Mode
+    local sel_mode
+    sel_mode=$(rofi_menu "Matugen Mode" "dark\nlight")
+    [[ -z "$sel_mode" ]] && exit 0
+    TARGET_MODE="$sel_mode"
+
+    # 2. Select Type
+    local types_list="disable
+scheme-content
+scheme-expressive
+scheme-fidelity
+scheme-fruit-salad
+scheme-monochrome
+scheme-neutral
+scheme-rainbow
+scheme-tonal-spot
+scheme-vibrant"
+    
+    local sel_type
+    sel_type=$(rofi_menu "Matugen Type" "$types_list")
+    [[ -z "$sel_type" ]] && exit 0
+    TARGET_TYPE="$sel_type"
+
+    # 3. Select Contrast (0.2 increments, excluding 0)
+    local contrast_list="disable
+-1.0
+-0.8
+-0.6
+-0.4
+-0.2
+0.2
+0.4
+0.6
+0.8
+1.0"
+
+    local sel_contrast
+    sel_contrast=$(rofi_menu "Matugen Contrast" "$contrast_list")
+    [[ -z "$sel_contrast" ]] && exit 0
+    TARGET_CONTRAST="$sel_contrast"
+}
+
+# --- Main Execution ---
+
+# 1. Decision: CLI or Rofi?
+if [[ $# -gt 0 ]]; then
+    parse_args "$@"
+    log_info "Running in CLI Mode."
+else
+    run_rofi_mode
+fi
+
+# 2. Validation
+if [[ ! -f "$WAYPAPER_CONFIG" ]]; then
+    log_err "Waypaper config not found at: $WAYPAPER_CONFIG"
+    exit 1
+fi
+if [[ ! -x "$RANDOM_THEME" ]]; then
+    log_err "random_theme script not executable or found at: $RANDOM_THEME"
+    exit 1
+fi
+if [[ ! -x "$SYMLINK_SCRIPT" ]]; then
+    log_err "Symlink script not executable or found at: $SYMLINK_SCRIPT"
+    exit 1
+fi
+
+# 3. Build Flag String
+build_flags="--mode $TARGET_MODE"
+
+if [[ "$TARGET_TYPE" != "disable" ]]; then
+    build_flags+=" --type $TARGET_TYPE"
+fi
+
+if [[ "$TARGET_CONTRAST" != "disable" ]]; then
+    build_flags+=" --contrast $TARGET_CONTRAST"
+fi
+
+log_info "Configuration: $build_flags"
+
+# 4. Apply Configuration (sed)
+
+# A. Update Waypaper Config
+log_info "Updating Waypaper configuration..."
+sed -i "s|^post_command = matugen .* image \$wallpaper$|post_command = matugen $build_flags image \$wallpaper|" "$WAYPAPER_CONFIG"
+
+# B. Update random_theme Randomization Script
+log_info "Updating random_theme script flags..."
+sed -i "s|^\s*setsid uwsm-app -- matugen .* image \"\$target_wallpaper\".*|    setsid uwsm-app -- matugen $build_flags image \"\$target_wallpaper\" \\\|" "$RANDOM_THEME"
+
+# 5. Execute Changes
+
+# A. Update Symlinks
+# Calls the script with --light or --dark based on TARGET_MODE
+log_info "Updating wallpaper directory symlinks..."
+if "$SYMLINK_SCRIPT" "--$TARGET_MODE"; then
+    log_succ "Symlinks updated to $TARGET_MODE."
+else
+    log_err "Failed to update symlinks."
+    exit 1
+fi
+
+# B. Trigger Wallpaper Refresh
+log_info "Triggering wallpaper refresh..."
+exec "$RANDOM_THEME"

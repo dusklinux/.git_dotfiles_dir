@@ -20,8 +20,6 @@ readonly -a SWWW_OPTS=(
     --transition-fps 60
 )
 
-readonly theme_mode="dark"
-
 # Daemon init: retry count × 0.2s = max wait time (25 × 0.2 = 5 seconds)
 readonly DAEMON_INIT_RETRIES=25
 
@@ -89,7 +87,7 @@ done < <(
 swww img "$target_wallpaper" "${SWWW_OPTS[@]}"
 
 # Generate color scheme asynchronously (setsid fully detaches the process)
-setsid uwsm-app -- matugen --mode "$theme_mode" image "$target_wallpaper" \
+    setsid uwsm-app -- matugen --mode dark image "$target_wallpaper" \
     >/dev/null 2>&1 &
 
 exit 0
