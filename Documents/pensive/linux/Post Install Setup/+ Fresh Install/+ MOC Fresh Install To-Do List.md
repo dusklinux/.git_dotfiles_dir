@@ -697,7 +697,7 @@ sudo ln -nfs /mnt/browser/.mozilla ~/.mozilla
 install the extention `Pywalfox` from the mozilla store. and then open the plugin and select `Fetch Pywal colors`
 
 ---
-*Script*
+
 **OPTIONAL**
 
 - [ ] **Comment out anything beyond  the end line of zshrc, if there is anything there,  to speed up your terminal:** :- 
