@@ -11,7 +11,6 @@
 # --- USER CONFIGURATION AREA ---
 
 INSTALL_SEQUENCE=(
-    "S | 000_git_repo_restore.sh"
     "S | 001_battery_limiter.sh"
     "S | 002_pam_keyring.sh"
     "U | 003_mouse_button_reverse.sh"
@@ -20,8 +19,8 @@ INSTALL_SEQUENCE=(
     "S | 006_pacman_reflector.sh"
     "S | 007_package_installation.sh"
     "U | 008_changing_shell_zsh.sh"
-    "U | 009_aur_paru.sh"
-    "U | 010_warp.sh"
+    "S | 009_aur_paru.sh"
+    "S | 010_warp.sh"
     "S | 011_node_neovim_npm.sh"
     "U | 012_hyprexpo_plugin.sh"
     "U | 013_paru_packages.sh"
