@@ -930,13 +930,17 @@ nvim .config/hypr/source/input.conf
 - [ ] for changing default file manager from yazi to thunar. 
 
 > [!tip]+ to change yazi to thunar as default
+> open this file
+> ```bash
+> nvim .config/hypr/source/keybinds.conf
+> ```
 >replace this line `$fileManager = yazi` with 
 >```ini
 >$fileManager = thunar
 >```
->and then replace this line `bind = $mainMod, E, exec, kitty -e $fileManager` with 
+>and then replace this line `bindd = $mainMod, E, File Manager, exec, uwsm-app -- $terminal -e $fileManager` with 
 >```ini
->bind = $mainMod, E, exec, $fileManager
+>bindd = $mainMod, E, File Manager, exec, uwsm-app $fileManager
 >```
 >and then finally run this command
 >```bash
