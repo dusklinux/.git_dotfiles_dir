@@ -122,19 +122,20 @@ configure_service() {
 setup_warp() {
   log_step "Configuring Warp (As user: $REAL_USER)..."
 
-  # 1. Cleanup
+  # 1. Cleanup (CRITICAL FIX APPLIED HERE)
   log_info "Checking registration state..."
-  if run_as_user warp-cli registration delete 2>/dev/null; then
+  # We pipe 'y' and use --accept-tos here too, otherwise the delete fails silently
+  if echo "y" | run_as_user warp-cli --accept-tos registration delete &>/dev/null; then
     log_success "Old registration deleted."
   else
-    log_info "No valid prior registration found (Clean slate)."
+    # If it failed, we assume it's because none existed, but we print a log just in case
+    log_info "No valid prior registration found (or clean slate)."
   fi
 
   # 2. Register
   log_info "Registering new client..."
   local reg_success=0
   for i in {1..3}; do
-    # Keeps the previous 'y' fix for registration
     if echo "y" | run_as_user warp-cli --accept-tos registration new; then
       reg_success=1
       break
@@ -159,7 +160,6 @@ setup_warp() {
     # Polling Loop (Max 10 seconds)
     local connected=0
     for i in {1..10}; do
-      # FIX APPLIED HERE: Added '--accept-tos' to the status check command
       if run_as_user warp-cli --accept-tos status | grep -q "Connected"; then
         connected=1
         break
