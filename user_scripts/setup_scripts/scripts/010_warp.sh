@@ -134,7 +134,8 @@ setup_warp() {
   log_info "Registering new client..."
   local reg_success=0
   for i in {1..3}; do
-    if run_as_user warp-cli --accept-tos registration new; then
+    # FIX APPLIED: Piping "y" into the command to satisfy the interactive prompt
+    if echo "y" | run_as_user warp-cli --accept-tos registration new; then
       reg_success=1
       break
     else
