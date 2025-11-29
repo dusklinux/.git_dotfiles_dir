@@ -19,6 +19,7 @@ Here is a summary of the setup process. Each step links to a note with detailed 
 | **3** | [[Configure vsftpd]] | Defines the server's behavior, security rules, and user directory settings in the main configuration file. |
 | **4** | [[Create the User Allow List]] | Creates an explicit list of users who are authorized to access the FTP server, enhancing security. |
 | **5** | [[Start and Enable the vsftpd Service]] | Activates the FTP server and configures it to launch automatically every time the system boots. |
+| **6** | [[zram permission]] | Gives zram requisite write permission |
 
 > [!SUCCESS] Completion
 > Once these steps are completed, you will have a fully functional and secure FTP server running on your Arch Linux system. For troubleshooting, refer to the log file mentioned in the final step.

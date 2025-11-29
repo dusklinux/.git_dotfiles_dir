@@ -997,7 +997,7 @@ mv ~/.config/systemd/user/swaync.service.d/gpu-fix.conf.bak ~/.config/systemd/us
 then reload systemd user dameon like above. 
 
 ---
-
+*Script*
 ## Only for Asus tuf f15 
 
 - [ ] **Asus misconfiguration for asusd D-bus:** :- follow the note for it if you have an asus laptop. [[Asusd Dbus Misconfiguration]]
@@ -1049,7 +1049,7 @@ nvim ~/.config/uwsm/env-hyprland
 >Thunar > Edit > Configure Custom Actions... > Open Terminal Here > Edit the Currenctly selected action > delete everything in the `Command:` box and type your terminal's name eg kitty. 
 
 ---
-*Script*
+
 ### 5. Services & Networking
 
 Enable essential background services and disable ones you don't need.
