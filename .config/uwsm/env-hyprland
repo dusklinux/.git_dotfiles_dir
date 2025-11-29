@@ -25,6 +25,7 @@ export TERMINAL=xdg-terminal-exec
 
 # Use code editor
 export EDITOR=nvim
+export VISUAL=nvim
 
 # 5. Path
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"

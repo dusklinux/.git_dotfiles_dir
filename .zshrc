@@ -21,8 +21,7 @@
 # Set core applications and configure the system's search path for executables.
 # These are fundamental for defining your work environment.
 
-# Set the default text editor for command-line tools.
-export EDITOR='nvim'
+
 # Set the default terminal emulator.
 export TERMINAL='kitty'
 # Set the default web browser.
@@ -187,6 +186,27 @@ alias unlock='$HOME/user_scripts/drives/drive_manager.sh unlock'
 
 # lock block_devices
 alias lock='$HOME/user_scripts/drives/drive_manager.sh lock'
+
+# sudo edit nvim sudoedit
+# Function to intercept 'sudo nvim' and convert it to 'sudoedit'
+sudo() {
+    # Check if we are trying to run nvim
+    if [[ "$1" == "nvim" ]]; then
+        shift # Remove 'nvim'
+        
+        # Check if there are actually files to edit
+        if [[ $# -eq 0 ]]; then
+            echo "Error: sudoedit requires a filename."
+            return 1
+        fi
+        
+        # Pass the filenames to sudoedit
+        command sudoedit "$@"
+    else
+        # Run standard sudo for everything else
+        command sudo "$@"
+    fi
+}
 
 # YAZI
 #change the current working directory when exiting Yazi
