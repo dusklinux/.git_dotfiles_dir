@@ -132,90 +132,93 @@ sudo nvim /etc/pacman.conf
 ```
 
 replace the entire content of the file with this. 
-```
-# /etc/pacman.conf
-# See the pacman.conf(5) manpage for option and repository directives
-[options]
-# The following paths are commented out with their default values listed.
-# If you wish to use different paths, uncomment and update the paths.
 
-# Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup
-#IgnorePkg   =
-#IgnoreGroup =
+> [!NOTE]- copy all of it. 
+> ```
+> # /etc/pacman.conf
+> # See the pacman.conf(5) manpage for option and repository directives
+> [options]
+> # The following paths are commented out with their default values listed.
+> # If you wish to use different paths, uncomment and update the paths.
+> 
+> # Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup
+> #IgnorePkg   =
+> #IgnoreGroup =
+> 
+> #NoUpgrade   =
+> #NoExtract   =
+> 
+> # Misc options
+> Color
+> ILoveCandy
+> VerbosePkgLists
+> HoldPkg     = pacman glibc
+> Architecture = auto
+> CheckSpace
+> ParallelDownloads = 5
+> DownloadUser = alpm
+> 
+> # By default, pacman accepts packages signed by keys that its local keyring
+> # trusts (see pacman-key and its man page), as well as unsigned packages.
+> SigLevel    = Required DatabaseOptional
+> LocalFileSigLevel = Optional
+> #RemoteFileSigLevel = Required
+> 
+> # NOTE: You must run `pacman-key --init` before first using pacman; the local
+> # keyring can then be populated with the keys of all official Arch Linux
+> # packagers with `pacman-key --populate archlinux`.
+> 
+> #
+> # REPOSITORIES
+> #   - can be defined here or included from another file
+> #   - pacman will search repositories in the order defined here
+> #   - local/custom mirrors can be added here or in separate files
+> #   - repositories listed first will take precedence when packages
+> #     have identical names, regardless of version number
+> #   - URLs will have $repo replaced by the name of the current repo
+> #   - URLs will have $arch replaced by the name of the architecture
+> #
+> # Repository entries are of the format:
+> #       [repo-name]
+> #       Server = ServerName
+> #       Include = IncludePath
+> #
+> # The header [repo-name] is crucial - it must be present and
+> # uncommented to enable the repo.
+> #
+> 
+> # The testing repositories are disabled by default. To enable, uncomment the
+> # repo name header and Include lines. You can add preferred servers immediately
+> # after the header, and they will be used before the default mirrors.
+> 
+> #[core-testing]
+> #Include = /etc/pacman.d/mirrorlist
+> 
+> [core]
+> Include = /etc/pacman.d/mirrorlist
+> 
+> #[extra-testing]
+> #Include = /etc/pacman.d/mirrorlist
+> 
+> [extra]
+> Include = /etc/pacman.d/mirrorlist
+> 
+> # If you want to run 32 bit applications on your x86_64 system,
+> # enable the multilib repositories as required here.
+> 
+> #[multilib-testing]
+> #Include = /etc/pacman.d/mirrorlist
+> 
+> [multilib]
+> Include = /etc/pacman.d/mirrorlist
+> 
+> # An example of a custom package repository.  See the pacman manpage for
+> # tips on creating your own repositories.
+> #[custom]
+> #SigLevel = Optional TrustAll
+> #Server = file:///home/custompkgs
+> ```
 
-#NoUpgrade   =
-#NoExtract   =
-
-# Misc options
-Color
-ILoveCandy
-VerbosePkgLists
-HoldPkg     = pacman glibc
-Architecture = auto
-CheckSpace
-ParallelDownloads = 5
-DownloadUser = alpm
-
-# By default, pacman accepts packages signed by keys that its local keyring
-# trusts (see pacman-key and its man page), as well as unsigned packages.
-SigLevel    = Required DatabaseOptional
-LocalFileSigLevel = Optional
-#RemoteFileSigLevel = Required
-
-# NOTE: You must run `pacman-key --init` before first using pacman; the local
-# keyring can then be populated with the keys of all official Arch Linux
-# packagers with `pacman-key --populate archlinux`.
-
-#
-# REPOSITORIES
-#   - can be defined here or included from another file
-#   - pacman will search repositories in the order defined here
-#   - local/custom mirrors can be added here or in separate files
-#   - repositories listed first will take precedence when packages
-#     have identical names, regardless of version number
-#   - URLs will have $repo replaced by the name of the current repo
-#   - URLs will have $arch replaced by the name of the architecture
-#
-# Repository entries are of the format:
-#       [repo-name]
-#       Server = ServerName
-#       Include = IncludePath
-#
-# The header [repo-name] is crucial - it must be present and
-# uncommented to enable the repo.
-#
-
-# The testing repositories are disabled by default. To enable, uncomment the
-# repo name header and Include lines. You can add preferred servers immediately
-# after the header, and they will be used before the default mirrors.
-
-#[core-testing]
-#Include = /etc/pacman.d/mirrorlist
-
-[core]
-Include = /etc/pacman.d/mirrorlist
-
-#[extra-testing]
-#Include = /etc/pacman.d/mirrorlist
-
-[extra]
-Include = /etc/pacman.d/mirrorlist
-
-# If you want to run 32 bit applications on your x86_64 system,
-# enable the multilib repositories as required here.
-
-#[multilib-testing]
-#Include = /etc/pacman.d/mirrorlist
-
-[multilib]
-Include = /etc/pacman.d/mirrorlist
-
-# An example of a custom package repository.  See the pacman manpage for
-# tips on creating your own repositories.
-#[custom]
-#SigLevel = Optional TrustAll
-#Server = file:///home/custompkgs
-```
 ---
 *Script*
 - [ ] **Set Default Shell:** Change the default shell from `bash` to `zsh` 
@@ -558,34 +561,35 @@ nvim ~/.config/waypaper/config.ini
 post_command = matugen --mode dark image $wallpaper
 ```
 
-```ini
-[Settings]
-language = en
-folder = ~/Pictures/wallpapers
-monitors = All
-wallpaper = ~/Pictures/wallpapers/dusk_default.jpg
-show_path_in_tooltip = True
-backend = swww
-fill = fill
-sort = name
-color = #ffffff
-subfolders = False
-all_subfolders = False
-show_hidden = False
-show_gifs_only = False
-zen_mode = False
-post_command = matugen --mode dark image $wallpaper
-number_of_columns = 3
-swww_transition_type = any
-swww_transition_step = 63
-swww_transition_angle = 0
-swww_transition_duration = 2
-swww_transition_fps = 60
-mpvpaper_sound = False
-mpvpaper_options = 
-use_xdg_state = False
-stylesheet = /home/dusk/.config/waypaper/style.css
-```
+> [!NOTE]- Contents
+> ```ini
+> [Settings]
+> language = en
+> folder = ~/Pictures/wallpapers
+> monitors = All
+> wallpaper = ~/Pictures/wallpapers/dusk_default.jpg
+> show_path_in_tooltip = True
+> backend = swww
+> fill = fill
+> sort = name
+> color = #ffffff
+> subfolders = False
+> all_subfolders = False
+> show_hidden = False
+> show_gifs_only = False
+> zen_mode = False
+> post_command = matugen --mode dark image $wallpaper
+> number_of_columns = 3
+> swww_transition_type = any
+> swww_transition_step = 63
+> swww_transition_angle = 0
+> swww_transition_duration = 2
+> swww_transition_fps = 60
+> mpvpaper_sound = False
+> mpvpaper_options = 
+> use_xdg_state = False
+> stylesheet = /home/dusk/.config/waypaper/style.css
+> ```
 
 --- 
 *Script*
