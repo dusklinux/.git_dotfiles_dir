@@ -52,14 +52,23 @@ MAX_STEPS=60 # 6 seconds / 0.1s
 
 while (( step < MAX_STEPS )); do
     # Check if both processes are finished.
-    # 'kill -0' checks if a PID exists; returns true (0) if running, false (1) if dead.
-    if ! kill -0 "$MATUGEN_PID" 2>/dev/null && ! kill -0 "$SWWW_PID" 2>/dev/null; then
+    # We use explicit variables to avoid complex logic chains triggering set -e issues.
+    matugen_running=0
+    swww_running=0
+    
+    if kill -0 "$MATUGEN_PID" 2>/dev/null; then matugen_running=1; fi
+    if kill -0 "$SWWW_PID" 2>/dev/null; then swww_running=1; fi
+
+    if [[ $matugen_running -eq 0 && $swww_running -eq 0 ]]; then
         printf "Wallpaper applied successfully.\n"
         exit 0
     fi
     
     sleep 0.1
-    ((step++))
+    
+    # CRITICAL FIX: Use pre-increment (++step) or (( step+=1 ))
+    # Post-increment (step++) returns 0 on the first run, which bash set -e treats as a failure!
+    ((++step))
 done
 
 # If we reached here, the loop finished without the processes dying.
