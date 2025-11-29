@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Script: configure_mouse_silent.sh
+# Script: 003_mouse_button_reverse.sh
 # Purpose: Toggles mouse handedness in Hyprland (Clean/No Logs/No Backups)
 # ==============================================================================
 
@@ -11,7 +11,8 @@ readonly CONFIG_FILE="${HOME}/.config/hypr/source/input.conf"
 
 # --- Cleanup Trap ---
 cleanup() {
-    [[ -f "${TEMP_FILE:-}" ]] && rm -f "$TEMP_FILE"
+    # FIX: We add "|| true" to ensure the function returns 0 even if the file is gone.
+    [[ -f "${TEMP_FILE:-}" ]] && rm -f "$TEMP_FILE" || true
 }
 trap cleanup EXIT
 
@@ -24,8 +25,9 @@ main() {
     fi
 
     # Prompt User
+    # Using /dev/tty ensures we read from the user even if stdin is redirected elsewhere
     printf "Reverse mouse buttons (Left-Handed)? [y/N]: "
-    read -r -n 1 user_input
+    read -r -n 1 user_input < /dev/tty
     printf "\n"
 
     local target_val="false"
