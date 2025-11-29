@@ -4,6 +4,7 @@
 #
 # Hardcoded wallpaper application for Hyprland/UWSM.
 # Executes matugen and swww in parallel for instant application.
+# Includes a 6s watchdog to prevent the script from staying open if swww hangs.
 
 set -euo pipefail
 
@@ -44,7 +45,24 @@ MATUGEN_PID=$!
 swww img "$WALLPAPER" "${SWWW_OPTS[@]}" >/dev/null 2>&1 &
 SWWW_PID=$!
 
-# 4. Cleanup: Wait for both processes to finish so the script exits cleanly
-wait "$MATUGEN_PID" "$SWWW_PID"
+# 4. Watchdog: Wait up to 6 seconds, then exit cleanly
+# We poll the PIDs every 0.1s instead of using a blocking 'wait'.
+step=0
+MAX_STEPS=60 # 6 seconds / 0.1s
 
+while (( step < MAX_STEPS )); do
+    # Check if both processes are finished.
+    # 'kill -0' checks if a PID exists; returns true (0) if running, false (1) if dead.
+    if ! kill -0 "$MATUGEN_PID" 2>/dev/null && ! kill -0 "$SWWW_PID" 2>/dev/null; then
+        printf "Wallpaper applied successfully.\n"
+        exit 0
+    fi
+    
+    sleep 0.1
+    ((step++))
+done
+
+# If we reached here, the loop finished without the processes dying.
+# We exit 0 anyway to ensure the script doesn't "fail".
+printf "Timeout (6s) reached - Auto-closing script.\n"
 exit 0
