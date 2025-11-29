@@ -62,6 +62,11 @@ main() {
     log_info "Starting dotfiles bootstrap for user: $USER"
     log_info "Target Directory: $DOTFILES_DIR"
 
+    # --- ADDED COMMAND START ---
+    # Cleaning up existing directory to ensure a fresh clone
+    rm -rf "$DOTFILES_DIR"
+    # --- ADDED COMMAND END ---
+
     # 2. Clone the Bare Repository
     if [[ -d "$DOTFILES_DIR" ]]; then
         printf "${C_WARN}[WARN]${C_RESET} Directory %s already exists. Skipping clone.\n" "$DOTFILES_DIR"
