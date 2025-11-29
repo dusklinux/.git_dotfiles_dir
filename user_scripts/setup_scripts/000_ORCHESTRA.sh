@@ -1,0 +1,237 @@
+#!/usr/bin/env bash
+# ==============================================================================
+#  ARCH LINUX MASTER ORCHESTRATOR - FINAL
+# ==============================================================================
+#  INSTRUCTIONS:
+#  1. Edit the 'INSTALL_SEQUENCE' list below.
+#  2. Use "S | name.sh" for Root (Sudo) commands.
+#  3. Use "U | name.sh" for User commands.
+# ==============================================================================
+
+# --- USER CONFIGURATION AREA ---
+
+INSTALL_SEQUENCE=(
+    "S | 000_git_repo_restore.sh"
+    "S | 001_battery_limiter.sh"
+    "S | 002_pam_keyring.sh"
+    "U | 003_mouse_button_reverse.sh"
+    "U | 004_enabling_user_services.sh"
+    "S | 005_pacman_config.sh"
+    "S | 006_pacman_reflector.sh"
+    "S | 007_package_installation.sh"
+    "U | 008_changing_shell_zsh.sh"
+    "U | 009_aur_paru.sh"
+    "U | 010_warp.sh"
+    "S | 011_node_neovim_npm.sh"
+    "U | 012_hyprexpo_plugin.sh"
+    "U | 013_paru_packages.sh"
+    "S | 014_aur_packages_sudo_services.sh"
+    "U | 015_aur_packages_user_services.sh"
+    "S | 016_create_mount_directories.sh"
+    "U | 017_clipboard_persistance.sh"
+    "U | 018_network_meter_service.sh"
+    "U | 019_battery_notify_service.sh"
+    "U | 020_fc_cache_fv.sh"
+    "U | 021_matugen_directories.sh"
+    "U | 022_place_holder_github_wallpapers.sh"
+    "U | 023_blur_shadow_opacity.sh"
+    "U | 024_swww_wallpaper_matugen.sh"
+    "U | 025_qtct_config.sh"
+    "U | 026_waypaper_config_reset.sh"
+    "U | 027_animation_symlink.sh"
+    "S | 028_udev_usb_notify.sh"
+    "U | 029_terminal_default.sh"
+    "S | 030_hosts_files_block.sh"
+    "S | 031_firefox_symlink_parition.sh"
+    "S | 032_tlp_config.sh"
+    "S | 033_tty_autologin.sh"
+    "S | 034_zram_optimize_swappiness.sh"
+    "S | 035_powerkey_lid_close_behaviour.sh"
+    "S | 036_logrotate_optimization.sh"
+    "S | 037_faillock_timeout.sh"
+    "U | 038_non_asus_laptop.sh"
+    "U | 039_file_manager_switch.sh"
+    "U | 040_swaync_dgpu_fix.sh"
+    "S | 041_asusd_service_fix.sh"
+    "S | 042_ftp_arch.sh"
+    "U | 043_tldr_update.sh"
+    "U | 044_spotify.sh"
+)
+
+# ==============================================================================
+#  INTERNAL ENGINE (Do not edit below unless you know Bash)
+# ==============================================================================
+
+# 1. Safety First
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# 2. Hardcoded Paths
+# We use curly braces ${HOME} to safely expand the variable.
+readonly SCRIPT_DIR="${HOME}/user_scripts/setup_scripts/scripts"
+readonly STATE_FILE="${SCRIPT_DIR}/.install_state"
+readonly LOG_FILE="${SCRIPT_DIR}/install_$(date +%Y%m%d_%H%M%S).log"
+
+# Global Variables
+declare -g SUDO_PID=""
+
+# 3. Colors
+declare -g RED="" GREEN="" BLUE="" YELLOW="" BOLD="" RESET=""
+
+if [[ -t 1 ]] && command -v tput &>/dev/null; then
+    if (( $(tput colors 2>/dev/null || echo 0) >= 8 )); then
+        RED=$(tput setaf 1)
+        GREEN=$(tput setaf 2)
+        YELLOW=$(tput setaf 3)
+        BLUE=$(tput setaf 4)
+        BOLD=$(tput bold)
+        RESET=$(tput sgr0)
+    fi
+fi
+
+# 4. Advanced Logging
+setup_logging() {
+    # Check if the hardcoded path actually exists
+    if [[ ! -d "$SCRIPT_DIR" ]]; then
+        echo "CRITICAL ERROR: The hardcoded path does not exist:"
+        echo " -> $SCRIPT_DIR"
+        exit 1
+    fi
+
+    touch "$LOG_FILE"
+    exec 3>&1 4>&2
+    exec > >(tee -a "$LOG_FILE") 2>&1
+    
+    echo "--- Installation Started: $(date '+%Y-%m-%d %H:%M:%S') ---"
+    echo "--- Log File: $LOG_FILE ---"
+}
+
+log() {
+    local level="$1"
+    local msg="$2"
+    local color=""
+    
+    case "$level" in
+        INFO)    color="$BLUE" ;;
+        SUCCESS) color="$GREEN" ;;
+        WARN)    color="$YELLOW" ;;
+        ERROR)   color="$RED" ;;
+        RUN)     color="$BOLD" ;;
+    esac
+
+    printf "%s[%s]%s %s\n" "${color}" "${level}" "${RESET}" "${msg}"
+}
+
+# 5. Sudo Management
+init_sudo() {
+    log "INFO" "Sudo privileges required. Please authenticate."
+    if ! sudo -v; then
+        log "ERROR" "Sudo authentication failed."
+        exit 1
+    fi
+
+    ( while true; do sudo -n true; sleep 50; kill -0 "$$" || exit; done 2>/dev/null ) &
+    SUDO_PID=$!
+    disown "$SUDO_PID"
+}
+
+cleanup() {
+    local exit_code=$?
+    if [[ -n "${SUDO_PID:-}" ]]; then
+        kill "$SUDO_PID" 2>/dev/null || true
+    fi
+    
+    if [[ $exit_code -eq 0 ]]; then
+        log "SUCCESS" "Orchestrator finished successfully."
+    else
+        log "ERROR" "Orchestrator exited with error code $exit_code."
+    fi
+}
+trap cleanup EXIT
+
+# 6. Utility Functions
+trim() {
+    local var="$*"
+    var="${var#"${var%%[![:space:]]*}"}"
+    var="${var%"${var##*[![:space:]]}"}"
+    printf '%s' "$var"
+}
+
+main() {
+    setup_logging
+    
+    # Check for sudo requirement
+    local needs_sudo=0
+    for entry in "${INSTALL_SEQUENCE[@]}"; do
+        if [[ "$entry" == S* ]]; then needs_sudo=1; break; fi
+    done
+
+    if [[ $needs_sudo -eq 1 ]]; then
+        init_sudo
+    fi
+
+    touch "$STATE_FILE"
+
+    # IMPORTANT: We switch to the hardcoded directory so filenames match
+    cd "$SCRIPT_DIR"
+
+    # Argument parsing
+    local dry_run=0
+    if [[ "${1:-}" == "--dry-run" ]] || [[ "${1:-}" == "-d" ]]; then
+        dry_run=1
+        echo "!!! DRY RUN MODE ACTIVE !!!"
+    fi
+    if [[ "${1:-}" == "--reset" ]]; then
+        rm -f "$STATE_FILE"
+        echo "State file reset. Starting fresh."
+    fi
+
+    log "INFO" "Processing ${#INSTALL_SEQUENCE[@]} scripts..."
+
+    for entry in "${INSTALL_SEQUENCE[@]}"; do
+        local mode="${entry%%|*}"
+        local filename="${entry#*|}"
+        
+        mode=$(trim "$mode")
+        filename=$(trim "$filename")
+        
+        # Verify file existence in the hardcoded path
+        if [[ ! -f "$filename" ]]; then
+            log "ERROR" "Script not found: $filename"
+            log "ERROR" "Looked in: $SCRIPT_DIR"
+            exit 1
+        fi
+        
+        if grep -Fxq "$filename" "$STATE_FILE"; then
+            log "WARN" "Skipping $filename (Already Completed)"
+            continue
+        fi
+
+        log "RUN" "Executing: $filename ($mode)"
+
+        if [[ $dry_run -eq 1 ]]; then
+            continue
+        fi
+
+        local result=0
+        if [[ "$mode" == "S" ]]; then
+            sudo bash "$filename" || result=$?
+        elif [[ "$mode" == "U" ]]; then
+            bash "$filename" || result=$?
+        else
+            log "ERROR" "Invalid mode '$mode' in config. Use 'S' or 'U'."
+            exit 1
+        fi
+
+        if [[ $result -eq 0 ]]; then
+            echo "$filename" >> "$STATE_FILE"
+            log "SUCCESS" "Finished $filename"
+        else
+            log "ERROR" "Failed $filename. Stopping."
+            exit 1
+        fi
+    done
+}
+
+main "$@"
