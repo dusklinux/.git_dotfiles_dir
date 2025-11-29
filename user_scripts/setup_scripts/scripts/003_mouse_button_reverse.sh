@@ -75,6 +75,9 @@ main() {
     if pgrep -x "Hyprland" > /dev/null; then
         command -v hyprctl >/dev/null && hyprctl reload > /dev/null 2>&1 || true
     fi
+
+    # Output Success Message
+    printf "Success: Mouse configuration updated (left_handed = %s).\n" "$target_val"
 }
 
 main
