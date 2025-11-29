@@ -929,7 +929,7 @@ nvim .config/hypr/source/input.conf
 *Script*
 - [ ] for changing default file manager from yazi to thunar. 
 
-> [!tip]+ to change yazi to thunar as default
+> [!tip]- to change yazi to thunar as default
 > open this file
 > ```bash
 > nvim .config/hypr/source/keybinds.conf
@@ -967,11 +967,34 @@ nvim ~/.config/mpv/mpv.conf
 
 ---
 *Script*
-- [ ] Delete the override service file for swaync to force it to use the intel GPU, For laptops with both dGPU and iGPU, for some reason swaync uses the dGPU by default which increases powerusage, IF you only have one GPU delete this file.
+- [ ] On hybrid laptop setups (dGPU + iGPU), `swaync` (Sway Notification Center) can default to binding to the dGPU. This prevents the discrete card from suspending (D3cold state), leading to significantly higher power draw. To fix this, a systemd drop-in override is often used to force the iGPU. However, if you are strictly on a single GPU setup or need to disable this fix for debugging, you should disable the override file. 
+Method: Safe Disable (Rename) Instead of `rm -rf`, we rename the file with a `.bak` extension. **Why this works:** `systemd` parses drop-in directories (`*.d`) strictly looking for files ending in `.conf`. Any other extension is ignored during the load process, effectively disabling the config while preserving the file for rollback. 
+
+1. Rename the Configuration Move the active configuration file to a backup state. 
+   
+```bash
+mv ~/.config/systemd/user/swaync.service.d/gpu-fix.conf ~/.config/systemd/user/swaync.service.d/gpu-fix.conf.bak
+```
+
 
 ```bash
-rm -rf ~/.config/systemd/user/swaync.service.d/gpu-fix.conf
+# Reload the systemd user manager configuration
+systemctl --user daemon-reload
+
+# Restart swaync to apply the new execution environment
+systemctl --user restart swaync
+
+#verify the status
+systemctl --user status swaync
 ```
+
+2. to roll back the change 
+
+```bash
+mv ~/.config/systemd/user/swaync.service.d/gpu-fix.conf.bak ~/.config/systemd/user/swaync.service.d/gpu-fix.conf
+```
+
+then reload systemd user dameon like above. 
 
 ---
 
