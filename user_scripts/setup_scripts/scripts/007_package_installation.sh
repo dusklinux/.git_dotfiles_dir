@@ -124,10 +124,10 @@ install_group() {
 
   printf "\n${BOLD}${CYAN}:: Processing Group: %s${RESET}\n" "$group_name"
 
-  # STRATEGY A: Batch Install (Fast & Silent)
-  # We keep --noconfirm here. If there are no conflicts, this is instant.
-  # If there IS a conflict, this block fails immediately and triggers Strategy B.
-  if pacman -S --needed --noconfirm "${pkgs[@]}" >/dev/null 2>&1; then
+  # STRATEGY A: Batch Install (Verbose)
+  # We removed '>/dev/null 2>&1' so you can see the download progress bars.
+  # If this returns non-zero (fail), we still catch it and move to Strategy B.
+  if pacman -S --needed --noconfirm "${pkgs[@]}"; then
     printf "${GREEN} [OK] Batch installation successful.${RESET}\n"
     return 0
   fi
@@ -139,9 +139,8 @@ install_group() {
   local fail_count=0
 
   for pkg in "${pkgs[@]}"; do
-    # CHANGES MADE HERE:
     # 1. Removed '--noconfirm': Allows pacman to ask "Remove conflicting package?"
-    # 2. Removed '>/dev/null 2>&1': Allows you to SEE the question and type 'Y'.
+    # 2. No redirection: Allows you to SEE the question and type 'Y'.
     if pacman -S --needed "$pkg"; then
       printf "  ${GREEN}[+] Installed:${RESET} %s\n" "$pkg"
     else
