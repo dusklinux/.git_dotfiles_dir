@@ -64,7 +64,7 @@ fi
 
 # 1. Install/Reinstall Spotify
 log_info "Installing Spotify via Paru..."
-if paru -S spotify; then
+if paru -S --noconfirm spotify; then
     log_success "Spotify installed successfully."
 else
     log_error "Paru failed to install Spotify."
