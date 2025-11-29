@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Script Name: install_pkg_manifest.sh
-# Description: Autonomous AUR/Repo package installer with intervention timeout.
+# Description: Autonomous AUR/Repo package installer with failure intervention.
 # Context:     Arch Linux (Rolling) | Hyprland | UWSM
 # Author:      Gemini (Elite DevOps Persona)
 # ==============================================================================
@@ -88,7 +88,8 @@ readonly PACKAGES=(
   "xdg-terminal-exec"
 )
 
-readonly TIMEOUT_SEC=120
+# Only wait this long if an error occurs and intervention is requested.
+readonly TIMEOUT_SEC=10
 
 # ------------------------------------------------------------------------------
 # 6. MAIN LOGIC
@@ -96,7 +97,7 @@ readonly TIMEOUT_SEC=120
 main() {
   log_task "Starting Autonomous Package Installation Sequence"
   log_info "Target Packages: ${#PACKAGES[@]}"
-  log_info "Timeout Policy: ${TIMEOUT_SEC}s per package for manual intervention."
+  log_info "Mode: Fully Automatic. Intervention only on Error (${TIMEOUT_SEC}s timeout)."
 
   local success_count=0
   local fail_count=0
@@ -118,43 +119,45 @@ main() {
       continue
     fi
 
-    # 2. Intervention Window
-    # We cannot easily timeout paru's internal prompt, so we prompt BEFORE execution.
-    printf "${C_YELLOW}  -> Waiting %ss. Press [m] for manual mode, or [Enter] to auto-install... ${C_RESET}" "$TIMEOUT_SEC"
-
-    local user_input=""
-
-    # read -t returns >128 on timeout, 0 on successful input
-    if read -t "$TIMEOUT_SEC" -n 1 -s user_input; then
-      # User pressed a key
-      if [[ "$user_input" == "m" || "$user_input" == "M" ]]; then
-        printf "\n"
-        log_info "Manual Mode Triggered for ${pkg}."
-        # Run paru interactively (allows user to pick providers)
-        if paru -S "$pkg"; then
-          log_success "Installed ${pkg} (Manual)."
-          ((success_count++))
-        else
-          log_err "Failed to install ${pkg}."
-          ((fail_count++))
-          failed_pkgs+=("$pkg")
-        fi
-        continue
-      fi
-    fi
-
-    # Fallthrough: Timeout reached OR User pressed Enter (or any key other than m)
-    printf "\n"
-    log_info "Auto-installing ${pkg} (Default Options)..."
-
-    # 3. Autonomous Installation
-    # --needed: don't reinstall up to date
-    # --noconfirm: accept all defaults
+    # 2. Autonomous Installation
+    log_info "Auto-installing ${pkg}..."
+    
+    # We use --noconfirm to automate "Yes" prompts.
+    # We DO NOT hide output (no &>/dev/null) so you see download progress.
     if paru -S --needed --noconfirm "$pkg"; then
       log_success "Installed ${pkg} (Auto)."
       ((success_count++))
     else
-      log_err "Failed to install ${pkg}. Proceeding to next..."
+      # 3. Conflict/Error Handling
+      # If we are here, auto-install failed (PGP key issue, conflict, build fail).
+      printf "\n"
+      log_warn "Automatic install failed for ${pkg}."
+      printf "${C_YELLOW}  -> Conflict/Error detected. Retry manually? [y/N] (Waiting %ss)... ${C_RESET}" "$TIMEOUT_SEC"
+
+      local user_input=""
+      
+      # Wait strictly 10 seconds. If no input, we skip.
+      if read -t "$TIMEOUT_SEC" -n 1 -s user_input; then
+        if [[ "$user_input" == "y" || "$user_input" == "Y" ]]; then
+          printf "\n"
+          log_info "Switching to Manual Mode for ${pkg}..."
+          
+          # Run without --noconfirm to allow user to handle conflicts/keys
+          if paru -S "$pkg"; then
+            log_success "Installed ${pkg} (Manual Recovery)."
+            ((success_count++))
+          else
+            log_err "Manual install also failed for ${pkg}."
+            ((fail_count++))
+            failed_pkgs+=("$pkg")
+          fi
+          continue
+        fi
+      fi
+
+      # Timeout or User said No
+      printf "\n"
+      log_err "Skipping ${pkg} (Resolution timed out or skipped)."
       ((fail_count++))
       failed_pkgs+=("$pkg")
     fi
