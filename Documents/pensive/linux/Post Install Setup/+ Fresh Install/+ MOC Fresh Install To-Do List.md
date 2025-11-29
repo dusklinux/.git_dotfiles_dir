@@ -932,7 +932,7 @@ nvim .config/hypr/source/input.conf
 >inode/directory: This is the official MIME type for a folder or directory.
 
 ---
-*Script*
+
 Dont do this, reserach what your specific gpu has.  (skip this)
 - [ ] Comment out this line from mpv's config if you don't have an av1 decoder. can be checked by running `vainfo`
 

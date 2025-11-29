@@ -5,9 +5,39 @@ return {
   config = function()
     local noice = require("noice")
 
+    -- 1. LOGIC: Track Last Saved Time
+    local augroup = vim.api.nvim_create_augroup("LualineDate", { clear = true })
+
+    -- Helper to get time string
+    local function get_time_str(seconds)
+      return os.date("%H:%M:%S", seconds)
+    end
+
+    -- Update on file open
+    vim.api.nvim_create_autocmd({ "BufReadPost", "BufEnter" }, {
+      group = augroup,
+      callback = function()
+        if vim.b.last_saved then return end
+        local file = vim.api.nvim_buf_get_name(0)
+        if file ~= "" then
+          local f = vim.uv.fs_stat(file)
+          if f then vim.b.last_saved = get_time_str(f.mtime.sec) end
+        end
+      end,
+    })
+
+    -- Update on Save (:w)
+    vim.api.nvim_create_autocmd("BufWritePost", {
+      group = augroup,
+      callback = function()
+        vim.b.last_saved = get_time_str(os.time())
+      end,
+    })
+
+    -- 2. SETUP LUALINE
     require("lualine").setup({
       options = {
-        theme = "auto", -- Adapts to your generated Base16 colors automatically
+        theme = "auto",
         globalstatus = true,
         component_separators = "|",
         section_separators = { left = "", right = "" },
@@ -20,12 +50,20 @@ return {
           {
             noice.api.status.mode.get,
             cond = noice.api.status.mode.has,
-            -- FIX: Use base16 variable for Orange instead of hardcoded hex
             color = { fg = vim.g.base16_gui09 }, 
           }
         }, 
         lualine_x = {
           {
+             -- LAST SAVED COMPONENT
+             function()
+                return "󰆓 " .. (vim.b.last_saved or "New")
+             end,
+             cond = function() return vim.api.nvim_buf_get_name(0) ~= "" end,
+             color = { fg = vim.g.base16_gui0B, gui = "bold" } -- Green
+          },
+          {
+            -- LSP CLIENTS
             function()
               local clients = vim.lsp.get_clients({ bufnr = 0 })
               if #clients == 0 then return "" end
@@ -35,22 +73,31 @@ return {
               end
               return " " .. table.concat(names, ", ")
             end,
-            -- FIX: Use base16 variable for Main Text (Base05) or Function Blue (Base0D)
-            -- Using Base05 ensures it matches your main editor text color exactly.
             color = { fg = vim.g.base16_gui05, gui = "bold" },
           },
-          "encoding", "fileformat", "filetype" 
+          -- Removed "encoding" here as requested
+          "fileformat", 
+          "filetype" 
         },
         lualine_y = { 
-          "searchcount",
+          -- CLOCK: Current time (Hour:Min only)
+          {
+            function() return " " .. os.date("%H:%M") end,
+          },
           "progress" 
         },
         lualine_z = { 
-          "location",
+          -- COMPACT LOCATION
+          -- Merges "9:1" and "101L" into one tight string like "9:1/101"
           {
-            function() 
-              return vim.api.nvim_buf_line_count(0) .. "L" 
+            function()
+              local line = vim.fn.line(".")
+              local col = vim.fn.col(".")
+              local total = vim.api.nvim_buf_line_count(0)
+              return string.format("%d:%d/%d", line, col, total)
             end,
+            -- Reduced padding to make it narrower
+            padding = { left = 1, right = 1 }
           }
         },
       },
