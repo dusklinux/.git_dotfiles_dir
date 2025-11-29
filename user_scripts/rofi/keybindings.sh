@@ -5,18 +5,21 @@ set -euo pipefail
 # CONFIGURATION
 # ==============================================================================
 
-# Rofi command as a proper array (handles spaces/quotes correctly)
+# Rofi Command
+# -theme-str 'window {width: 70%;}' forces the window to be wider
 declare -a MENU_COMMAND=(
     rofi -dmenu -i
-    -p 'Hyprland Keybinds'
+    -markup-rows
+    -p 'Keybinds'
     -theme-str 'window {width: 70%;}'
+    -theme-str 'listview {columns: 1;}'
 )
 
-# ASCII Unit Separator - safe delimiter that won't appear in normal text
+# ASCII Unit Separator (Hidden delimiter)
 readonly DELIM=$'\x1f'
 
 # ==============================================================================
-# DEPENDENCY CHECK
+# DEPENDENCIES
 # ==============================================================================
 
 declare -a missing_deps=()
@@ -25,205 +28,125 @@ for cmd in hyprctl jq gawk xkbcli sed rofi; do
 done
 
 if (( ${#missing_deps[@]} > 0 )); then
-    err_msg="Missing dependencies: ${missing_deps[*]}"
-    # Try notify-send, fall back to stderr
-    if command -v notify-send >/dev/null 2>&1; then
-        notify-send -u critical "Keybind Script Error" "$err_msg"
-    fi
-    printf 'Error: %s\n' "$err_msg" >&2
+    notify-send -u critical "Keybind Error" "Missing: ${missing_deps[*]}" 2>/dev/null || \
+    printf 'Error: Missing dependencies: %s\n' "${missing_deps[*]}" >&2
     exit 1
 fi
 
 # ==============================================================================
-# SETUP & CLEANUP
+# LOGIC
 # ==============================================================================
 
-KEYMAP_CACHE=$(mktemp) || { printf 'Failed to create temp file\n' >&2; exit 1; }
+KEYMAP_CACHE=$(mktemp) || exit 1
 trap 'rm -f -- "$KEYMAP_CACHE"' EXIT INT TERM HUP
 
-# ==============================================================================
-# FUNCTIONS
-# ==============================================================================
-
 get_keymap() {
-    # Extract keycode -> symbol mappings from the active XKB keymap
-    # Output format: KEYCODE<TAB>SYMBOL
     xkbcli compile-keymap 2>/dev/null | awk '
-    BEGIN {
-        in_codes = 0
-        in_syms  = 0
-    }
-
-    /xkb_keycodes[[:space:]]+"/ { in_codes = 1; in_syms = 0; next }
-    /xkb_symbols[[:space:]]+"/  { in_codes = 0; in_syms = 1; next }
-    /^[[:space:]]*};/           { in_codes = 0; in_syms = 0; next }
-
-    # Parse: <KEYNAME> = KEYCODE ;
+    BEGIN { in_codes=0; in_syms=0 }
+    /xkb_keycodes/ { in_codes=1; in_syms=0; next }
+    /xkb_symbols/  { in_codes=0; in_syms=1; next }
+    /^};/          { in_codes=0; in_syms=0; next }
     in_codes && /<[A-Z0-9]+>[[:space:]]*=[[:space:]]*[0-9]+/ {
-        line = $0
-        gsub(/[<>;]/, "", line)
-        n = split(line, parts, /[[:space:]]*=[[:space:]]*/)
-        if (n >= 2) {
-            key_name = parts[1]; gsub(/^[[:space:]]+|[[:space:]]+$/, "", key_name)
-            key_code = parts[2]; gsub(/^[[:space:]]+|[[:space:]]+$/, "", key_code)
-            if (key_name != "" && key_code ~ /^[0-9]+$/) {
-                code_map[key_name] = key_code
-            }
-        }
+        gsub(/[<>;]/,"",$0); split($0,p,/[[:space:]]*=[[:space:]]*/)
+        if(p[2]~/^[0-9]+$/) c[p[1]]=p[2]
     }
-
-    # Parse: key <KEYNAME> { [ symbol, symbol, ... ] };
     in_syms && /key[[:space:]]+<[A-Z0-9]+>/ {
-        if (match($0, /<[A-Z0-9]+>/)) {
-            key_name = substr($0, RSTART + 1, RLENGTH - 2)
-        } else {
-            next
+        if(match($0,/<[A-Z0-9]+>/)) k=substr($0,RSTART+1,RLENGTH-2)
+        if(match($0,/\[[^\]]+\]/)) {
+            split(substr($0,RSTART+1,RLENGTH-2),s,",")
+            gsub(/^[[:space:]]+|[[:space:]]+$/,"",s[1])
+            if((k in c) && s[1]!="") print c[k]"\t"s[1]
         }
-
-        if (match($0, /\[[^\]]+\]/)) {
-            content = substr($0, RSTART + 1, RLENGTH - 2)
-            # Get first symbol (unshifted)
-            split(content, syms, /[[:space:]]*,[[:space:]]*/)
-            sym = syms[1]
-            gsub(/^[[:space:]]+|[[:space:]]+$/, "", sym)
-
-            if ((key_name in code_map) && sym != "") {
-                print code_map[key_name] "\t" sym
-            }
-        }
-    }
-    '
+    }'
 }
 
 get_binds() {
-    # Fetch keybindings from Hyprland and format as delimited fields
-    local delim="$1"
-
-    hyprctl -j binds 2>/dev/null | jq -r --arg d "$delim" '
-        .[]
-        | select(.key != null and .key != "")
-        | ((.modmask // 0) | tonumber) as $m
-        | [
-            (if ($m % 2)   >= 1  then "SHIFT" else empty end),
-            (if ($m % 8)   >= 4  then "CTRL"  else empty end),
-            (if ($m % 16)  >= 8  then "ALT"   else empty end),
-            (if ($m % 128) >= 64 then "SUPER" else empty end)
-          ] as $mods
-        | [
-            (.submap      // ""),
-            ($mods | join(" ")),
-            .key,
-            ((.keycode    // 0) | tostring),
-            (.description // ""),
-            (.dispatcher  // ""),
-            (.arg         // "")
-          ]
-        | join($d)
+    hyprctl -j binds 2>/dev/null | jq -r --arg d "$1" '
+        .[] | select(.key != null and .key != "") |
+        ((.modmask//0)|tonumber) as $m |
+        [
+            (if ($m%2)>=1 then "SHIFT" else empty end),
+            (if ($m%8)>=4 then "CTRL" else empty end),
+            (if ($m%16)>=8 then "ALT" else empty end),
+            (if ($m%128)>=64 then "SUPER" else empty end)
+        ] as $mods |
+        [ (.submap//""), ($mods|join(" ")), .key, ((.keycode//0)|tostring),
+          (.description//""), (.dispatcher//""), (.arg//"") ] | join($d)
     '
 }
 
-# ==============================================================================
-# MAIN EXECUTION
-# ==============================================================================
-
-# 1. Build keycode-to-symbol lookup cache
+# 1. Build Cache
 get_keymap > "$KEYMAP_CACHE"
 
-# 2. Fetch and format keybindings
+# 2. Process Data
 DATA=$(get_binds "$DELIM" | awk -F"$DELIM" -v delim="$DELIM" -v cache="$KEYMAP_CACHE" '
 BEGIN {
-    # Load keymap cache into associative array
-    while ((getline line < cache) > 0) {
-        n = split(line, parts, "\t")
-        if (n >= 2 && parts[1] != "") {
-            key_lookup[parts[1]] = parts[2]
-        }
-    }
+    while((getline < cache) > 0) { split($0,p,"\t"); if(p[1]!="") map[p[1]]=p[2] }
     close(cache)
 }
+function esc(s) { gsub(/&/,"&amp;",s); gsub(/</,"&lt;",s); gsub(/>/,"&gt;",s); return s }
 
 {
-    submap     = $1
-    mods       = $2
-    key        = $3
-    keycode    = int($4)   # Force numeric comparison
-    desc       = $5
-    dispatcher = $6
-    arg        = $7
+    submap=$1; mods=$2; key=$3; code=int($4); desc=$5; disp=$6; arg=$7
+    if(disp == "") next
 
-    # Skip entries without a dispatcher
-    if (dispatcher == "") next
-
-    # Resolve keycode to symbol (unless it is a mouse binding)
-    if (key !~ /^mouse:/ && keycode > 0 && (keycode in key_lookup)) {
-        key = key_lookup[keycode]
-    }
+    # Resolve Key Symbol
+    if(key !~ /^mouse:/ && code > 0 && (code in map)) key=map[code]
     key = toupper(key)
 
-    # Build human-readable action string
-    if (desc != "") {
-        action = desc
-    } else if (arg != "") {
-        action = dispatcher " (" arg ")"
+    # Clean Mods
+    gsub(/[[:space:]]+/, " ", mods); sub(/^[[:space:]]+/, "", mods); sub(/[[:space:]]+$/, "", mods)
+
+    # --- Icons ---
+    icon=" "
+    if(disp ~ /exec/)        icon=" "
+    else if(disp ~ /kill/)   icon=" "
+    else if(disp ~ /resize/) icon="󰩨 "
+    else if(disp ~ /move/)   icon="󰆾 "
+    else if(disp ~ /float/)  icon=" "
+    else if(disp ~ /full/)   icon=" "
+    else if(disp ~ /work/)   icon=" "
+    else if(disp ~ /pass/)   icon=" " 
+
+    # --- Formatting ---
+    
+    # ADJUSTED: Reduced Mod width to 7 (was 10) and Key width to 10 (was 12).
+    # This brings ALT and the Key closer, and pulls the description in.
+    if (mods != "") {
+        display_key = sprintf("<span alpha=\"65%%\">%-7s</span> <span weight=\"bold\">%-10s</span>", mods, key)
     } else {
-        action = dispatcher
+        display_key = sprintf("<span alpha=\"65%%\">%-7s</span> <span weight=\"bold\">%-10s</span>", "", key)
     }
 
-    # Submap indicator prefix
-    submap_prefix = ""
+    # 2. Action: Escape HTML chars
+    if (desc != "") action = esc(desc)
+    else if (arg != "") action = sprintf("%s <span alpha=\"50%%\" style=\"italic\">(%s)</span>", esc(disp), esc(arg))
+    else action = esc(disp)
+
+    # 3. Submap Prefix
     if (submap != "" && submap != "global") {
-        submap_prefix = "[" toupper(submap) "] "
+        action = sprintf("<span weight=\"bold\" foreground=\"#f38ba8\">[%s]</span> %s", toupper(submap), action)
     }
 
-    # Normalize whitespace in modifiers
-    gsub(/[[:space:]]+/, " ", mods)
-    sub(/^[[:space:]]+/, "", mods)
-    sub(/[[:space:]]+$/, "", mods)
-
-    # Assemble display key
-    display_key = (mods != "") ? (mods " + " key) : key
-
-    # Output format: DISPLAY_COLUMN | DELIM | DISPATCHER | DELIM | ARG
-    printf "%-45s %s%s%s%s%s%s\n", display_key, submap_prefix, action, delim, dispatcher, delim, arg
+    # Output
+    printf "%s  %s  %s%s%s%s%s\n", icon, display_key, action, delim, disp, delim, arg
 }
 ' | sort -t"$DELIM" -k1,1 -u)
 
-# Exit gracefully if no bindings were found
-if [[ -z "${DATA:-}" ]]; then
-    exit 0
-fi
+[[ -z "${DATA:-}" ]] && exit 0
 
-# 3. Present the menu (display only the human-readable portion)
-# Rofi returns the 0-based index with -format i
-SELECTED_INDEX=$(
-    awk -F"$DELIM" '{print $1}' <<< "$DATA" \
-    | "${MENU_COMMAND[@]}" -format i
-) || exit 0   # User cancelled or rofi error
+# 3. Show Menu
+SELECTED_INDEX=$(awk -F"$DELIM" '{print $1}' <<< "$DATA" | "${MENU_COMMAND[@]}" -format i)
 
-# Validate we received a numeric index
-if [[ ! "$SELECTED_INDEX" =~ ^[0-9]+$ ]]; then
-    exit 0
-fi
-
-# 4. Retrieve the full selected line (convert 0-based index to 1-based line number)
-LINE_NUM=$((SELECTED_INDEX + 1))
-SELECTED_LINE=$(sed -n "${LINE_NUM}p" <<< "$DATA")
-
-if [[ -z "${SELECTED_LINE:-}" ]]; then
-    exit 1
-fi
-
-# 5. Parse dispatcher and argument from the hidden portion
-IFS="$DELIM" read -r _display DISPATCHER ARG <<< "$SELECTED_LINE"
-
-if [[ -z "${DISPATCHER:-}" ]]; then
-    printf 'Error: No dispatcher found in selection\n' >&2
-    exit 1
-fi
-
-# 6. Execute the keybinding via hyprctl
-if [[ -n "${ARG:-}" ]]; then
-    exec hyprctl dispatch "$DISPATCHER" "$ARG"
-else
-    exec hyprctl dispatch "$DISPATCHER"
+if [[ "$SELECTED_INDEX" =~ ^[0-9]+$ ]]; then
+    LINE_NUM=$((SELECTED_INDEX + 1))
+    SELECTED_LINE=$(sed -n "${LINE_NUM}p" <<< "$DATA")
+    IFS="$DELIM" read -r _ disp arg <<< "$SELECTED_LINE"
+    
+    # Execute
+    if [[ -n "$arg" ]]; then
+        exec hyprctl dispatch "$disp" "$arg"
+    else
+        exec hyprctl dispatch "$disp"
+    fi
 fi
