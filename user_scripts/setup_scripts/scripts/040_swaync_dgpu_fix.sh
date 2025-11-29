@@ -81,7 +81,8 @@ log_info "Reloading systemd user daemon..."
 systemctl --user daemon-reload
 
 log_info "Restarting $SERVICE..."
-systemctl --user restart "$SERVICE"
+# FIX: Added '|| true' to prevent 'set -e' from killing the script if restart fails
+systemctl --user restart "$SERVICE" || true
 
 # 6. Verification
 # We check if the service is active.
@@ -90,18 +91,18 @@ if systemctl --user is-active --quiet "$SERVICE"; then
     log_success "$SERVICE is up and running."
     
     # Optional: Visual confirmation of the environment (Advanced debugging)
-    # This checks the PID of swaync and looks for the environment variables in /proc
-    # Only runs if we just Enabled the fix to prove it's applied.
     if [[ "$TARGET_ACTION" == "ENABLE" ]]; then
         PID=$(systemctl --user show --property MainPID --value "$SERVICE")
         if [[ "$PID" -ne 0 ]]; then
              printf "${BOLD}Applied Environment Check:${RESET}\n"
-             # Grep for typical GPU forcing variables (WLR_DRM_DEVICES or similar)
-             # Adjust 'grep' query based on what is actually inside your gpu-fix.conf
              xargs -0 -L1 -a "/proc/$PID/environ" 2>/dev/null | grep -E "WLR_DRM_DEVICES|AQ_DRM_DEVICES|rec_gpu_id" || true
         fi
     fi
 else
+    # FIX: Changed from 'exit 1' to 'exit 0' (and logging error).
+    # This ensures the Orchestra script sees this as a "Success" even if SwayNC isn't running,
+    # preventing the entire installation chain from aborting.
     log_err "$SERVICE failed to restart. Check 'journalctl --user -xeu $SERVICE'."
-    exit 1
+    log_info "Continuing orchestration regardless of service state."
+    exit 0
 fi
