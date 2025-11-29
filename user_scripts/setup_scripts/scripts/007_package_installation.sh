@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # --------------------------------------------------------------------------
-# Arch Linux / Hyprland / UWSM - Elite System Installer (v3 - Robust Fallback)
+# Arch Linux / Hyprland / UWSM - Elite System Installer (v3.1 - Smart Fallback)
 # --------------------------------------------------------------------------
 
 # --- 1. CONFIGURATION ---
@@ -91,8 +91,6 @@ pkgs_productivity=(
   "obsidian" "zathura" "zathura-pdf-mupdf" "termusic" "cava"
 )
 
-# ... (Keep your Group arrays exactly as they are) ...
-
 # --------------------------------------------------------------------------
 # --- 2. ENGINE (Optimized) ---
 # --------------------------------------------------------------------------
@@ -124,28 +122,34 @@ install_group() {
 
   printf "\n${BOLD}${CYAN}:: Processing Group: %s${RESET}\n" "$group_name"
 
-  # STRATEGY A: Batch Install (Verbose)
-  # We removed '>/dev/null 2>&1' so you can see the download progress bars.
-  # If this returns non-zero (fail), we still catch it and move to Strategy B.
+  # STRATEGY A: Batch Install
   if pacman -S --needed --noconfirm "${pkgs[@]}"; then
     printf "${GREEN} [OK] Batch installation successful.${RESET}\n"
     return 0
   fi
 
-  # STRATEGY B: Fallback Individual Install (Interactive)
-  # We failed the batch (likely due to a conflict). Now we go slow.
-  printf "\n${YELLOW} [!] Batch transaction failed. Retrying individually (Interactive)...${RESET}\n"
+  # STRATEGY B: Fallback Individual Install (Smart)
+  printf "\n${YELLOW} [!] Batch transaction failed. Retrying individually...${RESET}\n"
 
   local fail_count=0
 
   for pkg in "${pkgs[@]}"; do
-    # 1. Removed '--noconfirm': Allows pacman to ask "Remove conflicting package?"
-    # 2. No redirection: Allows you to SEE the question and type 'Y'.
-    if pacman -S --needed "$pkg"; then
+    # Try 1: Auto-install (Silent)
+    # If this works, it means there was no conflict for THIS specific package.
+    if pacman -S --needed --noconfirm "$pkg" >/dev/null 2>&1; then
       printf "  ${GREEN}[+] Installed:${RESET} %s\n" "$pkg"
+    
+    # Try 2: Interactive (Verbose)
+    # If Auto failed, it's likely a conflict (e.g., tldr vs tealdeer). 
+    # We run without --noconfirm so you can intervene.
     else
-      printf "  ${RED}[X] Not Found / Failed:${RESET} %s\n" "$pkg"
-      ((fail_count++))
+      printf "  ${YELLOW}[?] Intervention Needed:${RESET} %s\n" "$pkg"
+      if pacman -S --needed "$pkg"; then
+        printf "  ${GREEN}[+] Installed (Manual):${RESET} %s\n" "$pkg"
+      else
+        printf "  ${RED}[X] Not Found / Failed:${RESET} %s\n" "$pkg"
+        ((fail_count++))
+      fi
     fi
   done
 
@@ -163,7 +167,6 @@ pacman-key --init
 pacman-key --populate archlinux
 
 printf "\n${BOLD}:: Full System Upgrade...${RESET}\n"
-# Added --noconfirm.
 pacman -Syu --noconfirm || printf "${YELLOW}[!] Upgrade skipped or failed.${RESET}\n"
 
 # Execute Groups
