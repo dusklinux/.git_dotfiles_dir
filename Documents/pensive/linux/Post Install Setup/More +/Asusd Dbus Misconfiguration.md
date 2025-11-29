@@ -4,6 +4,10 @@
 This guide provides a step-by-step solution to a common D-Bus configuration issue with the `asusd` service on Arch Linux and Fedora-based systems.
 
 ---
+> [!error]+ READ THIS
+> Since you are on a rolling release (Arch), `asusd` updates might revert this file to the upstream default (bringing the bug back).
+> 
+> you could create a  **Pacman Hook** (`.hook` file) that runs this fix automatically every time `asusd` is updated. 
 
 ### The Problem: Incorrect Group Policy
 
@@ -47,6 +51,36 @@ Inside the file, locate and completely delete the `<policy>` block that referenc
 </policy>
 ```
 
+> [!note]- refereance file : full
+> ```ini
+> <!DOCTYPE busconfig PUBLIC
+>           "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+>           "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+> <busconfig>
+>     <policy group="adm">
+>         <allow send_destination="xyz.ljones.Asusd"/>
+>         <allow receive_sender="xyz.ljones.Asusd"/>
+>     </policy>
+>     <policy group="sudo">
+>         <allow send_destination="xyz.ljones.Asusd"/>
+>         <allow receive_sender="xyz.ljones.Asusd"/>
+>     </policy>
+>     <policy group="users">
+>         <allow send_destination="xyz.ljones.Asusd"/>
+>         <allow receive_sender="xyz.ljones.Asusd"/>
+>     </policy>
+>     <policy group="wheel">
+>         <allow send_destination="xyz.ljones.Asusd"/>
+>         <allow receive_sender="xyz.ljones.Asusd"/>
+>     </policy>
+>     <policy user="root">
+>         <allow own="xyz.ljones.Asusd"/>
+>         <allow send_destination="xyz.ljones.Asusd"/>
+>         <allow receive_sender="xyz.ljones.Asusd"/>
+>     </policy>
+> </busconfig>
+> ``` 
+
 After removing it, save the file and exit the text editor.
 
 #### Step 3: Apply the Changes
@@ -56,6 +90,8 @@ For the changes to take effect, you must restart the `asusd` service. This will 
 ```bash
 sudo systemctl restart asusd.service
 ```
+
+
 
 ---
 
