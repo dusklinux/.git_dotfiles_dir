@@ -134,7 +134,7 @@ setup_warp() {
   log_info "Registering new client..."
   local reg_success=0
   for i in {1..3}; do
-    # FIX APPLIED: Piping "y" into the command to satisfy the interactive prompt
+    # Keeps the previous 'y' fix for registration
     if echo "y" | run_as_user warp-cli --accept-tos registration new; then
       reg_success=1
       break
@@ -159,7 +159,8 @@ setup_warp() {
     # Polling Loop (Max 10 seconds)
     local connected=0
     for i in {1..10}; do
-      if run_as_user warp-cli status | grep -q "Connected"; then
+      # FIX APPLIED HERE: Added '--accept-tos' to the status check command
+      if run_as_user warp-cli --accept-tos status | grep -q "Connected"; then
         connected=1
         break
       fi
