@@ -23,10 +23,6 @@ export AQ_DRM_DEVICES=/dev/dri/card1
 # Install other terminals via Install > Terminal
 export TERMINAL=xdg-terminal-exec
 
-# Use code editor
-export EDITOR=nvim
-export VISUAL=nvim
-
 # 5. Path
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 

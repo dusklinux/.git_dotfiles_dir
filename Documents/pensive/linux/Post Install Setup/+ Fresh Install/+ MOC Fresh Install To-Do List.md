@@ -830,9 +830,16 @@ nvim ~/.config/uwsm/env
 ```
 
 > [!error]+ Comment OUT Everything Beyond This Line
-> #-------------------------NVIDIA-------------------------------
-> #COMMENT OUT ANY SET ENVIRONMENT VARIABLE IF YOU DONT HAVE NVIDIA
-> #--------------------------------------------------------------
+>\#-------------------------NVIDIA-------------------------------
+>\#COMMENT OUT ANY SET ENVIRONMENT VARIABLE IF YOU DONT HAVE NVIDIA
+>\#--------------------------------------------------------------
+
+also comment out this line 
+
+> [!error]+ put a hash before it. 
+>```ini
+>export LIBVA_DRIVER_NAME=iHD
+>```
 
 ---
 
@@ -843,7 +850,9 @@ nvim ~/.config/uwsm/env-hyprland
 ```
 
 > [!error]+ Comment OUT this line
-> export AQ_DRM_DEVICES=/dev/dri/card1
+>```ini
+>export AQ_DRM_DEVICES=/dev/dri/card1
+>```
 
 ---
 *Script*
@@ -861,33 +870,35 @@ nvim ~/.config/hypr/hyprland.conf
 
 
 >[!error]+ Comment out Asus specific Script
->bindl = , XF86Launch3, exec, kitty -e sudo ~/user_scripts/asus/asus-control.sh
+>```ini
+>binddl = , XF86Launch3, ASUS Control, exec, uwsm-app -- $terminal --class asusctl.sh -e sudo $scripts/asus/asusctl.sh
+>```
 
 - [ ] Comment OUT the custom key-binds for changing refresh rate that are specific to asus laptops with 144 hz with  `Alt+6` and `Alt+7`.
 
 > [!error]+ Comment OUT these two lines
-> bind = ALT, 6, exec, hyprctl keyword monitor eDP-1,1920x1080@60,0x0,1.6
-> bind = ALT, 7, exec, hyprctl keyword monitor eDP-1,1920x1080@144,0x0,1.6
-
-- [ ] IF you dont have an nvidia GPU, Comment out this and replace it with this. 
-
-> [!error]+ Comment out these lines 
 >```ini
->#FASTERWHISPER TTS
->bind = $mainMod SHIFT, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst.sh
->
->#Nvidia Parakeet
->bind = $mainMod, I, exec, ~/user_scripts/parakeet/parakeet.sh
->```  
-
-> [!tip]+ And add this line instead
-> ```ini
-> bind = $mainMod, I, exec, ~/user_scripts/faster_whisper/faster_whisper_sst.sh
+> bindd = ALT, 7, Set Refresh rate to 48Hz Asus Tuf, exec, hyprctl keyword monitor eDP-1,1920x1080@48,0x0,1.6 && sleep 2 && hyprctl keyword misc:vrr 0
+>bindd = ALT, 8, Set Refresh rate to 144Hz Asus Tuf, exec, hyprctl keyword monitor eDP-1,1920x1080@144,0x0,1.6 && sleep 2 && hyprctl keyword misc:vrr 1
 >```
+
+- [ ] IF you dont plan on using tts/stt, comment out these lines. 
+
+> [!error]+ comment them out if you dont plan on using the tts/stt
+> ```ini
+> bindd = $mainMod, O, TTS Kokoro GPU, exec, wl-copy "$(wl-paste -p)" && uwsm-app -- $scripts/kokoro_gpu/speak.sh
+> bindd = $mainMod SHIFT, O, TTS Kokoro CPU, exec, wl-copy "$(wl-paste -p)" && uwsm-app -- $scripts/kokoro_cpu/kokoro.sh
+> 
+> # FasterWhisper STT
+> bindd = $mainMod SHIFT, I, STT Whisper CPU, exec, uwsm-app -- $scripts/faster_whisper/faster_whisper_sst.sh
+> 
+> # NVIDIA Parakeet
+> bindd = $mainMod, I, STT Parakeet GPU, exec, uwsm-app -- $scripts/parakeet/parakeet.sh
+> ```
 
 
 ---
-*Script*
+
 - [ ] **Configure Monitor Output:** Here one line needs to be Un-Commented and another Commented out. 
 
 ```bash
@@ -909,7 +920,9 @@ nvim .config/hypr/source/input.conf
 ```
 
 > [!error]+ Comment OUT this line 
+>```ini
 > left_handed = true
+>```
 
 
 ---

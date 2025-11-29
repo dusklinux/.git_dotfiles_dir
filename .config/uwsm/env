@@ -28,7 +28,10 @@ export QT_QUICK_CONTROLS_STYLE=Fusion
 export XCURSOR_THEME=Bibata-Modern-Classic
 export XCURSOR_SIZE=18
 export TERMINAL=kitty
+
+# Use code editor
 export EDITOR=nvim
+export VISUAL=nvim
 
 # 4. Application-Specific Flags
 export MOZ_ENABLE_WAYLAND=1
