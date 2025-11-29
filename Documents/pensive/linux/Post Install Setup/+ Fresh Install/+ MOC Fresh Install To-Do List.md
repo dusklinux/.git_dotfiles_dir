@@ -1002,11 +1002,6 @@ then reload systemd user dameon like above.
 
 - [ ] **Asus misconfiguration for asusd D-bus:** :- follow the note for it if you have an asus laptop. [[Asusd Dbus Misconfiguration]]
 
-- [ ] *Optional* **Copy the asusd directory for asusrelated configuration to /etc:** :- 
-
-```bash
-sudo cp ~/fonts_and_old_stuff/setup/etc/asusd /etc/
-```
 
 ---
 

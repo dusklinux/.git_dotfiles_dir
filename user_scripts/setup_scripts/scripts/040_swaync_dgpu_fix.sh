@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+#
+# toggle-swaync-gpu
+# Purpose: Toggles systemd drop-in to force SwayNC to iGPU for power saving.
+# Context: Arch Linux / Hyprland / UWSM
+# Author: Gemini (Elite DevOps/Arch Architect)
+#
+# -----------------------------------------------------------------------------
+
+# --- Strict Mode ---
+set -euo pipefail
+IFS=$'\n\t'
+
+# --- Configuration ---
+# The directory where systemd user overrides live
+CONFIG_DIR="${HOME}/.config/systemd/user/swaync.service.d"
+# The active configuration file (Systemd reads this)
+ACTIVE_FILE="${CONFIG_DIR}/gpu-fix.conf"
+# The disabled configuration file (Systemd ignores this)
+BACKUP_FILE="${CONFIG_DIR}/gpu-fix.conf.bak"
+# Service name
+SERVICE="swaync.service"
+
+# --- Styling ---
+BOLD="\e[1m"
+GREEN="\e[32m"
+BLUE="\e[34m"
+RED="\e[31m"
+RESET="\e[0m"
+
+# --- Helper Functions ---
+log_info()    { printf "${BLUE}[INFO]${RESET} %s\n" "$1"; }
+log_success() { printf "${GREEN}[OK]${RESET} %s\n" "$1"; }
+log_err()     { printf "${RED}[ERROR]${RESET} %s\n" "$1" >&2; }
+
+# --- Logic ---
+
+# 1. Validation: Ensure the directory exists
+if [[ ! -d "$CONFIG_DIR" ]]; then
+    log_err "Directory not found: $CONFIG_DIR"
+    printf "Please create the directory and the initial 'gpu-fix.conf' file before running this script.\n"
+    exit 1
+fi
+
+# 2. State Detection
+if [[ -f "$ACTIVE_FILE" ]]; then
+    CURRENT_STATE="ACTIVE"
+    TARGET_ACTION="DISABLE"
+elif [[ -f "$BACKUP_FILE" ]]; then
+    CURRENT_STATE="DISABLED"
+    TARGET_ACTION="ENABLE"
+else
+    log_err "No configuration file found (checked .conf and .conf.bak)."
+    printf "Expected to find 'gpu-fix.conf' or 'gpu-fix.conf.bak' inside '%s'.\n" "$CONFIG_DIR"
+    exit 1
+fi
+
+# 3. User Interaction
+printf "${BOLD}Current SwayNC GPU Fix State:${RESET} ${BLUE}%s${RESET}\n" "$CURRENT_STATE"
+read -r -p "$(printf "Do you want to ${BOLD}%s${RESET} the power saving fix? [y/N] " "$TARGET_ACTION")" CONFIRM
+
+if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
+    log_info "Operation cancelled by user."
+    exit 0
+fi
+
+# 4. Execution
+if [[ "$CURRENT_STATE" == "ACTIVE" ]]; then
+    # Disable: Rename .conf -> .conf.bak
+    mv --no-clobber "$ACTIVE_FILE" "$BACKUP_FILE"
+    log_success "Configuration renamed to .bak (Fix Disabled)"
+else
+    # Enable: Rename .conf.bak -> .conf
+    mv --no-clobber "$BACKUP_FILE" "$ACTIVE_FILE"
+    log_success "Configuration renamed to .conf (Fix Enabled)"
+fi
+
+# 5. Systemd Reload & Restart
+# We use --user because this is a user-session service
+log_info "Reloading systemd user daemon..."
+systemctl --user daemon-reload
+
+log_info "Restarting $SERVICE..."
+systemctl --user restart "$SERVICE"
+
+# 6. Verification
+# We check if the service is active.
+# Note: 'is-active' returns 0 if active, non-zero otherwise.
+if systemctl --user is-active --quiet "$SERVICE"; then
+    log_success "$SERVICE is up and running."
+    
+    # Optional: Visual confirmation of the environment (Advanced debugging)
+    # This checks the PID of swaync and looks for the environment variables in /proc
+    # Only runs if we just Enabled the fix to prove it's applied.
+    if [[ "$TARGET_ACTION" == "ENABLE" ]]; then
+        PID=$(systemctl --user show --property MainPID --value "$SERVICE")
+        if [[ "$PID" -ne 0 ]]; then
+             printf "${BOLD}Applied Environment Check:${RESET}\n"
+             # Grep for typical GPU forcing variables (WLR_DRM_DEVICES or similar)
+             # Adjust 'grep' query based on what is actually inside your gpu-fix.conf
+             xargs -0 -L1 -a "/proc/$PID/environ" 2>/dev/null | grep -E "WLR_DRM_DEVICES|AQ_DRM_DEVICES|rec_gpu_id" || true
+        fi
+    fi
+else
+    log_err "$SERVICE failed to restart. Check 'journalctl --user -xeu $SERVICE'."
+    exit 1
+fi
