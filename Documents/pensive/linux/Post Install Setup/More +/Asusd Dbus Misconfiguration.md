@@ -7,7 +7,8 @@ This guide provides a step-by-step solution to a common D-Bus configuration issu
 > [!error]+ READ THIS
 > Since you are on a rolling release (Arch), `asusd` updates might revert this file to the upstream default (bringing the bug back).
 > 
-> you could create a  **Pacman Hook** (`.hook` file) that runs this fix automatically every time `asusd` is updated. 
+> you could create a  **Pacman Hook** (`.hook` file) that runs this fix automatically every time `asusd` is updated. test this to work before implimenting [[asusd pacman hook]]
+
 
 ### The Problem: Incorrect Group Policy
 
