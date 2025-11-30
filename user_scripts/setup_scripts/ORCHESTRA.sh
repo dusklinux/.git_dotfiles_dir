@@ -21,6 +21,7 @@ INSTALL_SEQUENCE=(
     "U | 008_changing_shell_zsh.sh"
     "S | 009_aur_paru.sh"
     "S | 010_warp.sh"
+    "S | 011_nvidia_open_source.sh"
     "U | 012_hyprexpo_plugin.sh"
     "U | 013_paru_packages.sh"
     "S | 014_aur_packages_sudo_services.sh"

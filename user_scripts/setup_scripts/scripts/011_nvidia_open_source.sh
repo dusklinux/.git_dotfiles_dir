@@ -1,184 +1,116 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Script: 012_hyprexpo_plugin.sh
-# Description: Toggles Hyprland HyprExpo plugin and manages hyprpm dependencies.
-# Environment: Arch Linux / Hyprland / UWSM
-# Author: Elite DevOps (AI)
+#  SCRIPT: 011_nvidia_open_source.sh
+#  DESCRIPTION: Interactive NVIDIA Open Source Driver Installer (Turing+)
+#  CONTEXT: Arch Linux / Hyprland / UWSM
 # ==============================================================================
 
-# 1. Safety & Configuration
-set -euo pipefail
-IFS=$'\n\t'
+# 1. Safety & Environment
+set -o errexit   # Exit on error
+set -o nounset   # Abort on unbound variables
+set -o pipefail  # Catch pipe errors
 
-# Trap for clean exit
-cleanup() {
-  # Reset cursor if hidden by a spinner or unfinished output
-  printf "\e[?25h"
-}
-trap cleanup EXIT INT TERM
-
-# 2. Variables & Constants
-# Colors for feedback
-readonly C_RESET='\033[0m'
-readonly C_INFO='\033[1;34m'    # Blue
-readonly C_SUCCESS='\033[1;32m' # Green
-readonly C_WARN='\033[1;33m'    # Yellow
-readonly C_ERR='\033[1;31m'     # Red
-
-# Configuration Files
-readonly HYPR_CONF="$HOME/.config/hypr/hyprland.conf"
-readonly KEY_CONF="$HOME/.config/hypr/source/keybinds.conf"
-readonly PLUGINS_REPO="https://github.com/hyprwm/hyprland-plugins"
-
-# Patterns to match
-# NOTE: Exact string matching for your config
-readonly PATTERN_KEYBIND="bindd = ALT, TAB, Toggle Expo, hyprexpo:expo, toggle"
-readonly PATTERN_PLUGIN_SRC="source = ~/.config/hypr/source/plugins.conf"
-
-# 3. Helper Functions
-log_info() { printf "${C_INFO}[INFO]${C_RESET} %s\n" "$1"; }
-log_success() { printf "${C_SUCCESS}[OK]${C_RESET} %s\n" "$1"; }
-log_warn() { printf "${C_WARN}[WARN]${C_RESET} %s\n" "$1"; }
-log_error() { printf "${C_ERR}[ERROR]${C_RESET} %s\n" "$1" >&2; }
-
-# Function to check file existence
-ensure_file() {
-  if [[ ! -f "$1" ]]; then
-    log_error "Configuration file not found: $1"
-    return 1
-  fi
-}
-
-# Function to modify file in-place (No backup files created)
-# Usage: modify_line "file" "pattern" "action (comment/uncomment)"
-modify_config() {
-  local file="$1"
-  local pattern="$2"
-  local action="$3"
-  local esc_pattern
-
-  # Escape strictly regex meta-characters for grep (EXCLUDING forward slash /)
-  # This prevents 'grep: warning: stray \ before /'
-  esc_pattern=$(printf '%s\n' "$pattern" | sed 's/[][\.*^$]/\\&/g')
-
-  if [[ "$action" == "uncomment" ]]; then
-    # Uncomment: Find line starting with optional space + # + optional space + pattern
-    # We use pipe | delimiter in sed so paths (/) don't break the command
-    if grep -qE "^[[:space:]]*#[[:space:]]*${esc_pattern}" "$file"; then
-      sed -i "s|^[[:space:]]*#[[:space:]]*${esc_pattern}|${pattern}|" "$file"
-      log_success "Uncommented in $(basename "$file"): '$pattern'"
-    elif grep -qE "^[[:space:]]*${esc_pattern}" "$file"; then
-      log_info "Already enabled in $(basename "$file"): '$pattern'"
-    else
-      log_warn "Pattern not found to uncomment in $(basename "$file")"
-    fi
-  elif [[ "$action" == "comment" ]]; then
-    # Comment: Find line starting with pattern (no #)
-    if grep -qE "^[[:space:]]*${esc_pattern}" "$file"; then
-      sed -i "s|^[[:space:]]*${esc_pattern}|# ${pattern}|" "$file"
-      log_success "Commented out in $(basename "$file"): '$pattern'"
-    elif grep -qE "^[[:space:]]*#[[:space:]]*${esc_pattern}" "$file"; then
-      log_info "Already disabled in $(basename "$file"): '$pattern'"
-    else
-      log_warn "Pattern not found to comment in $(basename "$file")"
-    fi
-  fi
-}
-
-# 4. Main Execution Flow
-main() {
-  # Verify environment files exist
-  ensure_file "$HYPR_CONF"
-  ensure_file "$KEY_CONF"
-
-  # User Interaction
-  printf "\n${C_INFO}HyprExpo Configuration Manager${C_RESET}\n"
-  printf "This plugin provides an overview/birdseye window viewer (ALT+TAB).\n"
-  
-  # FIX: Write to /dev/tty to bypass Orchestra tee buffering so prompt is visible
-  printf "Do you want to ${C_SUCCESS}ENABLE${C_RESET} or ${C_ERR}DISABLE${C_RESET} HyprExpo? [e/d]: " >/dev/tty
-  read -r choice
-
-  case "${choice,,}" in
-  e | enable | y | yes)
-    ACTION="enable"
-    ;;
-  d | disable | n | no)
-    ACTION="disable"
-    ;;
-  *)
-    log_error "Invalid input. Exiting."
+# 2. Privileges Check
+if [[ "${EUID}" -ne 0 ]]; then
+    printf "\e[31mError: This script must be run as root (sudo).\e[0m\n" >&2
     exit 1
-    ;;
-  esac
+fi
 
-  # Logic: Disable
-  if [[ "$ACTION" == "disable" ]]; then
-    log_info "Disabling HyprExpo configuration..."
+# 3. Aesthetics (Re-declaring for standalone safety, though Orchestra likely provides them)
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m' # No Color
 
-    # 1. Comment out keybind
-    modify_config "$KEY_CONF" "$PATTERN_KEYBIND" "comment"
+# 4. Helper Functions
 
-    # 2. Comment out plugin source
-    modify_config "$HYPR_CONF" "$PATTERN_PLUGIN_SRC" "comment"
-
-    log_success "HyprExpo disabled. Reloading Hyprland..."
-    # FIX: Add || true to prevent script failure if socket is busy
-    hyprctl reload >/dev/null || true
-    exit 0
-  fi
-
-  # Logic: Enable
-  if [[ "$ACTION" == "enable" ]]; then
-    log_info "Enabling HyprExpo configuration..."
-
-    # 1. Uncomment keybind
-    modify_config "$KEY_CONF" "$PATTERN_KEYBIND" "uncomment"
-
-    # 2. Uncomment plugin source
-    modify_config "$HYPR_CONF" "$PATTERN_PLUGIN_SRC" "uncomment"
-
-    # 3. Hyprpm Operations
-    if ! command -v hyprpm &>/dev/null; then
-      log_error "'hyprpm' is not installed. Please install it to use plugins."
-      exit 1
-    fi
-
-    log_info "Initializing Plugin Manager (hyprpm)..."
-    log_warn "Output is shown below. Please enter sudo password if requested."
-
-    # Update headers
-    printf "\n${C_INFO}-> Running: hyprpm update${C_RESET}\n"
-    if ! hyprpm update; then
-      log_error "Could not update hyprpm headers."
-      exit 1
-    fi
-
-    # Add Plugin Repo
-    # We pipe 'yes' to handle the "Do you trust this author? [Y/n]" prompt automatically
-    printf "\n${C_INFO}-> Running: hyprpm add (auto-confirming trust)${C_RESET}\n"
+detect_gpu_hardware() {
+    printf "\n%b>>> DETECTING GPU HARDWARE...%b\n" "${BLUE}" "${NC}"
     
-    # FIX: Disable pipefail temporarily. 'yes' often triggers SIGPIPE (141) if hyprpm 
-    # exits early (e.g. repo already exists), causing the script to fail spuriously.
-    set +o pipefail
-    if ! yes | hyprpm add "$PLUGINS_REPO"; then
-      log_warn "Repo add finished with status $?. Proceeding assuming success or already exists."
+    if ! command -v lspci &>/dev/null; then
+        printf "%bInstalling pciutils for detection...%b\n" "${YELLOW}" "${NC}"
+        pacman -S --needed --noconfirm pciutils >/dev/null 2>&1
     fi
-    set -o pipefail
 
-    # Enable HyprExpo
-    printf "\n${C_INFO}-> Running: hyprpm enable hyprexpo${C_RESET}\n"
-    if hyprpm enable hyprexpo; then
-      log_success "Plugin enabled successfully."
+    # Modern bash: capture output cleanly
+    local gpu_list
+    gpu_list=$(lspci -mm | grep -i -E 'vga|3d|display')
+
+    if [[ -z "$gpu_list" ]]; then
+        printf "%bNo Graphics Controllers found via lspci.%b\n" "${RED}" "${NC}"
     else
-      log_error "Failed to enable hyprexpo."
-      exit 1
+        printf "%bFound the following GPU devices:%b\n" "${GREEN}" "${NC}"
+        # Parse and pretty print the PCI output
+        while IFS= read -r line; do
+            # Extract device name (usually the string after the vendor/device IDs)
+            # lspci -mm format: Slot "Class" "Vendor" "Device" ...
+            local vendor
+            local device
+            vendor=$(echo "$line" | cut -d'"' -f4)
+            device=$(echo "$line" | cut -d'"' -f6)
+            printf "  • %b%s%b: %s\n" "${YELLOW}" "$vendor" "${NC}" "$device"
+        done <<< "$gpu_list"
     fi
-
-    log_success "Configuration complete. Reloading Hyprland..."
-    # FIX: Add || true
-    hyprctl reload >/dev/null || true
-  fi
+    printf "\n"
 }
 
-main "$@"
+perform_install() {
+    printf "\n%b>>> INSTALLING NVIDIA OPEN KERNEL MODULES & UTILITIES...%b\n" "${BLUE}" "${NC}"
+    
+    # Packages requested:
+    # nvidia-open-dkms: Open source kernel modules (Turing 20xx and newer recommended)
+    # nvidia-utils: Userspace tools
+    # nvidia-settings: Configuration GUI
+    # opencl-nvidia: OpenCL support
+    # libva-nvidia-driver: VA-API (Video Acceleration)
+    # nvidia-prime: Hybrid GPU offloading
+    # egl-wayland: Crucial for Hyprland/Wayland compositors
+    
+    local packages=(
+        "nvidia-open-dkms"
+        "nvidia-utils"
+        "nvidia-settings"
+        "opencl-nvidia"
+        "libva-nvidia-driver"
+        "nvidia-prime"
+        "egl-wayland"
+    )
+
+    # Install
+    pacman -S --needed "${packages[@]}"
+
+    printf "\n%b[SUCCESS] NVIDIA packages installed.%b\n" "${GREEN}" "${NC}"
+    printf "%b[NOTE] Ensure 'nvidia_drm.modeset=1' is in your kernel parameters.%b\n" "${YELLOW}" "${NC}"
+    printf "%b[NOTE] If using mkinitcpio, ensure hooks are updated.%b\n" "${YELLOW}" "${NC}"
+}
+
+# 5. Main Logic Loop
+main() {
+    local valid_input=0
+    
+    while [[ $valid_input -eq 0 ]]; do
+        printf "%bDo you have an NVIDIA GPU (10-series to 60-series)?%b\n" "${YELLOW}" "${NC}"
+        read -r -p "Select [y]es, [n]o, or [c]heck/idk: " user_choice
+
+        case "${user_choice,,}" in
+            y|yes)
+                perform_install
+                valid_input=1
+                ;;
+            n|no)
+                printf "%bSkipping NVIDIA installation.%b\n" "${BLUE}" "${NC}"
+                valid_input=1
+                ;;
+            c|check|idk|"i don't know")
+                detect_gpu_hardware
+                # Loop continues, asking the question again after showing info
+                ;;
+            *)
+                printf "%bInvalid option. Please choose y, n, or c.%b\n" "${RED}" "${NC}"
+                ;;
+        esac
+    done
+}
+
+main

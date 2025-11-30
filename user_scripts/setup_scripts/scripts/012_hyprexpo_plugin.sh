@@ -93,7 +93,7 @@ main() {
 
   # User Interaction
   printf "\n${C_INFO}HyprExpo Configuration Manager${C_RESET}\n"
-  printf "This plugin provides an overview/birdseye window viewer (ALT+TAB).\n"
+  printf "This plugin provides an overview/birdseye window viewer (ALT+TAB) It sometimes fails to install, you can later run this script individually from the scripts directory it should work .\n"
   
   # FIX: Write to /dev/tty to bypass Orchestra tee buffering so prompt is visible
   printf "Do you want to ${C_SUCCESS}ENABLE${C_RESET} or ${C_ERR}DISABLE${C_RESET} HyprExpo? [e/d]: " >/dev/tty
