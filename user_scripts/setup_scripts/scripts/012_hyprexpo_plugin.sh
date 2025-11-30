@@ -94,7 +94,9 @@ main() {
   # User Interaction
   printf "\n${C_INFO}HyprExpo Configuration Manager${C_RESET}\n"
   printf "This plugin provides an overview/birdseye window viewer (ALT+TAB).\n"
-  printf "Do you want to ${C_SUCCESS}ENABLE${C_RESET} or ${C_ERR}DISABLE${C_RESET} HyprExpo? [e/d]: "
+  
+  # FIX: Write to /dev/tty to bypass Orchestra tee buffering so prompt is visible
+  printf "Do you want to ${C_SUCCESS}ENABLE${C_RESET} or ${C_ERR}DISABLE${C_RESET} HyprExpo? [e/d]: " >/dev/tty
   read -r choice
 
   case "${choice,,}" in
@@ -121,7 +123,8 @@ main() {
     modify_config "$HYPR_CONF" "$PATTERN_PLUGIN_SRC" "comment"
 
     log_success "HyprExpo disabled. Reloading Hyprland..."
-    hyprctl reload >/dev/null
+    # FIX: Add || true to prevent script failure if socket is busy
+    hyprctl reload >/dev/null || true
     exit 0
   fi
 
@@ -145,7 +148,6 @@ main() {
     log_warn "Output is shown below. Please enter sudo password if requested."
 
     # Update headers
-    # We DO NOT hide output here, because it might ask for sudo password.
     printf "\n${C_INFO}-> Running: hyprpm update${C_RESET}\n"
     if ! hyprpm update; then
       log_error "Could not update hyprpm headers."
@@ -154,13 +156,15 @@ main() {
 
     # Add Plugin Repo
     # We pipe 'yes' to handle the "Do you trust this author? [Y/n]" prompt automatically
-    # We DO NOT hide output so you can see the cloning progress.
     printf "\n${C_INFO}-> Running: hyprpm add (auto-confirming trust)${C_RESET}\n"
+    
+    # FIX: Disable pipefail temporarily. 'yes' often triggers SIGPIPE (141) if hyprpm 
+    # exits early (e.g. repo already exists), causing the script to fail spuriously.
+    set +o pipefail
     if ! yes | hyprpm add "$PLUGINS_REPO"; then
-      # This command returns non-zero if the repo is already added in some versions,
-      # so we log a warning but proceed to enable.
       log_warn "Repo add finished with status $?. Proceeding assuming success or already exists."
     fi
+    set -o pipefail
 
     # Enable HyprExpo
     printf "\n${C_INFO}-> Running: hyprpm enable hyprexpo${C_RESET}\n"
@@ -172,7 +176,8 @@ main() {
     fi
 
     log_success "Configuration complete. Reloading Hyprland..."
-    hyprctl reload >/dev/null
+    # FIX: Add || true
+    hyprctl reload >/dev/null || true
   fi
 }
 
