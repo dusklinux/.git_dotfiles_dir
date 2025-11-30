@@ -4,15 +4,20 @@ Hi there! Welcome to my personal configuration setup.
 
 This repository is the result of about 8 months of tinkering, breaking, fixing, and polishing. It's a true labor of love. I wanted to design something that feels as easy to install as a "standard" distribution, but with the power and minimalism of Arch Linux.
 
+
 ⚠️ A Friendly Disclaimer
 
 Since this entire system is built and maintained by just one person (me!), it might not be quite as polished as a corporate OS. Every part of this setup was created from scratch, though I did borrow and tune a few clever files from the community over the months to fit this specific vision.
 
+The steepest learning curve of this will be the keybinds, I've put a lot of thoughts into making it make sense but I understand what might be intuitive for me may not be so for you. So feel free to configure your own keybinds if you dont like somehthing. You can press `SUPER`+ `SPACE` to list all the set keybinds and invoke them right from the rofi menu. you dont need to remember everything, as you use the system, you'll eventually remember the ones you use the most. 
+
 🚀 Installation Guide
+
+While this should theoritically work on any arch based system, i can't assure it will work, In my experience, installing it on top of omarchy did work but had a few fixable issues, nothing too bad. Gemini is your friend if you hit a wall. 
 
 Step 1: The Base System
 
-To get the smoothest experience, I highly recommend starting with the official Arch Linux ISO.
+To get the smoothest experience, I highly recommend starting with the official Arch Linux ISO and starting fresh with the preconfgured/automated hyprland install.
 
 Download the ISO from the Arch Linux website.
 
