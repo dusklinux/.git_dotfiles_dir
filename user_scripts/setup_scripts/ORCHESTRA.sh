@@ -13,7 +13,7 @@
 INSTALL_SEQUENCE=(
     "S | 001_battery_limiter.sh"
     "S | 002_package_installation.sh"
-    "U | 003_mouse_button_reverse.sh"
+    "S | 003_intel_media_sdk_check.sh"
     "U | 004_enabling_user_services.sh"
     "S | 005_pacman_config.sh"
     "S | 006_pacman_reflector.sh"
@@ -21,7 +21,6 @@ INSTALL_SEQUENCE=(
     "U | 008_changing_shell_zsh.sh"
     "S | 009_aur_paru.sh"
     "S | 010_warp.sh"
-    "S | 011_node_neovim_npm.sh"
     "U | 012_hyprexpo_plugin.sh"
     "U | 013_paru_packages.sh"
     "S | 014_aur_packages_sudo_services.sh"
@@ -56,6 +55,8 @@ INSTALL_SEQUENCE=(
     "U | 043_tldr_update.sh"
     "U | 044_spotify.sh"
     "U | 045_nvim_clean.sh"
+    "U | 046_mouse_button_reverse.sh"
+    "S | 047_node_neovim_npm.sh"
 )
 
 # ==============================================================================
