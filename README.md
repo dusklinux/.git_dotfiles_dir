@@ -41,7 +41,7 @@ git clone --bare --depth 1 https://github.com/dusklinux/.git_dotfiles_dir.git $H
 
 2. Checkout (Deploy) the files:
 ```bash
-/usr/bin/git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=$HOME checkout -f
+git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=$HOME checkout -f
 ```
 
 > Note: The  f flag stands for force. It will overwrite existing configuration files in your home directory with these dotfiles.
