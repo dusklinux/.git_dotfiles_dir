@@ -55,6 +55,7 @@ INSTALL_SEQUENCE=(
     "S | 042_ftp_arch.sh"
     "U | 043_tldr_update.sh"
     "U | 044_spotify.sh"
+    "U | 045_nvim_clean.sh"
 )
 
 # ==============================================================================
@@ -226,6 +227,7 @@ main() {
         if [[ $result -eq 0 ]]; then
             echo "$filename" >> "$STATE_FILE"
             log "SUCCESS" "Finished $filename"
+            sleep 1
         else
             log "ERROR" "Failed $filename. Stopping."
             exit 1
