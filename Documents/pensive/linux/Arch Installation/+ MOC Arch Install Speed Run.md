@@ -465,7 +465,7 @@ nvim /etc/default/grub
 ```
 
 ```bash
-GRUB_CMDLINE_LINUX_DEFAULT="loglevel=7 zswap.enabled=0 rootfstype=btrfs pcie_aspm=force"
+GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 zswap.enabled=0 rootfstype=btrfs pcie_aspm=force fsck.mode=skip"
 ```
 
 > [!note] **Un-comment this **

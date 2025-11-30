@@ -58,6 +58,7 @@ INSTALL_SEQUENCE=(
     "U | 045_nvim_clean.sh"
     "U | 046_mouse_button_reverse.sh"
     "S | 047_node_neovim_npm.sh"
+    "S | 048_grub_optimization.sh"
 )
 
 # ==============================================================================
