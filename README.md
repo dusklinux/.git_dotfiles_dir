@@ -1,5 +1,5 @@
 These dotfiles are configured for intel with our without nvidia. but you can just as easily install it on amd, with a few minor changes to the 002_packages script. replace intel specific packages with amd.
-If you have an amd gpu/cpu. you're going to have to research packages specific to your cpu/gpu. also make sure to include the microcode for amd and replace intel based packages. 
+If you have an amd gpu/cpu. you're going to have to research packages specific to your cpu/gpu. also make sure to include the microcode for amd.
 
 🌆 Dusk Linux Dotfiles
 
