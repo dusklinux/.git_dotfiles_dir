@@ -1,3 +1,5 @@
+If you have an amd gpu/cpu. you're going to have to research packages specific to your cpu/gpu. also make sure to include the microcode for amd and replace intel based packages. 
+
 🌆 Dusk Linux Dotfiles
 
 Hi there! Welcome to my personal configuration setup.
