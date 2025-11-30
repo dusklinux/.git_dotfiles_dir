@@ -26,6 +26,10 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
+# Install/Check dependencies (Node.js and npm) via pacman
+log_info "Ensuring Node.js and npm dependencies are installed..."
+pacman -S --noconfirm --needed nodejs npm
+
 # Check if npm is installed
 if ! command -v npm &>/dev/null; then
   log_err "npm could not be found. Please install Node.js and npm first."
