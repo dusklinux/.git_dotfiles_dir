@@ -201,10 +201,9 @@ main() {
             log "ERROR" "Script not found: $filename"
             log "ERROR" "Looked in: $SCRIPT_DIR"
             
-            # --- START MODIFICATION ---
+            # --- MISSING FILE PROMPT ---
             echo -e "${YELLOW}Action Required:${RESET} File is missing."
-            read -r -p "Do you want to [S]kip to the next script or [Q]uit to fix it? (s/q): " _choice
-            
+            read -r -p "Do you want to [S]kip to next script or [Q]uit to fix it? (s/q): " _choice
             case "${_choice,,}" in
                 s|skip)
                     log "WARN" "Skipping $filename (User Selection)"
@@ -215,7 +214,6 @@ main() {
                     exit 1
                     ;;
             esac
-            # --- END MODIFICATION ---
         fi
         
         if grep -Fxq "$filename" "$STATE_FILE"; then
@@ -223,30 +221,53 @@ main() {
             continue
         fi
 
-        log "RUN" "Executing: $filename ($mode)"
+        # --- EXECUTION RETRY LOOP ---
+        while true; do
+            log "RUN" "Executing: $filename ($mode)"
 
-        if [[ $dry_run -eq 1 ]]; then
-            continue
-        fi
+            if [[ $dry_run -eq 1 ]]; then
+                break
+            fi
 
-        local result=0
-        if [[ "$mode" == "S" ]]; then
-            sudo bash "$filename" || result=$?
-        elif [[ "$mode" == "U" ]]; then
-            bash "$filename" || result=$?
-        else
-            log "ERROR" "Invalid mode '$mode' in config. Use 'S' or 'U'."
-            exit 1
-        fi
+            local result=0
+            if [[ "$mode" == "S" ]]; then
+                sudo bash "$filename" || result=$?
+            elif [[ "$mode" == "U" ]]; then
+                bash "$filename" || result=$?
+            else
+                log "ERROR" "Invalid mode '$mode' in config. Use 'S' or 'U'."
+                exit 1
+            fi
 
-        if [[ $result -eq 0 ]]; then
-            echo "$filename" >> "$STATE_FILE"
-            log "SUCCESS" "Finished $filename"
-            sleep 1
-        else
-            log "ERROR" "Failed $filename. Stopping."
-            exit 1
-        fi
+            if [[ $result -eq 0 ]]; then
+                echo "$filename" >> "$STATE_FILE"
+                log "SUCCESS" "Finished $filename"
+                sleep 1
+                break # Success: Break retry loop, move to next script
+            else
+                log "ERROR" "Failed $filename (Exit Code: $result)."
+                
+                # --- EXECUTION FAIL PROMPT ---
+                echo -e "${YELLOW}Action Required:${RESET} Script execution failed."
+                read -r -p "Do you want to [S]kip to next, [R]etry, or [Q]uit? (s/r/q): " _fail_choice
+                
+                case "${_fail_choice,,}" in
+                    s|skip)
+                        log "WARN" "Skipping $filename (User Selection). NOT marking as complete."
+                        break # Break retry loop, move to next script
+                        ;;
+                    r|retry)
+                        log "INFO" "Retrying $filename..."
+                        sleep 1
+                        continue # Restart retry loop
+                        ;;
+                    *)
+                        log "INFO" "Stopping execution as requested."
+                        exit 1
+                        ;;
+                esac
+            fi
+        done
     done
 }
 
