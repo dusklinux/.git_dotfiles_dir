@@ -7,88 +7,67 @@
 
 # Group 1: Graphics & Drivers (Intel 12th Gen)
 pkgs_graphics=(
-  "intel-media-driver" "mesa" "vulkan-intel" "mesa-utils" "intel-gpu-tools"
-  "libva" "libva-utils" "vulkan-icd-loader" "vulkan-tools" "sof-firmware" "linux-firmware"
+  "intel-media-driver" "mesa" "vulkan-intel" "mesa-utils" "intel-gpu-tools" "libva" "libva-utils" "vulkan-icd-loader" "vulkan-tools" "sof-firmware" "linux-firmware"
 )
 
 # Group 2: Hyprland Core
 pkgs_hyprland=(
-  "hyprland" "uwsm" "xorg-xwayland" "xdg-desktop-portal-hyprland"
-  "xdg-desktop-portal-gtk" "xorg-xhost" "polkit" "hyprpolkitagent"
-  "xdg-utils" "socat" "inotify-tools" "file"
+"hyprland" "uwsm" "xorg-xwayland" "xdg-desktop-portal-hyprland" "xdg-desktop-portal-gtk" "xorg-xhost" "polkit" "hyprpolkitagent" "xdg-utils" "socat" "inotify-tools" "file"
 )
 
 # Group 3: GUI, Toolkits & Fonts
 pkgs_appearance=(
-  "qt5-wayland" "qt6-wayland" "gtk3" "gtk4" "nwg-look" "qt5ct" "qt6ct"
-  "qt6-svg" "qt6-multimedia-ffmpeg" "kvantum" "adw-gtk-theme" "matugen"
-  "ttf-font-awesome" "ttf-jetbrains-mono-nerd" "noto-fonts-emoji" "sassc"
+"qt5-wayland" "qt6-wayland" "gtk3" "gtk4" "nwg-look" "qt5ct" "qt6ct" "qt6-svg" "qt6-multimedia-ffmpeg" "kvantum" "adw-gtk-theme" "matugen" "ttf-font-awesome" "ttf-jetbrains-mono-nerd" "noto-fonts-emoji" "sassc"
 )
 
 # Group 4: Desktop Experience
 pkgs_desktop=(
-  "waybar" "swww" "hyprlock" "hypridle" "hyprsunset" "hyprpicker" "swaync"
-  "swayosd" "rofi" "libdbusmenu-qt5" "libdbusmenu-glib" "brightnessctl"
+"waybar" "swww" "hyprlock" "hypridle" "hyprsunset" "hyprpicker" "swaync" "swayosd" "rofi" "libdbusmenu-qt5" "libdbusmenu-glib" "brightnessctl"
 )
 
 # Group 5: Audio & Bluetooth
 pkgs_audio=(
-  "pipewire" "wireplumber" "pipewire-pulse" "playerctl" "bluez" "bluez-utils"
-  "blueman" "bluetui" "pavucontrol" "gst-plugin-pipewire" "libcanberra"
+"pipewire" "wireplumber" "pipewire-pulse" "playerctl" "bluez" "bluez-utils" "blueman" "bluetui" "pavucontrol" "gst-plugin-pipewire" "libcanberra"
 )
 
 # Group 6: Filesystem & Archives
 pkgs_filesystem=(
-  "btrfs-progs" "compsize" "zram-generator" "udisks2" "udiskie" "dosfstools"
-  "ntfs-3g" "gvfs" "gvfs-mtp" "gvfs-nfs" "gvfs-smb" "xdg-user-dirs" "usbutils"
-  "usbmuxd" "gparted" "gnome-disk-utility" "baobab" "unzip" "zip" "unrar"
-  "7zip" "cpio" "file-roller" "rsync" "grsync" "thunar" "thunar-archive-plugin"
+"btrfs-progs" "compsize" "zram-generator" "udisks2" "udiskie" "dosfstools" "ntfs-3g" "gvfs" "gvfs-mtp" "gvfs-nfs" "gvfs-smb" "xdg-user-dirs" "usbutils" "usbmuxd" "gparted" "gnome-disk-utility" "baobab" "unzip" "zip" "unrar" "7zip" "cpio" "file-roller" "rsync" "grsync" "thunar" "thunar-archive-plugin"
 )
 
 # Group 7: Network & Internet
 pkgs_network=(
-  "networkmanager" "iwd" "nm-connection-editor" "inetutils" "wget" "curl"
-  "openssh" "firewalld" "vsftpd" "reflector" "bmon" "ethtool" "httrack"
-  "filezilla" "qbittorrent" "wavemon" "firefox" "arch-wiki-lite" "arch-wiki-docs"
+"networkmanager" "iwd" "nm-connection-editor" "inetutils" "wget" "curl" "openssh" "firewalld" "vsftpd" "reflector" "bmon" "ethtool" "httrack" "filezilla" "qbittorrent" "wavemon" "firefox" "arch-wiki-lite" "arch-wiki-docs"
 )
 
 # Group 8: Terminal & Shell
-# Note: If tealdeer fails due to conflict, the script will now skip it and install the rest.
 pkgs_terminal=(
-  "kitty" "zsh" "zsh-syntax-highlighting" "starship" "fastfetch" "bat" "eza"
-  "fd" "tealdeer" "yazi" "zellij" "gum" "man-db" "ttyper" "tree" "fzf" "less"
-  "ripgrep" "expac" "zsh-autosuggestions"
+"kitty" "zsh" "zsh-syntax-highlighting" "starship" "fastfetch" "bat" "eza" "fd" "tealdeer" "yazi" "zellij" "gum" "man-db" "ttyper" "tree" "fzf" "less" "ripgrep" "expac" "zsh-autosuggestions"
 )
 
 # Group 9: Development
 pkgs_dev=(
-  "git" "meson" "cmake" "clang" "python-pipx" "uv" "rq" "jq" "bc" "luarocks"
-  "viu" "chafa" "ueberzugpp" "ccache" "nodejs" "npm" "python-pynvim"
+"git" "meson" "cmake" "clang" "python-pipx" "uv" "rq" "jq" "bc" "luarocks" "viu" "chafa" "ueberzugpp" "ccache" "nodejs" "npm" "python-pynvim" "mold"
 )
 
 # Group 10: Multimedia
 pkgs_multimedia=(
-  "ffmpeg" "mpv" "mpv-mpris" "swappy" "swayimg" "imagemagick" "libheif"
-  "obs-studio" "audacity" "handbrake" "guvcview" "ffmpegthumbnailer" "krita"
-  "grim" "slurp" "wl-clipboard" "cliphist" "tesseract" "tesseract-data-eng"
+"ffmpeg" "mpv" "mpv-mpris" "swappy" "swayimg" "imagemagick" "libheif" "obs-studio" "audacity" "handbrake" "guvcview" "ffmpegthumbnailer" "krita" "grim" "slurp" "wl-clipboard" "cliphist" "tesseract-data-eng"
 )
 
 # Group 11: Sys Admin
 pkgs_sysadmin=(
-  "btop" "htop" "nvtop" "inxi" "sysstat" "sysbench" "logrotate" "acpid" "tlp"
-  "tlp-rdw" "thermald" "powertop" "ncdu" "gdu" "iotop" "iftop" "lshw" "wev"
-  "pacman-contrib" "gnome-keyring" "libsecret" "seahorse" "yad" "dysk" "fwupd"
+"btop" "htop" "nvtop" "inxi" "sysstat" "sysbench" "logrotate" "acpid" "tlp" "tlp-rdw" "thermald" "powertop" "ncdu" "gdu" "iotop" "iftop" "lshw" "wev" "pacman-contrib" "gnome-keyring" "libsecret" "seahorse" "yad" "dysk" "fwupd"
 )
 
 # Group 12: Gnome Utilities
 pkgs_gnome=(
-  "snapshot" "loupe" "gnome-text-editor" "blanket" "collision" "errands"
-  "identity" "impression" "gnome-calculator" "gnome-clocks"
+"snapshot" "loupe" "gnome-text-editor" "blanket" "collision" "errands" "identity" "impression" "gnome-calculator" "gnome-clocks"
 )
 
 # Group 13: Productivity
 pkgs_productivity=(
-  "obsidian" "zathura" "zathura-pdf-mupdf" "termusic" "cava"
+"obsidian" "zathura" "zathura-pdf-mupdf" "termusic" "cava"
 )
 
 # --------------------------------------------------------------------------
