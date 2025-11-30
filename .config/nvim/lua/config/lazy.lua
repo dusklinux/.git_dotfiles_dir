@@ -26,24 +26,22 @@ require("config.autocmds")
 
 require("lazy").setup({
   spec = {
-    -- import your plugins
     { import = "plugins" },
   },
-    rtp = {
-		disabled_plugins = {
-			"netrw",
-			"netrwPlugin",
-		},
+  rtp = {
+    disabled_plugins = {
+      "netrw",
+      "netrwPlugin",
+      "tohtml",
+      "tutor",
+      "zipPlugin", -- OPTIMIZATION: Disable zip plugin if not used
+    },
   },
-
   checker = { 
-    enabled = true, -- Check for updates periodically
-    notify = false, -- Do NOT notify you when updates are found
+    enabled = true, 
+    notify = false, 
   },
-
-  -- Configure any other settings here. See the documentation for more details.
-
+  change_detection = {
+    notify = false, -- OPTIMIZATION: Less spam
+  },
 })
-
--- this is intentially kept here, becuase the order matters. this only needs to be loaded after lazy has loaded.
-require("config.matugen")

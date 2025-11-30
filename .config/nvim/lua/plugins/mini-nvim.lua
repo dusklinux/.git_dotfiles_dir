@@ -15,5 +15,4 @@ return {
 	{ "echasnovski/mini.pairs", version = "*", opts = {} },
 	{ "echasnovski/mini.trailspace", version = "*", opts = {} },
 	{ "echasnovski/mini.bufremove", version = "*", opts = {} },
-  { "echasnovski/mini.base16", version = "*", lazy = true },
 }
