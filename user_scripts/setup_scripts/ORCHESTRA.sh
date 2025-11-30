@@ -187,6 +187,19 @@ main() {
         echo "State file reset. Starting fresh."
     fi
 
+    # --- SESSION RECOVERY PROMPT ---
+    if [[ -s "$STATE_FILE" ]]; then
+        echo -e "\n${YELLOW}>>> PREVIOUS SESSION DETECTED <<<${RESET}"
+        read -r -p "Do you want to [C]ontinue where you left off or [S]tart over? [C/s]: " _session_choice
+        if [[ "${_session_choice,,}" == "s" || "${_session_choice,,}" == "start" ]]; then
+            rm -f "$STATE_FILE"
+            touch "$STATE_FILE"
+            log "INFO" "State file reset. Starting fresh."
+        else
+            log "INFO" "Continuing from previous session."
+        fi
+    fi
+
     # --- EXECUTION MODE SELECTION ---
     local interactive_mode=1
     echo -e "\n${YELLOW}>>> EXECUTION MODE <<<${RESET}"
