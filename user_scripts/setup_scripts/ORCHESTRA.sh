@@ -187,6 +187,17 @@ main() {
         echo "State file reset. Starting fresh."
     fi
 
+    # --- EXECUTION MODE SELECTION ---
+    local interactive_mode=1
+    echo -e "\n${YELLOW}>>> EXECUTION MODE <<<${RESET}"
+    read -r -p "Do you want to run autonomously (no prompts)? [y/N]: " _mode_choice
+    if [[ "${_mode_choice,,}" == "y" || "${_mode_choice,,}" == "yes" ]]; then
+        interactive_mode=0
+        log "INFO" "Autonomous mode selected. Running all scripts without confirmation."
+    else
+        log "INFO" "Interactive mode selected. You will be asked before each script."
+    fi
+
     log "INFO" "Processing ${#INSTALL_SEQUENCE[@]} scripts..."
 
     for entry in "${INSTALL_SEQUENCE[@]}"; do
@@ -226,22 +237,24 @@ main() {
             continue
         fi
 
-        # --- USER CONFIRMATION PROMPT ---
-        echo -e "\n${YELLOW}>>> NEXT SCRIPT:${RESET} $filename ($mode)"
-        read -r -p "Do you want to [P]roceed, [S]kip, or [Q]uit? (p/s/q): " _user_confirm
-        case "${_user_confirm,,}" in
-            s|skip)
-                log "WARN" "Skipping $filename (User Selection)"
-                continue
-                ;;
-            q|quit)
-                log "INFO" "User requested exit."
-                exit 0
-                ;;
-            *)
-                # Fall through to execution
-                ;;
-        esac
+        # --- USER CONFIRMATION PROMPT (CONDITIONAL) ---
+        if [[ $interactive_mode -eq 1 ]]; then
+            echo -e "\n${YELLOW}>>> NEXT SCRIPT:${RESET} $filename ($mode)"
+            read -r -p "Do you want to [P]roceed, [S]kip, or [Q]uit? (p/s/q): " _user_confirm
+            case "${_user_confirm,,}" in
+                s|skip)
+                    log "WARN" "Skipping $filename (User Selection)"
+                    continue
+                    ;;
+                q|quit)
+                    log "INFO" "User requested exit."
+                    exit 0
+                    ;;
+                *)
+                    # Fall through to execution
+                    ;;
+            esac
+        fi
 
         # --- EXECUTION RETRY LOOP ---
         while true; do
