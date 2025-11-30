@@ -226,6 +226,23 @@ main() {
             continue
         fi
 
+        # --- USER CONFIRMATION PROMPT ---
+        echo -e "\n${YELLOW}>>> NEXT SCRIPT:${RESET} $filename ($mode)"
+        read -r -p "Do you want to [P]roceed, [S]kip, or [Q]uit? (p/s/q): " _user_confirm
+        case "${_user_confirm,,}" in
+            s|skip)
+                log "WARN" "Skipping $filename (User Selection)"
+                continue
+                ;;
+            q|quit)
+                log "INFO" "User requested exit."
+                exit 0
+                ;;
+            *)
+                # Fall through to execution
+                ;;
+        esac
+
         # --- EXECUTION RETRY LOOP ---
         while true; do
             log "RUN" "Executing: $filename ($mode)"
