@@ -731,8 +731,8 @@ fi
 
 # 5. Environment Validation
 if ! command -v tlp &>/dev/null; then
-    log_error "TLP is not installed. Please install 'tlp' via pacman first."
-    exit 1
+    log_warn "TLP is not installed. Skipping TLP configuration to prevent Orchestrator failure."
+    exit 0
 fi
 
 # 6. Main Execution
