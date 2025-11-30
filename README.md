@@ -46,7 +46,12 @@ git   git dir=$HOME/.git_dotfiles_dir/   work tree=$HOME checkout  f
 
 🎻 The Orchestra Script
 
-This setup relies on a parent script I call Orchestra. It acts as a conductor, managing about 50 subscripts that handle everything from theming to system services.
+This setup relies on a parent script I call ORCHESTRA. It acts as a conductor, managing about ~50 subscripts that handle everything from theming to system services to package isntallation. it's at 
+
+run it with this command. 
+```bash
+$HOME/user_scripts/setup_scripts/ORCHESTRA.sh
+```
 
 ⏳ Time Expectation
 
