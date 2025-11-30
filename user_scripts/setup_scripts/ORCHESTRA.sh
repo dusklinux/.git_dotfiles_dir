@@ -200,7 +200,22 @@ main() {
         if [[ ! -f "$filename" ]]; then
             log "ERROR" "Script not found: $filename"
             log "ERROR" "Looked in: $SCRIPT_DIR"
-            exit 1
+            
+            # --- START MODIFICATION ---
+            echo -e "${YELLOW}Action Required:${RESET} File is missing."
+            read -r -p "Do you want to [S]kip to the next script or [Q]uit to fix it? (s/q): " _choice
+            
+            case "${_choice,,}" in
+                s|skip)
+                    log "WARN" "Skipping $filename (User Selection)"
+                    continue
+                    ;;
+                *)
+                    log "INFO" "Stopping execution. Please place the script in the correct location and rerun."
+                    exit 1
+                    ;;
+            esac
+            # --- END MODIFICATION ---
         fi
         
         if grep -Fxq "$filename" "$STATE_FILE"; then
