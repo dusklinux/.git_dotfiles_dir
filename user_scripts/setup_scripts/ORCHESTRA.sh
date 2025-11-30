@@ -43,7 +43,7 @@ INSTALL_SEQUENCE=(
     "S | 030_hosts_files_block.sh"
     "S | 031_firefox_symlink_parition.sh"
     "S | 032_tlp_config.sh"
-    "S | 033_tty_autologin.sh"
+    "S | 033_zram_configuration.sh"
     "S | 034_zram_optimize_swappiness.sh"
     "S | 035_powerkey_lid_close_behaviour.sh"
     "S | 036_logrotate_optimization.sh"
@@ -59,6 +59,8 @@ INSTALL_SEQUENCE=(
     "U | 046_mouse_button_reverse.sh"
     "S | 047_node_neovim_npm.sh"
     "S | 048_grub_optimization.sh"
+    "S | 049_tty_autologin.sh"
+    "S | 050_system_services.sh"
 )
 
 # ==============================================================================
