@@ -196,25 +196,30 @@ main() {
         mode=$(trim "$mode")
         filename=$(trim "$filename")
         
-        # Verify file existence in the hardcoded path
-        if [[ ! -f "$filename" ]]; then
+        # --- MISSING FILE CHECK LOOP ---
+        while [[ ! -f "$filename" ]]; do
             log "ERROR" "Script not found: $filename"
             log "ERROR" "Looked in: $SCRIPT_DIR"
             
-            # --- MISSING FILE PROMPT ---
             echo -e "${YELLOW}Action Required:${RESET} File is missing."
-            read -r -p "Do you want to [S]kip to next script or [Q]uit to fix it? (s/q): " _choice
+            read -r -p "Do you want to [S]kip to next, [R]etry check, or [Q]uit? (s/r/q): " _choice
+            
             case "${_choice,,}" in
                 s|skip)
                     log "WARN" "Skipping $filename (User Selection)"
-                    continue
+                    continue 2 # Jumps to the next iteration of the 'for' loop
+                    ;;
+                r|retry)
+                    log "INFO" "Retrying check for $filename..."
+                    sleep 1
+                    # Loop repeats to check [[ ! -f ... ]] again
                     ;;
                 *)
                     log "INFO" "Stopping execution. Please place the script in the correct location and rerun."
                     exit 1
                     ;;
             esac
-        fi
+        done
         
         if grep -Fxq "$filename" "$STATE_FILE"; then
             log "WARN" "Skipping $filename (Already Completed)"
