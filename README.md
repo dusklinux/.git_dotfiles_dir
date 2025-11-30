@@ -19,7 +19,10 @@ While this should theoritically work on any arch based system, i can't assure it
 
 Step 1: The Base System
 
-To get the smoothest experience, I highly recommend starting with the official Arch Linux ISO and starting fresh with the preconfgured/automated hyprland install.
+To get the smoothest experience, I highly recommend starting with the official Arch Linux ISO and starting fresh with the preconfigured/automated hyprland install.
+USE BTRFS instead of any other format, it's superior in everyday and it has matured. The zstd compression alone is worth it, not to mention CoW to prevent corruption. And Snapshotting capabilities. 
+
+Also use gurb, You can obviously chose to use other bootloaders but the scirpt is optimized for grub, plus to keep these dotfiles widely supporting of hardware, grub is the obvious choice since it supports both uefi/legacy bios.
 
 Download the ISO from the Arch Linux website.
 
