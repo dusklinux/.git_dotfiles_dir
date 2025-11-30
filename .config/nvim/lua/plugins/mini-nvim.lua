@@ -6,13 +6,13 @@
 -- ================================================================================================
 
 return {
-	{ "echasnovski/mini.ai", version = "*", opts = {} },
-	{ "echasnovski/mini.comment", version = "*", opts = {} },
-	{ "echasnovski/mini.move", version = "*", opts = {} },
-	{ "echasnovski/mini.surround", version = "*", opts = {} },
-	{ "echasnovski/mini.cursorword", version = "*", opts = {} },
-	{ "echasnovski/mini.indentscope", version = "*", opts = {} },
-	{ "echasnovski/mini.pairs", version = "*", opts = {} },
-	{ "echasnovski/mini.trailspace", version = "*", opts = {} },
-	{ "echasnovski/mini.bufremove", version = "*", opts = {} },
+	{ "echasnovski/mini.ai", event = "BufReadPost", version = "*", opts = {} },
+	{ "echasnovski/mini.comment", event = "BufReadPost", version = "*", opts = {} },
+	{ "echasnovski/mini.move", event = "BufReadPost", version = "*", opts = {} },
+	{ "echasnovski/mini.surround", event = "BufReadPost", version = "*", opts = {} },
+	{ "echasnovski/mini.cursorword", event = "BufReadPost", version = "*", opts = {} },
+	{ "echasnovski/mini.indentscope", event = "BufReadPost", version = "*", opts = {} },
+	{ "echasnovski/mini.pairs", event = "InsertEnter", version = "*", opts = {} }, -- Optimized for Insert Mode
+	{ "echasnovski/mini.trailspace", event = "BufReadPost", version = "*", opts = {} },
+	{ "echasnovski/mini.bufremove", event = "BufReadPost", version = "*", opts = {} },
 }

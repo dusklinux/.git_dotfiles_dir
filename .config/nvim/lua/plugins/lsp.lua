@@ -5,10 +5,11 @@
 
 return {
 	"neovim/nvim-lspconfig",
+	event = { "BufReadPre", "BufNewFile" }, -- OPTIMIZATION: Load only when reading a file
 	dependencies = {
 		"williamboman/mason.nvim",
 		"williamboman/mason-lspconfig.nvim",
-		"hrsh7th/cmp-nvim-lsp", 
+		"hrsh7th/cmp-nvim-lsp",
 	},
 	config = function()
 		-- 1. Setup Mason

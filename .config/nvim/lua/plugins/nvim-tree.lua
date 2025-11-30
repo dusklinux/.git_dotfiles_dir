@@ -7,7 +7,7 @@
 
 return {
 	"nvim-tree/nvim-tree.lua",
-	lazy = false,
+	cmd = { "NvimTreeToggle", "NvimTreeFocus" }, -- OPTIMIZATION: Lazy load on command
 	config = function()
 		require("nvim-tree").setup({
 			filters = {
