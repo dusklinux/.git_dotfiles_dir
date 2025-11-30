@@ -61,6 +61,7 @@ INSTALL_SEQUENCE=(
     "S | 048_grub_optimization.sh"
     "S | 049_tty_autologin.sh"
     "S | 050_system_services.sh"
+    "S | 051_initramfs_optimization.sh"
 )
 
 # ==============================================================================
