@@ -26,7 +26,7 @@ Boot it up and run the archinstall script.
 Under Desktop options, make sure to select Hyprland.
 
 Why this method?
-While you can do a minimal setup and run the scripts from the TTY, starting with the Hyprland profile via archinstall makes the process much faster and ensures fewer hiccups. If you go the TTY route, one or two scripts might fail—don't worry, you can re-run them after you boot into the environment.
+While you can do a minimal setup and run the scripts from the TTY, starting with the Hyprland profile via archinstall makes the process much faster and ensures fewer hiccups. If you go the TTY route, one or two scripts might fail, don't worry, you can re run them after you boot into the environment.
 
 Step 2: deploy the Dotfiles
 
@@ -34,15 +34,15 @@ Once you are logged into your new system, open your terminal. We are going to us
 
 1. Download the repository:
 ```bash
-git clone --bare --depth 1 [https://github.com/dusklinux/.git_dotfiles_dir.git](https://github.com/dusklinux/.git_dotfiles_dir.git) $HOME/.git_dotfiles_dir
+git clone   bare   depth 1 [https://github.com/dusklinux/.git_dotfiles_dir.git](https://github.com/dusklinux/.git_dotfiles_dir.git) $HOME/.git_dotfiles_dir
 ```
 
 2. Checkout (Deploy) the files:
 ```bash
-git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=$HOME checkout -f
+git   git dir=$HOME/.git_dotfiles_dir/   work tree=$HOME checkout  f
 ```
 
-> Note: The -f flag stands for force. It will overwrite existing configuration files in your home directory with these dotfiles.
+> Note: The  f flag stands for force. It will overwrite existing configuration files in your home directory with these dotfiles.
 
 🎻 The Orchestra Script
 
@@ -50,15 +50,15 @@ This setup relies on a parent script I call Orchestra. It acts as a conductor, m
 
 ⏳ Time Expectation
 
-Grab a coffee (or two). The entire auto-install takes anywhere from 30 minutes to an hour, depending on your internet connection and CPU speed.
+Grab a coffee (or two). The entire auto install takes anywhere from 30 minutes to an hour, depending on your internet connection and CPU speed.
 
 Why? We use paru to manage packages, and some of them need to be compiled from source.
 
 🔧 Troubleshooting
 
-If you see a red line or a script fails—don't panic! It happens. The installation is robust enough to keep going even if one subscript trips up.
+If you see a red line or a script fails, don't panic! It happens. The installation is robust enough to keep going even if one subscript trips up.
 
-Tip: If a specific script fails, take a look at the file content. If you're stuck, copy the script into ChatGPT or an LLM—it usually does a great job of explaining exactly what went wrong.
+Tip: If a specific script fails, take a look at the file content. If you're stuck, copy the script into ChatGPT or an LLM, it usually does a great job of explaining exactly what went wrong.
 
 You can usually fix the specific issue and run that single script again manually.
 
@@ -66,9 +66,9 @@ You can usually fix the specific issue and run that single script again manually
 
 If you've messed around with the configurations and just want to get back to the clean state of this repo (or if you want to remove the git tracking for these dotfiles), run:
 ```bash
-rm -rf ~/.git_dotfiles_dir
+rm  rf ~/.git_dotfiles_dir
 ```
 
-> Warning: This removes the local git history for the dotfiles. If you re-run the clone command after this, it will revert any personal changes you've made to the config files.
+> Warning: This removes the local git history for the dotfiles. If you re run the clone command after this, it will revert any personal changes you've made to the config files.
 
 Enjoy the setup! I hope it serves you as well as it has served me.
