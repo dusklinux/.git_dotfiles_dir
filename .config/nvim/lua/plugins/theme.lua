@@ -29,26 +29,30 @@ return {
       -- 2. Apply tweaks that must happen AFTER the theme loads
       local function apply_tweaks()
         vim.api.nvim_set_hl(0, "Comment", { italic = true })
-        -- Make Visual selection pop more
-        vim.api.nvim_set_hl(0, "Visual", { reverse = true }) 
         
+        -- UI FIX: Remove background from NvimTree to make it blend with the terminal/transparency
+        vim.api.nvim_set_hl(0, "NvimTreeNormal", { bg = "NONE", ctermbg = "NONE" })
+
         -- Reset cursor shape (Hyprland optimization)
         vim.opt.guicursor = "n-v-c:hor20-Cursor,i-ci-ve:ver25-Cursor,r-cr-o:hor20-Cursor"
       end
       
       apply_tweaks()
 
-      -- 3. Live Reloading (Signal Listener)
-      -- This allows you to change wallpapers and update nvim instantly
-      vim.api.nvim_create_autocmd("Signal", {
-        pattern = "SIGUSR1",
-        callback = function()
-          vim.schedule(function()
-            load_theme()
-            apply_tweaks()
-          end)
-        end,
-      })
+      -- 3. Live Reloading (Libuv Signal Listener)
+      -- This correctly listens for 'pkill -USR1 nvim' on Arch/Linux
+      local signal = vim.uv.new_signal()
+      signal:start("sigusr1", function()
+        vim.schedule(function()
+          load_theme()
+          apply_tweaks()
+          -- Optional: Refresh lualine if it's loaded to pick up new globals
+          if package.loaded["lualine"] then
+            require("lualine").refresh()
+          end
+          vim.notify("Theme reloaded via SIGUSR1")
+        end)
+      end)
     end,
   },
 }

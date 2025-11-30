@@ -15,18 +15,13 @@ return {
 		linehl = false,
 
 		-- 2. Behavior Settings
-		-- This ensures the sign column is clear, but since you fixed it
-		-- in options.lua, this is just a backup.
-		signcolumn = true,
+		-- OPTIMIZATION: Set to false to respect the global 'signcolumn="yes"' in options.lua
+		signcolumn = false,
 
 		-- Critical for dotfiles: show the "new file" bar for untracked files
 		attach_to_untracked = true,
 
 		-- 3. The "Dual Mode" Logic
-		-- Gitsigns automatically detects normal git repos (like ~/git_test_folder).
-		-- This 'worktrees' block essentially tells it:
-		-- "If you don't find a normal git repo, check if we are in the Home directory
-		-- and use the dotfiles bare repo."
 		worktrees = {
 			{
 				toplevel = os.getenv("HOME"),

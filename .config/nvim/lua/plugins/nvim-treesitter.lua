@@ -9,7 +9,6 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
 	event = { "BufReadPost", "BufNewFile" },
-	lazy = false,
 	config = function()
 		require("nvim-treesitter.configs").setup({
 			-- language parsers that MUST be installed
