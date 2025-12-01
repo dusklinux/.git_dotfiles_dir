@@ -167,7 +167,7 @@ lsblk /dev/sdX
 *Formatting BOOT/ESP Partition*
 
 ```bash
-mkfs.fat -F32 -n "EFI" /dev/esp_partition
+mkfs.fat -F 32 -n "EFI" /dev/esp_partition
 ```
 
 *Formatting ROOT Partition*
@@ -278,7 +278,7 @@ vim /etc/pacman.d/mirrorlist
 >Neglecting this can lead to stability issues or unpatched processor vulnerabilities. The microcode is loaded early in the boot process to patch the CPU's internal instruction set behavior.
 
 ```bash
-pacstrap -K /mnt base base-devel linux linux-headers linux-firmware intel-ucode nvim
+pacstrap -K /mnt base base-devel linux linux-headers linux-firmware intel-ucode neovim dosfstools btrfs-progs
 ```
 
 - [ ] Status

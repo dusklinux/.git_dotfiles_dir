@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # 01_pre_install_setup.sh
-# Description: Arch Linux ISO Pre-configuration (Font, Cowspace, Optional Update)
+# Description: Arch Linux ISO Pre-configuration (Font, Cowspace, Neovim)
 # Environment: Arch Linux ISO (Live) - Root User
 # ==============================================================================
 
@@ -73,55 +73,16 @@ run_setup_steps() {
         return 1
     fi
 
-    # 4. Keyring & Optional Update
+    # 4. Keyring & packages Install
     msg_info "Initializing Pacman keyring..."
     pacman-key --init
     pacman-key --populate archlinux
     msg_ok "Keyring populated."
 
-    printf "\n"
-    printf "${YELLOW}%sDo you want to perform a full system update (pacman -Syyu)? [Y/n]: ${RESET}" "${BOLD}"
-    read -r DO_UPDATE || DO_UPDATE=""
-    # Default to Yes if empty
-    DO_UPDATE=${DO_UPDATE:-Y}
-
-    if [[ "$DO_UPDATE" =~ ^[Yy]$ ]]; then
-        msg_info "Performing full system update..."
-        
-        # Run update. Even if it returns 0, we must check for user intent on cache.
-        pacman -Syyu --noconfirm
-        UPDATE_EXIT_CODE=$?
-
-        if [[ $UPDATE_EXIT_CODE -eq 0 ]]; then
-            msg_ok "Update process finished."
-        else
-            msg_warn "Update process returned an error code ($UPDATE_EXIT_CODE)."
-        fi
-
-        # Interactive Cache Cleaning (Only if updated)
-        printf "\n"
-        msg_info "Cache Management"
-        printf "${YELLOW}%sDo you want to clear the Pacman cache? (Frees RAM, but deletes downloads) [y/N]: ${RESET}" "${BOLD}"
-        read -r CLEAN_CACHE || CLEAN_CACHE=""
-        
-        if [[ "$CLEAN_CACHE" =~ ^[Yy]$ ]]; then
-            msg_info "Cleaning Pacman cache..."
-            set +o pipefail
-            yes | pacman -Scc
-            set -o pipefail
-            msg_ok "Package cache cleared."
-        else
-            msg_info "Skipping cache cleanup."
-        fi
-
-        # If update strictly failed, return error to retry loop
-        if [[ $UPDATE_EXIT_CODE -ne 0 ]]; then
-            return $UPDATE_EXIT_CODE
-        fi
-
-    else
-        msg_info "Skipping system update by user request."
-    fi
+    msg_info "Installing packages..."
+    # Using --noconfirm since the script is automated and running as root
+    pacman -Sy --needed neovim git curl --noconfirm
+    msg_ok "Neovim installed."
 
     # 5. Timezone
     msg_info "Configuring System Time..."

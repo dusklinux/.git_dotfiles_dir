@@ -12,11 +12,11 @@
 
 INSTALL_SEQUENCE=(
     "S | 001_battery_limiter.sh"
-    "S | 002_package_installation.sh"
-    "S | 003_intel_media_sdk_check.sh"
-    "U | 004_enabling_user_services.sh"
-    "S | 005_pacman_config.sh"
-    "S | 006_pacman_reflector.sh"
+    "S | 002_pacman_config.sh"
+    "S | 003_pacman_reflector.sh"
+    "S | 004_package_installation.sh"
+    "S | 005_intel_media_sdk_check.sh"
+    "U | 006_enabling_user_services.sh"
     "S | 007_pam_keyring.sh"
     "U | 008_changing_shell_zsh.sh"
     "S | 009_aur_paru.sh"
