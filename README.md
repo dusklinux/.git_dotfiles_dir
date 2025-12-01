@@ -12,11 +12,11 @@ This repository is the result of about 8 months of tinkering, breaking, fixing, 
 
 Since this entire system is built and maintained by just one person (me!), it might not be quite as polished as a corporate OS. Every part of this setup was created from scratch, though I did borrow and tune a few clever files from the community over the months to fit this specific vision.
 
-The steepest learning curve of this will be the keybinds, I've put a lot of thoughts into making it make sense but I understand what might be intuitive for me may not be so for you. So feel free to configure your own keybinds if you dont like somehthing. You can press `SUPER`+ `SPACE` to list all the set keybinds and invoke them right from the rofi menu. you dont need to remember everything, as you use the system, you'll eventually remember the ones you use the most. 
+The steepest learning curve of this will be the keybinds, I've put a lot of thought into making it make sense but I understand what might be intuitive for me may not be so for you. So feel free to configure your own keybinds if you dont like something. You can press `SUPER`+ `SPACE` to list all the preconfigured keybinds and invoke them right from the rofi menu. you dont need to remember everything, as you use the system, you'll eventually remember the ones you use the most.
 
 🚀 Installation Guide
 
-While this should theoritically work on any arch based system, i can't assure it will work, In my experience, installing it on top of omarchy did work but had a few fixable issues, nothing too bad. Gemini is your friend if you hit a wall. 
+While this should theoretically work on any already preconfigured arch based system, i can't assure it will work, In my experience, installing it on top of omarchy did work but had a few fixable issues, nothing too bad. Gemini is your friend if you hit a wall. A clean install is highly recommended to minimize curve balls. 
 
 Step 1: The Base System
 
@@ -52,12 +52,14 @@ git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=$HOME checkout -f
 
 🎻 The Orchestra Script
 
-This setup relies on a parent script I call ORCHESTRA. It acts as a conductor, managing about ~50 subscripts that handle everything from theming to system services to package isntallation. it's at 
+This setup relies on a parent script I call ORCHESTRA. It acts as a conductor, managing about ~50 subscripts that handle everything from theming to system services to package isntallation.
 
 run it with this command. 
 ```bash
 $HOME/user_scripts/setup_scripts/ORCHESTRA.sh
 ```
+
+> Note: all the subscripts it runs are located in $HOME/user_scripts/setup_scripts/scripts/ , if a subscript fails, you can run it individually, or throw it into gemini/gpt to have it figure out why it's not working on your system. 
 
 ⏳ Time Expectation
 
