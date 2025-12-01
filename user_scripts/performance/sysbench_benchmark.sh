@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =============================================================================
-# SYSBENCH ULTIMATE DASHBOARD (v14.0 - Fully Optimized & Bug-Fixed)
+# SYSBENCH ULTIMATE DASHBOARD (v14.1 - Updated Memory Logic)
 # =============================================================================
 # --- Strict Mode (partial - no errexit for interactive script) ---
 set -o nounset    # Error on undefined variables
@@ -57,7 +57,7 @@ check_deps() {
 print_header() {
     clear
     echo -e "${CYAN}============================================================${NC}"
-    echo -e "${BOLD}        SYSBENCH ULTIMATE DASHBOARD v14.0                  ${NC}"
+    echo -e "${BOLD}        SYSBENCH ULTIMATE DASHBOARD v14.1                  ${NC}"
     echo -e "${CYAN}============================================================${NC}"
 
     # Locale-safe CPU model detection with fallbacks
@@ -270,8 +270,9 @@ menu_memory() {
     echo -e "${BOLD}MEMORY BENCHMARK${NC}"
 
     local oper="read"
-    local block_size="1M"
+    local block_size="16M"
     local access_mode="seq"
+    local scope="local"
     local mem_opt
 
     while true; do
@@ -291,23 +292,26 @@ menu_memory() {
                 ;;
             1)
                 oper="read"
-                block_size="1M"
+                block_size="64M"   # Updated for CPU cache bypass
                 access_mode="seq"
-                echo -e "${BLUE}>> Mode: Sequential Read (1M Blocks)${NC}"
+                scope="local"      # Critical for accurate bandwidth
+                echo -e "${BLUE}>> Mode: Sequential Read (64M Blocks - Local Scope)${NC}"
                 break
                 ;;
             2)
                 oper="read"
                 block_size="4K"
                 access_mode="rnd"
-                echo -e "${BLUE}>> Mode: Random Read (4K Blocks)${NC}"
+                scope="global"     # Standard strict latency test
+                echo -e "${BLUE}>> Mode: Random Read (4K Blocks - Global Scope)${NC}"
                 break
                 ;;
             3)
                 oper="write"
                 block_size="1M"
                 access_mode="seq"
-                echo -e "${BLUE}>> Mode: Sequential Write (1M Blocks)${NC}"
+                scope="global"
+                echo -e "${BLUE}>> Mode: Sequential Write (1M Blocks - Global Scope)${NC}"
                 break
                 ;;
             *)
@@ -325,7 +329,8 @@ menu_memory() {
     run_sysbench memory \
         --memory-block-size="$block_size" \
         --memory-access-mode="$access_mode" \
-        --memory-total-size=500T \
+        --memory-scope="$scope" \
+        --memory-total-size=500G \
         --memory-oper="$oper" \
         --threads="$ACTIVE_THREADS" \
         --time="$RUN_TIME" \
