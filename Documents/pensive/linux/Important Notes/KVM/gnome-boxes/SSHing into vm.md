@@ -165,6 +165,35 @@ ssh -p 2222 root@localhost
 **Why this works:** We replaced the default "User" network device with a manual one that explicitly forwards `localhost:2222` (Host) -> `port 22` (Guest). You are now SSHing into your own machine on port 2222, and QEMU is tunneling that traffic straight into the VM.
 
 
+## error fix when reconnecting 
+
+> [!NOTE]-
+> ssh -p 2222 root@localhost
+> 
+> @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+> @    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+> @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+> IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+> Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+> It is also possible that a host key has just been changed.
+> The fingerprint for the ED25519 key sent by the remote host is
+> SHA256:Z5twP/UPawhDEtkVNJMiFKYxpbyt4eaYJoEaBb1x65Y.
+> Please contact your system administrator.
+> Add correct host key in /home/dusk/.ssh/known_hosts to get rid of this message.
+> Offending ECDSA key in /home/dusk/.ssh/known_hosts:6
+> Host key for [localhost]:2222 has changed and you have requested strict checking.
+> Host key verification failed.
+
+for zsh shells , with the quotes
+```bash
+ssh-keygen -R "[localhost]:2222"
+```
+
+for bash shells , without the quotes
+```bash
+ssh-keygen -R [localhost]:2222
+```
+
 ---
 ---
 ---
