@@ -308,10 +308,10 @@ menu_memory() {
                 ;;
             3)
                 oper="write"
-                block_size="1M"
+                block_size="64M"   # CHANGED: 1M -> 64M to bypass L3 Cache
                 access_mode="seq"
-                scope="global"
-                echo -e "${BLUE}>> Mode: Sequential Write (1M Blocks - Global Scope)${NC}"
+                scope="local"      # CHANGED: global -> local to prevent caching
+                echo -e "${BLUE}>> Mode: Sequential Write (64M Blocks - Local Scope)${NC}"
                 break
                 ;;
             *)
