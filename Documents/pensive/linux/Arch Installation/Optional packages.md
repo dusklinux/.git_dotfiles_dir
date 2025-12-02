@@ -169,3 +169,5 @@ sudo pacman -Syyu --needed libreoffice-fresh
 ---
 [[Phone Support]]
 ---
+
+[[package tui]]
