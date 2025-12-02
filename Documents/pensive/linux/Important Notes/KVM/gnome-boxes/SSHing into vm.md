@@ -139,6 +139,8 @@ We are going to tell the QEMU engine directly to open a port, bypassing the stan
 ```
 
 Scroll to the very bottom of the file. _Just before_ the closing `</domain>` tag, paste this block:
+- **(`addr=0x14` / Slot 20):** This is for the **i440fx** chipset (the "Legacy" PC architecture). On those older board layouts, you could plug a device into Slot 20 and it worked fine.
+
 ```ini
 <qemu:commandline>
   <qemu:arg value='-netdev'/>
@@ -148,6 +150,7 @@ Scroll to the very bottom of the file. _Just before_ the closing `</domain>` tag
 </qemu:commandline>
 ```
 **OR**
+- **(`addr=0x07` / Slot 7):** This is for the **Q35** chipset (the "Modern" PCIe architecture). Your XML explicitly uses `machine="pc-q35-10.1"`. On Q35, the root complex is strict. Slot 20 is often ignored or invalid on the root bus, whereas **Slot 7** is a "safe zone" early in the bus topology.
 ```ini
 <qemu:commandline>
     <qemu:arg value="-netdev"/>
