@@ -147,16 +147,27 @@ Scroll to the very bottom of the file. _Just before_ the closing `</domain>` tag
   <qemu:arg value='virtio-net-pci,netdev=net0,addr=0x14'/>
 </qemu:commandline>
 ```
+**OR**
+```ini
+<qemu:commandline>
+    <qemu:arg value="-netdev"/>
+    <qemu:arg value="user,id=net0,hostfwd=tcp::2222-:22"/>
+    <qemu:arg value="-device"/>
+    <qemu:arg value="virtio-net-pci,netdev=net0,addr=0x07"/>
+  </qemu:commandline>
+```
 
 Apply
+
+
 
 ### Step 3: Boot and Connect
 
 1. Start the Virtual Machine. make sure sshd is started, and passwd is set with `passwd`
+2. MAKE SURE SSHD SERVICE IS STARTED IN GUEST AS WELL
+3. Once it is booted (and sitting at the root prompt), go to your **Host** terminal (Hyprland).
     
-2. Once it is booted (and sitting at the root prompt), go to your **Host** terminal (Hyprland).
-    
-3. Run this command:
+4. Run this command:
 
 ```bash
 ssh -p 2222 root@localhost
@@ -192,6 +203,19 @@ ssh-keygen -R "[localhost]:2222"
 for bash shells , without the quotes
 ```bash
 ssh-keygen -R [localhost]:2222
+```
+
+### guest firewall fix.  (if it's not letting through the connection )
+
+```bash
+# 1. Flush all existing rules
+sudo iptables -F
+sudo iptables -X
+
+# 2. Set default policy to ACCEPT (Let everything in)
+sudo iptables -P INPUT ACCEPT
+sudo iptables -P FORWARD ACCEPT
+sudo iptables -P OUTPUT ACCEPT
 ```
 
 ---

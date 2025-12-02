@@ -445,63 +445,21 @@ mkinitcpio -P
 
 ---
 
-### 29. *Grub Packages*
+### 29. Boot Loader
 
-```bash
-pacman -S --needed grub efibootmgr grub-btrfs os-prober
-```
+**Recommended for uefi (faster boot times)**
+[[Boot Loader systemd boot]]
 
-- [ ] Status
+**or** 
 
----
-
-### 30. *Configuring Grub Config*
-
->[!danger] Caution! **remove** 'pcie_aspm=force' if your laptop crashes or has issues with power saving. 
-
-make the changes with just this one command (recommanded)
-```bash
-sed -i -e 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 zswap.enabled=0 rootfstype=btrfs pcie_aspm=force fsck.mode=skip"/' -e 's/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/' -e 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
-```
-
-**OR** do it manually
-
-```bash
-nvim /etc/default/grub
-```
-
-```bash
-GRUB_CMDLINE_LINUX_DEFAULT="loglevel=3 zswap.enabled=0 rootfstype=btrfs pcie_aspm=force fsck.mode=skip"
-```
-
-> [!note] **Un-comment this **
-> GRUB_DISABLE_OS_PROBER=false
+**Recommanded for Legacy Bios (slower boot times by 2-3 seconds) **
+[[Boot Loader Grub]]
 
 - [ ] Status
 
 ---
 
-### 31. *Installing Grub to the BOOT/ESP Partition. *
-
-```bash
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --recheck
-```
-
-- [ ] Status
-
----
-
-### 32. *Generating Grub File for Boot*
-
-```bash
-grub-mkconfig -o /boot/grub/grub.cfg
-```
-
-- [ ] Status
-
----
-
-### 33. *Zram as Block device and Swap device (ZSTD compression)*
+### 30. *Zram as Block device and Swap device (ZSTD compression)*
 
 do it all with once command (recommanded)
 
@@ -535,7 +493,7 @@ options = rw,nosuid,nodev,discard,X-mount.mode=1777
 
 ---
 
-### 34. *System Services*
+### 31. *System Services*
 
 ```bash
 systemctl enable NetworkManager.service tlp.service udisks2.service thermald.service bluetooth.service firewalld.service fstrim.timer systemd-timesyncd.service acpid.service vsftpd.service reflector.timer swayosd-libinput-backend systemd-resolved.service
@@ -551,7 +509,7 @@ sudo systemctl mask systemd-rfkill.service && sudo systemctl mask systemd-rfkill
 
 ---
 
-### 35. *Concluding*
+### 32. *Concluding*
 
 ```bash
 exit
