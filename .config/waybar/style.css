@@ -31,7 +31,7 @@
 
 window#waybar {
     background: alpha(@background, 0.85);
-    color: @foreground;
+    color: @accent;
     margin: 1px;
     border-radius: 4px;
     padding: 5px 0;
@@ -43,14 +43,14 @@ window#waybar.hidden {
 
 tooltip {
     background: @background;
-    color: @foreground;
-    border: 1px solid alpha(@foreground, 0.2);
+    color: @accent;
+    border: 1px solid alpha(@accent, 0.2);
     border-radius: 6px;
 }
 
 tooltip label {
     padding: 8px;
-    color: @foreground;
+    color: @accent;
 }
 
 /*
@@ -87,12 +87,12 @@ tooltip label {
 #custom-notification:hover, #custom-power:hover, #temperature:hover, 
 #custom-inhibit-suspend:hover, #custom-theme:hover, #custom-network-unit:hover, 
 #custom-network-upload:hover, #custom-network-download:hover {
-    background-color: alpha(@foreground, 0.2);
+    background-color: alpha(@accent, 0.2);
 }
 
 /* --- Workspaces --- */
 #workspaces {
-    background-color: alpha(@foreground, 0.1);
+    background-color: alpha(@accent, 0.1);
 }
 
 #workspaces button {
@@ -104,7 +104,7 @@ tooltip label {
 }
 
 #workspaces button:hover {
-    background-color: alpha(@foreground, 0.2);
+    background-color: alpha(@accent, 0.2);
 }
 
 #workspaces button.focused,
@@ -121,7 +121,7 @@ tooltip label {
 /* --- Text Colors & States --- */
 #clock, #battery, #pulseaudio, #custom-app-tray, #bluetooth, 
 #temperature, #cpu, #memory, #backlight {
-    color: @foreground;
+    color: @accent;
 }
 
 #clock {
@@ -132,7 +132,7 @@ tooltip label {
 
 /* Battery States */
 #battery.warning { color: @critical; }
-#battery.charging, #battery.plugged { color: @foreground; }
+#battery.charging, #battery.plugged { color: @accent; }
 #battery.critical:not(.charging) {
     color: @error_container;
     animation-name: blink-critical;
@@ -147,7 +147,7 @@ tooltip label {
 
 /* Bluetooth States */
 #bluetooth.disabled { color: @error; }
-#bluetooth.connected { color: @foreground; }
+#bluetooth.connected { color: @accent; }
 
 /* Temperature States */
 #temperature.critical { color: @critical; }
@@ -156,7 +156,7 @@ tooltip label {
 #memory.critical { color: @critical; }
 
 /* Inhibit Suspend States */
-#custom-inhibit-suspend.enabled { color: @foreground; }
+#custom-inhibit-suspend.enabled { color: @accent; }
 #custom-inhibit-suspend.disabled { color: @critical; }
 
 /* Custom Power */
@@ -166,11 +166,11 @@ tooltip label {
 }
 
 /* Notifications */
-#custom-notification.dnd-none { color: @foreground; }
+#custom-notification.dnd-none { color: @accent; }
 #custom-notification.dnd-notification,
 #custom-notification.dnd-all { color: @critical; }
 #custom-notification.notification {
-    color: @foreground;
+    color: @accent;
     animation: blink-info 1s steps(1, end) infinite;
     margin-top: 2px;
     margin-bottom: 0px;
@@ -198,7 +198,7 @@ tooltip label {
  * ===================================================================
  */
 @keyframes blink-critical {
-    to { background-color: transparent; color: @foreground; }
+    to { background-color: transparent; color: @accent; }
 }
 
 @keyframes blink-urgent {
@@ -206,5 +206,5 @@ tooltip label {
 }
 
 @keyframes blink-info {
-    to { color: @foreground; opacity: 0.5; }
+    to { color: @accent; opacity: 0.5; }
 }
