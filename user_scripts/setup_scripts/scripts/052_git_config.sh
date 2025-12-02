@@ -37,6 +37,16 @@ define_config_content() {
     navigate = true    # use n and N to move between diff sections
     side-by-side = true
     line-numbers = true
+    hyperlinks = true
+    tabs = 2
+    true-color = always
+# the ugly thing at the top being omited
+    hunk-header-style = omit
+# 2. FORCE the File Path to the top in a nice box
+    file-style = box bold yellow
+    file-decoration-style = none
+# Wrap as many times as needed.
+    wrap-max-lines = 100
 EOF
 }
 

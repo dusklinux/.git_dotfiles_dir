@@ -176,7 +176,7 @@ alias fgrep='fgrep --color=auto'
 #alias cat='bat'
 
 # alias for diff colored side by side
-alias gitdiff='cd ~ && git_dotfiles_add_list && git_dotfiles diff HEAD | delta'
+alias gitdiff='cd ~ && git_dotfiles_add_list && git_dotfiles diff -u HEAD | delta'
 
 # alias for git dotfiles bear repo
 alias git_dotfiles='/usr/bin/git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=$HOME'
