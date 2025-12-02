@@ -67,7 +67,7 @@ pkgs_terminal=(
 
 # Group 9: Development
 pkgs_dev=(
-"neovim" "git" "meson" "cmake" "clang" "python-pipx" "uv" "rq" "jq" "bc" "luarocks" "viu" "chafa" "ueberzugpp" "ccache" "nodejs" "npm" "python-pynvim" "mold"
+"neovim" "git" "git-delta" "meson" "cmake" "clang" "python-pipx" "uv" "rq" "jq" "bc" "luarocks" "viu" "chafa" "ueberzugpp" "ccache" "nodejs" "npm" "python-pynvim" "mold"
 )
 
 # Group 10: Multimedia

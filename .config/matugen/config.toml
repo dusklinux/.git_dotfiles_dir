@@ -1,7 +1,7 @@
 [config]
 # ...
 
-[templates.gtk3]
+#[templates.gtk3]
 input_path = '~/.config/matugen/templates/gtk-colors.css'
 output_path = '~/.config/matugen/generated/gtk-3.css'
 post_hook = "gsettings set org.gnome.desktop.interface icon-theme 'Fluent-teal-dark'"
