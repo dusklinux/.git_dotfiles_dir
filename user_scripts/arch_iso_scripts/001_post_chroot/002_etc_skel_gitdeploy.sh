@@ -14,6 +14,29 @@ set -euo pipefail
 shopt -s inherit_errexit 2>/dev/null || true
 
 # -----------------------------------------------------------------------------
+# Visuals (Moved to top for early prompting)
+# -----------------------------------------------------------------------------
+declare -r BLUE=$'\033[0;34m'
+declare -r GREEN=$'\033[0;32m'
+declare -r RED=$'\033[0;31m'
+declare -r NC=$'\033[0m'
+
+# -----------------------------------------------------------------------------
+# Critical Pre-Flight Check
+# -----------------------------------------------------------------------------
+printf "\n${RED}[CRITICAL CHECK]${NC} Verify Environment:\n"
+printf "Have you switched to the chroot environment by running: ${BLUE}arch-chroot /mnt${NC} ?\n"
+read -r -p "Type 'yes' to proceed, or anything else to exit: " user_conf
+
+# Convert input to lowercase for comparison
+if [[ "${user_conf,,}" != "yes" ]]; then
+    printf "\n${RED}[ABORTING]${NC} You must be inside the chroot environment to run this script.\n"
+    printf "Please run the following command first:\n"
+    printf "\n    ${BLUE}arch-chroot /mnt${NC}\n\n"
+    exit 1
+fi
+
+# -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
 declare -r SOURCE_FILE="/deploy_dotfiles.sh"
@@ -23,12 +46,6 @@ declare -r TARGET_FILE="$SKEL_DIR/deploy_dotfiles.sh"
 # -----------------------------------------------------------------------------
 # Logging (Fast ANSI)
 # -----------------------------------------------------------------------------
-# We use $'' format for faster parsing and readonly variables
-declare -r BLUE=$'\033[0;34m'
-declare -r GREEN=$'\033[0;32m'
-declare -r RED=$'\033[0;31m'
-declare -r NC=$'\033[0m'
-
 log_info()    { printf "${BLUE}[INFO]${NC} %s\n" "$*"; }
 log_success() { printf "${GREEN}[SUCCESS]${NC} %s\n" "$*"; }
 log_error()   { printf "${RED}[ERROR]${NC} %s\n" "$*" >&2; exit 1; }
