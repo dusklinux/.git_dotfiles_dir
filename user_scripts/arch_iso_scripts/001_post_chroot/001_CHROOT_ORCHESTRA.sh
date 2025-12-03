@@ -8,6 +8,7 @@
 # --- 1. CONFIGURATION: EDIT THIS LIST ---
 # The script will look for these files in the SAME directory as this master script.
 INSTALL_SEQUENCE=(
+    "002_etc_skel_gitdeploy.sh"
     "003_post_chroot.sh"
     "004_chroot_package_installer.sh"
     "005_mkinitcpio_generation.sh"
