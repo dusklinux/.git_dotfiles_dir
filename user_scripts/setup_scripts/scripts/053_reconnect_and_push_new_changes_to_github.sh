@@ -3,7 +3,7 @@
 # ==============================================================================
 # ARCH LINUX DOTFILES SYNC (MANUAL SPEEDRUN REPLICA)
 # Context: Hyprland / UWSM / Bash 5+
-# Logic: Ask Intent -> Clone Bare -> Reset -> Sync (NO CHECKOUT/OVERWRITE)
+# Logic: Ask Intent -> Clone Bare -> Reset -> Sync via .git_dotfiles_list
 # ==============================================================================
 
 # 1. STRICT SAFETY
@@ -12,6 +12,7 @@ IFS=$'\n\t'
 
 # 2. CONSTANTS
 readonly DOTFILES_DIR="$HOME/.git_dotfiles_dir"
+readonly DOTFILES_LIST="$HOME/.git_dotfiles_list"
 readonly SSH_KEY_PATH="$HOME/.ssh/id_ed25519"
 readonly SSH_DIR="$HOME/.ssh"
 readonly REQUIRED_CMDS=(git ssh ssh-keygen ssh-agent grep)
@@ -78,7 +79,7 @@ if [[ ! "$HAS_REPO" =~ ^[yY] ]]; then
 fi
 
 # ==============================================================================
-# 2. INPUT GATHERING (Only runs if user said YES above)
+# 2. INPUT GATHERING
 # ==============================================================================
 
 printf "\n${BOLD}--- Configuration ---${NC}\n"
@@ -197,7 +198,7 @@ dotgit reset
 log_success "Repository linked. No files were overwritten."
 
 # ==============================================================================
-# 5. SYNC & PUSH
+# 5. SYNC & PUSH (USING .git_dotfiles_list)
 # ==============================================================================
 
 printf "\n${BOLD}--- Final Sync ---${NC}\n"
@@ -206,9 +207,15 @@ printf "\n${BOLD}--- Final Sync ---${NC}\n"
 log_info "Current Git Status:"
 dotgit status --short
 
-# 7. Add Modified Files
-log_info "Staging modified files (git add -u)..."
-dotgit add -u
+# 7. Add Files from List
+if [[ -f "$DOTFILES_LIST" ]]; then
+    log_info "Staging files from .git_dotfiles_list..."
+    # Matches your alias: git_dotfiles add --pathspec-from-file=.git_dotfiles_list
+    dotgit add --pathspec-from-file="$DOTFILES_LIST"
+else
+    log_warn ".git_dotfiles_list not found. Falling back to updating tracked files..."
+    dotgit add -u
+fi
 
 # 8. Commit
 if ! dotgit diff-index --quiet HEAD; then
