@@ -1088,13 +1088,14 @@ tldr --update
 
 ---
 *Script*
-### 7. Re-Link exisiting github repo to continue backing up to it. 
+### 7. Create a new bare repo or Re-Link exisiting github repo to continue backing up to it. 
+
+- [ ] create a new github repo to start backing up. [[git_bare_repo_setup]]
+
+**OR**
 
 - [ ] Follow these steps after you've already checked out and restored all the files from the github repo  [[Relink to my existing github repo for backup after Fresh Install]]
 
-or
-
-- [ ] create a new github repo to start backing up. [[git_bare_repo_setup]]
 
 ---
 *Script*
