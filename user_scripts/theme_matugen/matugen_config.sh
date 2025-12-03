@@ -80,7 +80,7 @@ IFS=$'\n\t'
 # --- Configuration ---
 readonly WAYPAPER_CONFIG="${HOME}/.config/waypaper/config.ini"
 readonly RANDOM_THEME="${HOME}/user_scripts/theme_matugen/random_theme.sh"
-readonly SYMLINK_SCRIPT="${HOME}/user_scripts/theme_matugen/symlink_dark_light_directory.sh"
+readonly SYMLINK_SCRIPT="${HOME}/user_scripts/theme_matugen/dark_light_directory_switch.sh"
 
 # Colors for logging
 readonly C_RESET='\033[0m'
