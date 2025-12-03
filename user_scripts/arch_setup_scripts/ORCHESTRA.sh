@@ -78,7 +78,7 @@ set -o pipefail
 
 # 2. Hardcoded Paths
 # We use curly braces ${HOME} to safely expand the variable.
-readonly SCRIPT_DIR="${HOME}/user_scripts/setup_scripts/scripts"
+readonly SCRIPT_DIR="${HOME}/user_scripts/arch_setup_scripts/scripts"
 readonly STATE_FILE="${SCRIPT_DIR}/.install_state"
 readonly LOG_FILE="${SCRIPT_DIR}/install_$(date +%Y%m%d_%H%M%S).log"
 
