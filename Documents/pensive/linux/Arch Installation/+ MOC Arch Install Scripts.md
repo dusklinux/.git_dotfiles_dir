@@ -1,35 +1,36 @@
-### 1. *WiFi Connection*
-```bash
-iwctl
-```
-
-```bash
-device list
-```
-
-- *Replace wlan0 with your device name from above eg: wlan1* or what ever your deivce is called
-
-```bash
-station wlan0 scan
-```
-
-```bash
-station wlan0 get-networks
-```
-
-```bash
-station wlan0 connect "Near"
-```
-
-```bash
-exit
-```
-
-```bash
-ping -c 2 x.com
-```
-
-- [ ] Status
+> [!NOTE]- wifi connect , Skip if youre connected via lan/usb teathering
+> ### 1. *WiFi Connection*
+> ```bash
+> iwctl
+> ```
+> 
+> ```bash
+> device list
+> ```
+> 
+> - *Replace wlan0 with your device name from above eg: wlan1* or what ever your deivce is called
+> 
+> ```bash
+> station wlan0 scan
+> ```
+> 
+> ```bash
+> station wlan0 get-networks
+> ```
+> 
+> ```bash
+> station wlan0 connect "Near"
+> ```
+> 
+> ```bash
+> exit
+> ```
+> 
+> ```bash
+> ping -c 2 x.com
+> ```
+> 
+> - [ ] Status
 
 ```bash
 pacman -Sy git
@@ -44,14 +45,21 @@ dont forget the period at the end '.' after a space.
 cp dusk/user_scripts/arch_iso_scripts/001_pre_chroot/* .
 ```
 
-then only run the 001, and 002 scripts 
+the scritps in your current directory, in sequential order. 
+```bash
+ls
+```
+eg:- 
+```bash
+./000_pre_install.sh
+```
 
-then 
+after you've run all the scripts 
 ```bash
 arch-chroot /mnt
 ```
 
-then these commands again 
+then this command again 
 
 ```bash
 git clone --depth 1 https://github.com/dusklinux/.git_dotfiles_dir.git dusk
