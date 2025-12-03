@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# ARCH LINUX DOTFILES SYNC (MANUAL SPEEDRUN REPLICA)
+# ARCH LINUX DOTFILES SYNC (MANUAL SPEEDRUN REPLICA - FINAL FIX)
 # Context: Hyprland / UWSM / Bash 5+
 # Logic: Ask Intent -> Clone Bare -> Reset -> Sync via .git_dotfiles_list
+# Updates:
+#   1. Forces execution from $HOME to fix path errors.
+#   2. Filters missing files to prevent 'pathspec' crash.
+#   3. Supports interactive SSH passphrases.
+#   4. Allows custom Repository Name input (matches 053 logic).
 # ==============================================================================
 
 # 1. STRICT SAFETY
@@ -11,11 +16,12 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # 2. CONSTANTS
+readonly DEFAULT_REPO_NAME=".git_dotfiles_dir"
 readonly DOTFILES_DIR="$HOME/.git_dotfiles_dir"
 readonly DOTFILES_LIST="$HOME/.git_dotfiles_list"
 readonly SSH_KEY_PATH="$HOME/.ssh/id_ed25519"
 readonly SSH_DIR="$HOME/.ssh"
-readonly REQUIRED_CMDS=(git ssh ssh-keygen ssh-agent grep)
+readonly REQUIRED_CMDS=(git ssh ssh-keygen ssh-agent grep mktemp)
 
 # 3. VISUALS
 readonly BOLD='\033[1m'
@@ -45,12 +51,19 @@ cleanup() {
     if [[ -n "${SCRIPT_SSH_AGENT_PID:-}" ]]; then
         kill "$SCRIPT_SSH_AGENT_PID" >/dev/null 2>&1 || true
     fi
+    # Remove temp file for clean list if it exists
+    if [[ -n "${CLEAN_LIST:-}" && -f "${CLEAN_LIST:-}" ]]; then
+        rm -f "$CLEAN_LIST"
+    fi
 }
 trap cleanup EXIT
 
 # ==============================================================================
-# PRE-FLIGHT DEPENDENCY CHECK
+# PRE-FLIGHT
 # ==============================================================================
+
+# CRITICAL FIX: Switch to HOME so relative paths in dotfiles_list work
+cd "$HOME" || log_fatal "Could not change directory to HOME."
 
 for cmd in "${REQUIRED_CMDS[@]}"; do
     if ! command -v "$cmd" &>/dev/null; then
@@ -72,8 +85,8 @@ read -r -p "Do you have an existing GitHub repository to commit changes to? (y/N
 if [[ ! "$HAS_REPO" =~ ^[yY] ]]; then
     printf "\n"
     log_info "Okay."
-    printf "You can always create a GitHub bare repo by following the:\n"
-    printf "${CYAN}'+ Speedrun New Fresh Repo Upload'${NC} obsidian note.\n\n"
+    printf "You can do so anytime by runing the: \n"
+    printf "${CYAN}'0XX_new_github_repo_to_backup.sh'${NC} Script.\n\n"
     log_success "Exiting successfully."
     exit 0
 fi
@@ -95,17 +108,23 @@ ask() {
 }
 
 printf "${CYAN}1. Identity${NC}\n"
-ask "Git User Name (e.g., 'John Doe')" GIT_NAME
-ask "Git Email (e.g., 'me@arch.linux')" GIT_EMAIL
+ask "Git User Name (e.g., 'any_name')" GIT_NAME
+ask "Git Email (e.g., 'xyz@gmail.com')" GIT_EMAIL
 
 printf "\n${CYAN}2. Repository${NC}\n"
-ask "GitHub Username (e.g., 'torvalds')" GH_USERNAME
-printf "   ${YELLOW}Repo Name:${NC} We assume '.git_dotfiles_dir'.\n"
+ask "GitHub Username (e.g., 'your_actual_github_name')" GH_USERNAME
+
+# UPDATED: Interactive Repo Name selection matching script 053
+printf "${CYAN}Repo Name${NC}\n"
+printf "   The name of the repository on GitHub.\n"
+read -r -p "   > [Default: $DEFAULT_REPO_NAME]: " INPUT_REPO_NAME
+REPO_NAME="${INPUT_REPO_NAME:-$DEFAULT_REPO_NAME}"
 
 printf "\n${CYAN}3. Commit${NC}\n"
 ask "Initial Commit Message" COMMIT_MSG
 
-REPO_URL="git@github.com:${GH_USERNAME}/.git_dotfiles_dir.git"
+# UPDATED: Uses REPO_NAME instead of hardcoded string
+REPO_URL="git@github.com:${GH_USERNAME}/${REPO_NAME}.git"
 
 printf "\n${BOLD}Review Configuration:${NC}\n"
 printf "  User:   $GIT_NAME <$GIT_EMAIL>\n"
@@ -114,7 +133,7 @@ read -r -p "Proceed? (y/N): " CONFIRM
 [[ "$CONFIRM" =~ ^[yY] ]] || log_fatal "Aborted by user."
 
 # ==============================================================================
-# 3. SSH SETUP
+# 3. SSH SETUP (Interactive Password Support)
 # ==============================================================================
 
 printf "\n${BOLD}--- SSH Configuration ---${NC}\n"
@@ -124,26 +143,32 @@ if [[ ! -d "$SSH_DIR" ]]; then
     chmod 700 "$SSH_DIR"
 fi
 
+# Key Generation
 if [[ -f "$SSH_KEY_PATH" ]]; then
     log_warn "SSH key exists at $SSH_KEY_PATH"
     read -r -p "   Overwrite? (y/N): " OW
     if [[ "$OW" =~ ^[yY] ]]; then
         rm -f "$SSH_KEY_PATH" "$SSH_KEY_PATH.pub"
-        ssh-keygen -t ed25519 -C "$GIT_EMAIL" -f "$SSH_KEY_PATH" -N "" -q
+        # Removed -N "" -q to allow interactive passphrase
+        ssh-keygen -t ed25519 -C "$GIT_EMAIL" -f "$SSH_KEY_PATH"
         log_success "New key generated."
     else
         log_info "Using existing key."
     fi
 else
-    ssh-keygen -t ed25519 -C "$GIT_EMAIL" -f "$SSH_KEY_PATH" -N "" -q
+    # Removed -N "" -q to allow interactive passphrase
+    ssh-keygen -t ed25519 -C "$GIT_EMAIL" -f "$SSH_KEY_PATH"
     log_success "Key generated."
 fi
 
+# Agent Start
 eval "$(ssh-agent -s)" >/dev/null
 SCRIPT_SSH_AGENT_PID="$SSH_AGENT_PID"
 
+# Add Key (Interactive handling)
+log_info "Adding SSH key to agent..."
 if ! ssh-add "$SSH_KEY_PATH" 2>/dev/null; then
-    log_warn "Automatic add failed (Passphrase?). Entering interactive mode:"
+    log_info "Passphrase required. Please enter it now:"
     ssh-add "$SSH_KEY_PATH"
 fi
 
@@ -198,7 +223,7 @@ dotgit reset
 log_success "Repository linked. No files were overwritten."
 
 # ==============================================================================
-# 5. SYNC & PUSH (USING .git_dotfiles_list)
+# 5. SYNC & PUSH (SMART FILTERED SYNC)
 # ==============================================================================
 
 printf "\n${BOLD}--- Final Sync ---${NC}\n"
@@ -207,11 +232,31 @@ printf "\n${BOLD}--- Final Sync ---${NC}\n"
 log_info "Current Git Status:"
 dotgit status --short
 
-# 7. Add Files from List
+# 7. Add Files from List (With Error Protection)
 if [[ -f "$DOTFILES_LIST" ]]; then
-    log_info "Staging files from .git_dotfiles_list..."
-    # Matches your alias: git_dotfiles add --pathspec-from-file=.git_dotfiles_list
-    dotgit add --pathspec-from-file="$DOTFILES_LIST"
+    log_info "Processing .git_dotfiles_list..."
+    
+    CLEAN_LIST=$(mktemp)
+    
+    # Filter files that exist on disk to prevent 'pathspec' errors
+    grep -vE '^\s*#|^\s*$' "$DOTFILES_LIST" | while read -r file; do
+        # Trim whitespace
+        file=$(echo "$file" | xargs)
+        
+        if [[ -e "$file" ]]; then
+            echo "$file" >> "$CLEAN_LIST"
+        else
+            log_warn "Skipping missing file: $file"
+        fi
+    done
+    
+    if [[ -s "$CLEAN_LIST" ]]; then
+        log_info "Staging validated files..."
+        dotgit add --pathspec-from-file="$CLEAN_LIST"
+    else
+        log_warn "No valid files found in list. Using standard update (-u)..."
+        dotgit add -u
+    fi
 else
     log_warn ".git_dotfiles_list not found. Falling back to updating tracked files..."
     dotgit add -u

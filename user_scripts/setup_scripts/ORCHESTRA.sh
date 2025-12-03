@@ -63,6 +63,8 @@ INSTALL_SEQUENCE=(
     "S | 050_system_services.sh"
     "S | 051_initramfs_optimization.sh"
     "U | 052_git_config.sh"
+    "U | 053_new_github_repo_to_backup.sh"
+    "U | 054_reconnect_and_push_new_changes_to_github.sh"
 )
 
 # ==============================================================================
