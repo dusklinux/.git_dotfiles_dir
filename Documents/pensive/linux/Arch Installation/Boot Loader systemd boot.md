@@ -50,3 +50,8 @@ options root=PARTUUID=YOUR-ROOT-PARTUUID-HERE rw loglevel=3 zswap.enabled=0 root
 ```bash
 systemctl enable systemd-boot-update.service
 ```
+
+
+```bash
+bootctl install
+```
