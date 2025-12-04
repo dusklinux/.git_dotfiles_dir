@@ -87,7 +87,7 @@ sleep 1
 log_info "Writing global $LOADER_CONF..."
 cat > "$LOADER_CONF" <<EOF
 default  arch.conf
-timeout  2
+timeout  1
 console-mode max
 editor   no
 EOF
