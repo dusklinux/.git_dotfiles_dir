@@ -24,6 +24,10 @@ is_ssd() {
 # --- Main Logic ---
 clear
 echo -e "${C_BOLD}=== DISK SETUP ===${C_RESET}"
+# --- ADDED MESSAGE START ---
+echo -e "${C_YELLOW}>> PRE-REQ: Ensure you have created your EFI and Root partitions.${C_RESET}"
+echo -e "${C_YELLOW}>> If not, press Ctrl+C now and run 'cfdisk' to create them.${C_RESET}"
+# --- ADDED MESSAGE END ---
 lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS
 
 # 1. INPUTS
