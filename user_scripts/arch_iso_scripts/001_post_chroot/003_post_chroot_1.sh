@@ -157,12 +157,6 @@ confirm_step
 # === Step 24: Creating User Account ===
 log_step "Creating User Account"
 
-# === MODIFICATION START: Pre-install ZSH ===
-log_info "Ensuring ZSH binary exists before assignment..."
-# Using --noconfirm to prevent script hang, --needed to skip if already present
-pacman -S --needed --noconfirm zsh
-# === MODIFICATION END ===
-
 DEFAULT_USER="dusk"
 read -r -p "$(printf "Enter username [Default: ${BOLD}%s${RESET}]: " "$DEFAULT_USER")" INPUT_USER
 FINAL_USER="${INPUT_USER:-$DEFAULT_USER}"
@@ -171,10 +165,9 @@ FINAL_USER="${INPUT_USER:-$DEFAULT_USER}"
 if id "$FINAL_USER" &>/dev/null; then
     log_info "User '$FINAL_USER' already exists. Skipping creation."
 else
-    log_info "Creating user '$FINAL_USER' with ZSH as default shell..."
-    # Explicitly set shell to zsh during creation (Greenfield approach)
-    useradd -m -G wheel,input,audio,video,storage,optical,network,lp,power,games,rfkill -s /usr/bin/zsh "$FINAL_USER"
-    log_success "User '$FINAL_USER' created with ZSH shell."
+    log_info "Creating user '$FINAL_USER' with group memberships..."
+    useradd -m -G wheel,input,audio,video,storage,optical,network,lp,power,games,rfkill "$FINAL_USER"
+    log_success "User '$FINAL_USER' created."
 fi
 
 log_info "Please set the password for user '$FINAL_USER':"

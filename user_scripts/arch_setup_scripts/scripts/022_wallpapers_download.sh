@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
 # Script: get-wallpapers.sh
-# Description: Downloads and installs Dusk/Dwarven wallpapers for Arch/Hyprland.
+# Description: Downloads and installs Dusk wallpapers for Arch/Hyprland.
 # Context: Arch Linux, Hyprland, UWSM.
 # Author: Gemini (Elite DevOps Persona)
 # -----------------------------------------------------------------------------
@@ -90,7 +90,7 @@ main() {
     printf "${C_BOLD}:: Wallpaper Manager for Arch/Hyprland${C_RESET}\n"
     
     # 6.1 Prompt User
-    printf "   Would you like to download the Dusk/Dwarven wallpaper collection now?\n"
+    printf "   Would you like to download the Dusk wallpaper collection now?\n"
     local response
     read -r -p "   [y/N] > " response
     

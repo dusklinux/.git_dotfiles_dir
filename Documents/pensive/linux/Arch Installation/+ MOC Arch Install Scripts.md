@@ -51,11 +51,11 @@ you only need to run the 000_ISO_ORCHESTRA.SH script. dont run anything else, th
 ./000_ISO_ORCHESTRA.sh
 ```
 
-
 then copy the scripts to the chroot environment
 ```bash
 cp dusk/user_scripts/arch_iso_scripts/001_post_chroot/* /mnt/
 ```
+
 
 
 after you've run all the scripts 
@@ -64,3 +64,7 @@ arch-chroot /mnt
 ```
 
 and the just run the 001_CHROOT_ORCHESTRA.sh script and nothing else. this script will automatically run all the other scripts. if a script fails for some reason, you could run that particular script manually.
+
+```bash
+./001_CHROOT_ORCHESTRA.sh
+```

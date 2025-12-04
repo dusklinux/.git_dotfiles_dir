@@ -55,7 +55,7 @@ INSTALL_SEQUENCE=(
     "S | 042_ftp_arch.sh"
     "U | 043_tldr_update.sh"
     "U | 044_spotify.sh"
-    "U | 045_nvim_clean.sh"
+    "U | 045_neovim_clean.sh"
     "U | 046_mouse_button_reverse.sh"
     "S | 047_node_neovim_npm.sh"
     "S | 048_grub_optimization.sh"

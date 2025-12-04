@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# Script: setup_systemd_boot_v3.sh
-# Description: Automates systemd-boot configuration with paced execution.
-#              Includes strict checks, Btrfs handling, and visual delays.
+# Script: 006_systemd_bootloader.sh
+# Description: Automates systemd-boot configuration for Arch/Hyprland.
+#              FIXED: Now includes Btrfs subvolume handling (rootflags=subvol=@).
 # -----------------------------------------------------------------------------
 
 set -euo pipefail
 
 # --- Configuration ---
-readonly BASE_PARAMS="rw loglevel=3 zswap.enabled=0 rootfstype=btrfs fsck.mode=skip"
+# [FIX APPLIED]: Added 'rootflags=subvol=@' so the kernel finds /sbin/init inside the subvolume
+readonly BASE_PARAMS="rw loglevel=3 zswap.enabled=0 rootfstype=btrfs rootflags=subvol=@ fsck.mode=skip"
 readonly LOADER_CONF="/boot/loader/loader.conf"
 readonly ENTRY_CONF="/boot/loader/entries/arch.conf"
 
@@ -50,7 +51,7 @@ fi
 # UEFI Check
 if [[ ! -d /sys/firmware/efi/efivars ]]; then
     log_warn "No UEFI variables found in /sys/firmware/efi/efivars."
-    log_warn "System appears to be BIOS/Legacy. Exiting."
+    log_warn "System appears to be BIOS/Legacy. This script requires UEFI."
     exit 0
 fi
 
@@ -73,6 +74,7 @@ pacman -S --needed --noconfirm efibootmgr >/dev/null
 sleep 1
 
 log_info "Installing systemd-boot to /boot..."
+# Attempt install; check if already installed if fail
 if ! bootctl install --esp-path=/boot >/dev/null 2>&1; then
     if ! bootctl is-installed --esp-path=/boot >/dev/null 2>&1; then
          log_error "bootctl install failed. Ensure /boot is a valid FAT32 partition."
@@ -85,7 +87,7 @@ sleep 1
 log_info "Writing global $LOADER_CONF..."
 cat > "$LOADER_CONF" <<EOF
 default  arch.conf
-timeout  1
+timeout  2
 console-mode max
 editor   no
 EOF
@@ -99,7 +101,7 @@ log_info "Detecting root partition..."
 
 # 1. Find device (raw)
 ROOT_DEV_RAW=$(findmnt -n -o SOURCE /)
-# 2. Sanitize (Strip Btrfs brackets)
+# 2. Sanitize (Strip Btrfs brackets if present)
 ROOT_DEV="${ROOT_DEV_RAW%[*}"
 
 log_info "Found Root Device: $ROOT_DEV"
@@ -117,7 +119,7 @@ set -e
 
 if [[ $BLKID_EXIT -ne 0 ]] || [[ -z "$ROOT_PARTUUID" ]]; then
     log_error "Could not get PARTUUID for $ROOT_DEV."
-    log_warn "Ensure disk is GPT."
+    log_warn "Ensure disk is GPT formatted."
     exit 1
 fi
 
@@ -177,3 +179,4 @@ systemctl enable systemd-boot-update.service >/dev/null 2>&1 || true
 log_success "Setup complete. Configuration verified."
 printf "   Loader: %s\n" "$LOADER_CONF"
 printf "   Entry:  %s\n" "$ENTRY_CONF"
+printf "   Params: %s\n" "$FINAL_OPTIONS"

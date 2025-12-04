@@ -12,8 +12,8 @@ INSTALL_SEQUENCE=(
     "003_post_chroot.sh"
     "004_chroot_package_installer.sh"
     "005_mkinitcpio_generation.sh"
-    "006_systemd_bootloader.sh" 
-    #"006_grub.sh"  # <-- Uncomment if using systemd-boot instead
+    "006_systemd_bootloader.sh"
+    "006_grub.sh"
     "007_zram_config.sh"
     "008_services.sh"
     "009_exiting_unmounting.sh"
