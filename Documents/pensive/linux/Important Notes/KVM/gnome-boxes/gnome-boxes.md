@@ -1,6 +1,6 @@
 ### Installation on host os
 ```bash
-sudo pacman -Syyu --needed gnome-boxes virt-manger spice spice-gtk spice-protocol gvfs-dnssd wl-clipboard xclip
+sudo pacman -Syyu --needed gnome-boxes virt-manager spice spice-gtk spice-protocol gvfs-dnssd wl-clipboard xclip
 ```
 
 to configure gnome-boxes's config on host. using virt-manager, this opens the user session rather than the defualt root session which doesnt include gnome boxes. click the lightbulb/ "i" in a circle right next to the monitor icon on the top left   
@@ -16,7 +16,7 @@ on guest start spice-vdagent
 ```bash
 spice-vdagent
 ```
-or to make it perminitnet, add to hyprland config
+or to make it perminitnet, add to hyprland config on guest. 
 ```ini
 # Start the SPICE user agent
 exec-once = spice-vdagent

@@ -32,7 +32,7 @@ INSTALL_SEQUENCE=(
     "U | 019_battery_notify_service.sh"
     "U | 020_fc_cache_fv.sh"
     "U | 021_matugen_directories.sh"
-    "U | 022_place_holder_github_wallpapers.sh"
+    "U | 022_wallpapers_download.sh"
     "U | 023_blur_shadow_opacity.sh"
     "U | 024_swww_wallpaper_matugen.sh"
     "U | 025_qtct_config.sh"
@@ -65,7 +65,6 @@ INSTALL_SEQUENCE=(
     "U | 052_git_config.sh"
     "U | 053_new_github_repo_to_backup.sh"
     "U | 054_reconnect_and_push_new_changes_to_github.sh"
-    "U | 055_wallpapers_download.sh"
 )
 
 # ==============================================================================

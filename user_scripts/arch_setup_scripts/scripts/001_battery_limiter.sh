@@ -38,7 +38,7 @@ main() {
     local batteries=("$SEARCH_PATH"/BAT*)
     shopt -u nullglob
 
-    # 3. Handle No Batteries (The requested fix)
+    # 3. Handle No Batteries
     if (( ${#batteries[@]} == 0 )); then
         log INFO "No batteries detected in $SEARCH_PATH."
         log OK "System configuration check complete. No changes made."
@@ -62,7 +62,8 @@ main() {
                 
                 if [[ "$current_val" -eq "$LIMIT" ]]; then
                     log OK "Battery ($bat_name): Limit successfully set to ${LIMIT}%."
-                    ((changes_made++))
+                    # FIX: Use +=1 to avoid (( 0 )) evaluating to exit code 1 under set -e
+                    ((changes_made+=1))
                 else
                     log WARN "Battery ($bat_name): Wrote limit but kernel reports ${current_val}%."
                 fi

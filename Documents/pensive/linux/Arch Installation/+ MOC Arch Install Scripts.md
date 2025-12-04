@@ -42,33 +42,25 @@ git clone --depth 1 https://github.com/dusklinux/.git_dotfiles_dir.git dusk
 
 dont forget the period at the end '.' after a space.  
 ```bash
-cp dusk/user_scripts/arch_iso_scripts/001_pre_chroot/* .
+cp dusk/user_scripts/arch_iso_scripts/000_pre_chroot/* .
 ```
 
-the scritps in your current directory, in sequential order. 
+you only need to run the 000_ISO_ORCHESTRA.SH script. dont run anything else, this script auto runs eveyrthing. 
+
 ```bash
-ls
+./000_ISO_ORCHESTRA.sh
 ```
-eg:- 
+
+
+then copy the scripts to the chroot environment
 ```bash
-./000_pre_install.sh
+cp dusk/user_scripts/arch_iso_scripts/001_post_chroot/* /mnt/
 ```
+
 
 after you've run all the scripts 
 ```bash
 arch-chroot /mnt
 ```
 
-then this command again 
-
-```bash
-git clone --depth 1 https://github.com/dusklinux/.git_dotfiles_dir.git dusk
-```
-
-dont forget the period at the end '.' after a space.  
-
-```bash
-cp dusk/user_scripts/arch_iso_scripts/001_post_chroot/* .
-```
-
-and the just run the 002_ORCHESTRA.sh script and nothing else. this script will automatically run all the other scripts. if a script fails for some reason, you could run that particualr script manually. 
+and the just run the 001_CHROOT_ORCHESTRA.sh script and nothing else. this script will automatically run all the other scripts. if a script fails for some reason, you could run that particular script manually.
