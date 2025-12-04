@@ -323,19 +323,15 @@ clang-format
 
 isort
 
-prettier (for HTML/JS/CSS)
+prettier
 
-prettierd (keywords: angular, css, flow, graphql, html, json, jsx, javascript, less, markdown, scss, typescript, vue, yaml)
+prettierd
 
-clang-format (for C/C++)
+shfmt
 
-shfmt (for Bash - you might already have this)
+stylua
 
-stylua (for Lua)
-
-shfmt (The holy grail for Bash scripting)
-
-black (for Python)
+black
 ```
 
 >[!tip]- These are all the installed ones it should show you after you're done. 
