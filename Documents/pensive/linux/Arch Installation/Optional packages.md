@@ -171,3 +171,9 @@ sudo pacman -Syyu --needed libreoffice-fresh
 ---
 
 [[package tui]]
+
+
+packages to add to existing que. 
+```bash
+caligula
+```
