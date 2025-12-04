@@ -174,6 +174,12 @@ sudo pacman -Syyu --needed libreoffice-fresh
 
 
 packages to add to existing que. 
+pacman
 ```bash
 caligula
+```
+
+paru 
+```bash
+sysmontask edex-ui-bin
 ```
