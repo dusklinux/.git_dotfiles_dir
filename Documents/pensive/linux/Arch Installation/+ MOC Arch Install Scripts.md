@@ -45,17 +45,12 @@ dont forget the period at the end '.' after a space.
 cp dusk/user_scripts/arch_iso_scripts/000_pre_chroot/* .
 ```
 
+
 you only need to run the 000_ISO_ORCHESTRA.SH script. dont run anything else, this script auto runs eveyrthing. 
 
 ```bash
 ./000_ISO_ORCHESTRA.sh
 ```
-
-then copy the scripts to the chroot environment
-```bash
-cp dusk/user_scripts/arch_iso_scripts/001_post_chroot/* /mnt/
-```
-
 
 
 after you've run all the scripts 
