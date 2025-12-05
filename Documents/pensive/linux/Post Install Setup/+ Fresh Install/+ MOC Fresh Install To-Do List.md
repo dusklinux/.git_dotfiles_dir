@@ -551,6 +551,26 @@ if qt apps still aren't follwing the color pallete of matugen. *sometimes you mi
 
 ---
 *Script*
+- [ ] **Gtk3/Gtk4 root symlink**
+
+```bash
+# 1. Get your home directory reliably
+USER_HOME=$(getent passwd "$USER" | cut -d: -f6)
+
+# 2. Ensure root config directory exists
+sudo mkdir -p /root/.config
+
+# 3. Delete existing root GTK folders (Clean slate)
+sudo rm -rf /root/.config/gtk-3.0 /root/.config/gtk-4.0
+
+# 4. Create the Symlinks (User -> Root)
+# -s: symbolic, -f: force, -T: no-target-directory (prevents nesting)
+sudo ln -sfT "$USER_HOME/.config/gtk-3.0" /root/.config/gtk-3.0
+sudo ln -sfT "$USER_HOME/.config/gtk-4.0" /root/.config/gtk-4.0
+```
+
+---
+*Script*
 ` This step, again, is usually not needed to be done but check if its needed, by setting a wallpaper with waypaper and see if the theme has switched, open and close the terminal/thunar/or anyother app,  to see if it's switched colors, if not, then preceed with the following:` if themes did switch sucessfuly, this step is not required. 
 
 - [ ] Might need to recreate the config file for waypaper because sometimes it's got issues when it's restored from git. so delete the entire file, open waypaper> change any setting> when a new config is auto created, edit it just the post_command line to include the command. 

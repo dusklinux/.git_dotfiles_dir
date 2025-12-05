@@ -68,6 +68,7 @@ INSTALL_SEQUENCE=(
     "S | 055_grub_optimization.sh"
     "U | 056_cache_purge.sh"
     "S | 057_hosts_files_block.sh"
+    "S | 058_gtk_root_symlink.sh"
 )
 
 # ==============================================================================
