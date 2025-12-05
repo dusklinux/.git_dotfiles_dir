@@ -612,7 +612,7 @@ RUNTIME_PM_ON_BAT=auto
 # Separate multiple devices with spaces.
 # Default: <none>
 
-DEVICES_TO_DISABLE_ON_STARTUP="bluetooth"
+#DEVICES_TO_DISABLE_ON_STARTUP="bluetooth"
 
 # Radio devices to enable on startup: bluetooth, nfc, wifi, wwan.
 # Separate multiple devices with spaces.
@@ -668,9 +668,9 @@ DEVICES_TO_DISABLE_ON_BAT_NOT_IN_USE="bluetooth"
 # Default: <none>
 
 # Battery charge level below which charging will begin.
-#START_CHARGE_THRESH_BAT1=90
+START_CHARGE_THRESH_BAT1=0
 # Battery charge level above which charging will stop.
-#STOP_CHARGE_THRESH_BAT1=75
+STOP_CHARGE_THRESH_BAT1=75
 
 # Restore charge thresholds when AC is unplugged: 0=disable, 1=enable.
 # Default: 0

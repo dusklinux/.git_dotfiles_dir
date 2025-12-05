@@ -277,34 +277,6 @@ START_CHARGE_THRESH_BAT1=0
 STOP_CHARGE_THRESH_BAT1=75
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Operation mode when no power supply can be detected: AC, BAT.
 # Default: <none>
 
