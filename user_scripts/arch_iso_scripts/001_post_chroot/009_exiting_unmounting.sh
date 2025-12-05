@@ -70,7 +70,7 @@ main() {
     printf " 1. Wait for the system to fully power down.\n"
     printf " 2. %bREMOVE the USB Installation Media.%b\n" "${C_RED}${C_BOLD}" "${C_RESET}"
     printf " 3. Power on the machine to boot into your new Arch Hyprland system.\n"
-    printf " 4. Enter *exec uwsm start hyprland* to start hyprland after booting.\n"
+    printf " 4. Enter your username and password to start hyprland after booting.\n"
     printf "%b%s%b\n\n" "${C_CYAN}" "----------------------------------------" "${C_RESET}"
 }
 
