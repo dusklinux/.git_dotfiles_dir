@@ -106,3 +106,65 @@ nvim .config/psd/psd.conf
 > USE_BACKUPS="yes"
 > BACKUP_LIMIT=5
 > ```
+
+
+
+## BECAUSE luks prevents psd from loading it at boot, a servcie file needs to be placed in ... to only start psd when browser parition is unlocked
+
+```bash
+mkdir -p ~/.config/systemd/user/psd.service.d/
+```
+
+```bash
+nvim ~/.config/systemd/user/psd.service.d/override.conf
+```
+
+```ini
+[Unit]
+# This is the magic command.
+# It tells systemd: "Check if /mnt/browser is mounted. If not, WAIT."
+RequiresMountsFor=/mnt/browser
+```
+
+
+
+
+---
+
+
+## this is to do it manually by killing the servcie and restarting it. 
+
+```bash
+killall -9 firefox
+killall -9 firefox-bin
+# Verify no "ghosts" exist
+pgrep -a firefox
+```
+
+```bash
+psd preview
+```
+
+```bash
+systemctl --user stop psd
+rm -rf ~/.run/psd  # Remove runtime state
+psd clean          # Official cleanup command
+```
+
+```bash
+systemctl --user start psd
+```
+
+```bash
+systemctl --user status psd
+```
+
+```bash
+ls -ld ~/.mozilla/firefox/*.default-release
+```
+
+## this is what the result should look like to be certain it's working. 
+```bash
+ls -ld ~/.mozilla/firefox/*.default-release
+lrwxrwxrwx - dusk  5 Dec 23:56  /home/dusk/.mozilla/firefox/fz2fc1ss.default-release -> /run/user/1000/psd/dusk-firefox-fz2fc1ss.default-release
+```

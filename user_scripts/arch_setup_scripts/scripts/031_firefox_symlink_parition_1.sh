@@ -102,6 +102,10 @@ if [ -f "$OVERRIDE_SOURCE" ]; then
 
     # Fix ownership of the systemd config directory (since we are root)
     chown -R "$REAL_USER":"$REAL_GROUP" "$REAL_HOME/.config/systemd"
+
+    # Reload systemd user daemon (Must run as the real user)
+    echo -e "${YELLOW}:: Reloading systemd user daemon...${NC}"
+    sudo -u "$REAL_USER" systemctl --user daemon-reload
 else
     echo -e "${RED}Warning: PSD override source not found at $OVERRIDE_SOURCE${NC}"
     echo -e "${RED}Skipping systemd override installation.${NC}"
