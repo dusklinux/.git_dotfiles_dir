@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# Script: 032_fstab_append_asus_v2.sh
-# Description: Conditionally appends entries to /etc/fstab for ASUS TUF F15.
-#              - Identity Verification (Hardware + User)
+# Script: 032_fstab_append_asus_v3.sh
+# Description: Conditionally appends entries to /etc/fstab.
+#              - User Confirmation Driven (No strict hardware enforcement)
 #              - Atomic Write & Verify Strategy
 #              - Auto-Rollback on failure (Leaves no trace/backups on success)
 # Author: Elite DevOps (Arch/Hyprland)
@@ -14,8 +14,6 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 # CONFIGURATION AREA
 # -----------------------------------------------------------------------------
-# We use 'read' instead of 'mapfile' to safely store multiline content as a string.
-# '|| true' prevents exit on EOF (expected behavior for read without delimiter).
 IFS= read -r -d '' FSTAB_CONTENT <<'EOF' || true
 
 #XXXXXXXXXXXXXXXXXXXXXXXX--HARD DISKS BTRFS & NTFS--XXXXXXXXXXXXXXXXXXXXXXXXX
@@ -92,7 +90,7 @@ readonly TARGET_FILE="/etc/fstab"
 readonly MARKER_START="# === ARCH ORCHESTRA: DUSK PERSONAL MOUNTS [START] ==="
 readonly MARKER_END="# === ARCH ORCHESTRA: DUSK PERSONAL MOUNTS [END] ==="
 
-# 3. Aesthetics (Using ANSI-C quoting $'...' for proper escape sequences)
+# 3. Aesthetics
 readonly C_RESET=$'\033[0m'
 readonly C_GREEN=$'\033[1;32m'
 readonly C_BLUE=$'\033[1;34m'
@@ -100,56 +98,42 @@ readonly C_YELLOW=$'\033[1;33m'
 readonly C_RED=$'\033[1;31m'
 readonly C_BOLD=$'\033[1m'
 
-# Helper to print colored output safely
 log_info()    { printf "%s[INFO]%s %s\n" "$C_BLUE" "$C_RESET" "$1"; }
 log_success() { printf "%s[OK]%s %s\n" "$C_GREEN" "$C_RESET" "$1"; }
 log_warn()    { printf "%s[WARN]%s %s\n" "$C_YELLOW" "$C_RESET" "$1" >&2; }
 log_error()   { printf "%s[ERROR]%s %s\n" "$C_RED" "$C_RESET" "$1" >&2; }
 
-# 4. Root Privilege Check (Robust Pathing)
+# 4. Root Privilege Check
 if [[ $EUID -ne 0 ]]; then
     log_info "Root privileges required. Elevating..."
-    # 'readlink -f' ensures we find the script even if called via relative path
     script_path=$(readlink -f "$0")
     exec sudo "$script_path" "$@"
 fi
 
-# 5. Hardware & Identity Check
-check_device_identity() {
+# 5. User Identity Confirmation
+confirm_target_machine() {
     local sys_vendor="Unknown"
     local sys_product="Unknown"
 
-    # Use bash built-in reading (faster/cleaner than cat)
+    # Informational Hardware Check (Does not enforce logic)
     [[ -r /sys/class/dmi/id/sys_vendor ]] && sys_vendor=$(< /sys/class/dmi/id/sys_vendor)
     [[ -r /sys/class/dmi/id/product_name ]] && sys_product=$(< /sys/class/dmi/id/product_name)
 
-    # Clean whitespace
+    # Cleanup whitespace
     sys_vendor="${sys_vendor//[[:space:]]/}"
     sys_product="${sys_product//[[:space:]]/}"
 
     printf "\n"
-    # Using %b allows us to pass color codes inside the string argument
-    printf "${C_BLUE}[INFO]${C_RESET} Detected Hardware: %b%s %s%b\n" "${C_BOLD}" "$sys_vendor" "$sys_product" "${C_RESET}"
-
-    # Case-insensitive check for ASUS TUF
-    local is_asus_tuf=false
-    if [[ "${sys_vendor,,}" =~ asus ]] && [[ "${sys_product,,}" =~ tuf|f15|fx50 ]]; then
-        is_asus_tuf=true
-    fi
-
-    if $is_asus_tuf; then
-        log_success "Hardware matches ASUS TUF profile."
-    else
-        log_warn "Hardware DOES NOT match standard ASUS TUF F15 profile."
-    fi
-
-    # Explicit User Confirmation (Forces read from TTY)
-    printf "\n"
-    log_warn "This script applies mounts for: ${C_BOLD}Dusk's Personal Laptop${C_RESET}"
+    log_info "System identifies as: ${C_BOLD}${sys_vendor} ${sys_product}${C_RESET}"
     
-    # Read specifically from /dev/tty to handle cases where script is piped
+    # Explicit User Question
+    printf "\n"
+    log_warn "This script is configured for: ${C_BOLD}Dusk's Personal ASUS Laptop${C_RESET}"
+    log_warn "It will modify /etc/fstab."
+    
+    # Force read from TTY to handle piping
     local response
-    if ! read -r -p "Are you sure you want to modify fstab? [y/N] " response < /dev/tty; then
+    if ! read -r -p "Is this the correct target machine? [y/N] " response < /dev/tty; then
          log_error "Could not read user input."
          exit 1
     fi
@@ -162,7 +146,7 @@ check_device_identity() {
 
 # 6. Main Logic
 main() {
-    check_device_identity
+    confirm_target_machine
 
     # A. Pre-flight Checks
     if [[ ! -f "$TARGET_FILE" ]]; then
@@ -170,28 +154,25 @@ main() {
         exit 1
     fi
 
-    # Check if FSTAB_CONTENT is empty (stripping whitespace)
     if [[ -z "${FSTAB_CONTENT//[[:space:]]/}" ]]; then
-        log_warn "No content provided. Nothing to append."
+        log_warn "No content provided in script configuration. Nothing to append."
         exit 0
     fi
 
     # Idempotency: Check if markers exist
     if grep -Fq "$MARKER_START" "$TARGET_FILE"; then
-        log_success "Custom mounts already detected. Skipping."
+        log_success "Custom mounts already present in fstab. Skipping."
         exit 0
     fi
 
-    # B. Ephemeral Backup Strategy (The Safety Net)
-    # We create a temp backup. If verification fails, we restore it.
-    # If verification succeeds, we delete it (Clean requirement).
+    # B. Ephemeral Backup Strategy
     local temp_backup
     temp_backup=$(mktemp)
     cp "$TARGET_FILE" "$temp_backup"
     
     log_info "Applying changes..."
 
-    # Ensure newline at end of file before appending
+    # Ensure newline at end of file
     if [[ -s "$TARGET_FILE" && -n "$(tail -c1 "$TARGET_FILE")" ]]; then
         printf "\n" >> "$TARGET_FILE"
     fi
@@ -209,7 +190,7 @@ main() {
     if mount --fake --all --verbose >/dev/null 2>&1; then
         log_success "Syntax check passed."
         
-        # CLEANUP: Remove the backup file as requested (Clean execution)
+        # SUCCESS: Remove the temp backup (Clean execution)
         rm -f "$temp_backup"
         
         log_info "Reloading systemd..."
@@ -218,7 +199,7 @@ main() {
     else
         log_error "SYNTAX CHECK FAILED. Rolling back changes..."
         
-        # ROLLBACK: Restore from temp backup
+        # FAILURE: Restore from temp backup
         cat "$temp_backup" > "$TARGET_FILE"
         rm -f "$temp_backup"
         
