@@ -22,6 +22,9 @@ is_ssd() {
 }
 
 # --- Main Logic ---
+# >> SAFETY: Unmount everything to ensure a clean slate before starting
+umount -R /mnt 2>/dev/null || true
+
 clear
 echo -e "${C_BOLD}=== DISK SETUP ===${C_RESET}"
 # --- ADDED MESSAGE START ---
