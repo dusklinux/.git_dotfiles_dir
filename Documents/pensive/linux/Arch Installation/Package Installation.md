@@ -109,7 +109,7 @@ pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza 
 _Build tools, languages, and image previewers for Neovim/Yazi._
 
 ```
-pacman -S --needed neovim git git-delta meson cmake clang python-pipx uv rq jq bc luarocks viu chafa ueberzugpp ccache nodejs npm python-pynvim mold
+pacman -S --needed neovim git git-delta meson cmake clang python-pipx uv rq jq bc luarocks viu chafa ueberzugpp ccache nodejs npm python-pynvim mold lua-language-server shellcheck
 ```
 
 Installing using npm
@@ -139,7 +139,7 @@ pacman -S --needed ffmpeg mpv mpv-mpris swappy swayimg imagemagick libheif obs-s
 _Power management, system stats, logs, and security keyrings._
 
 ```
-pacman -S --needed btop htop nvtop inxi sysstat sysbench logrotate acpid tlp tlp-rdw thermald powertop ncdu gdu iotop iftop lshw wev pacman-contrib gnome-keyring libsecret seahorse yad dysk fwupd
+pacman -S --needed btop htop nvtop inxi sysstat sysbench logrotate acpid tlp tlp-rdw thermald powertop ncdu gdu iotop iftop lshw wev pacman-contrib gnome-keyring libsecret seahorse yad dysk fwupd caligula
 ```
 
 - [ ] Status

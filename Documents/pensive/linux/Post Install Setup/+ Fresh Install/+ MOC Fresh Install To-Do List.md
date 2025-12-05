@@ -339,6 +339,10 @@ sometimes you need to run this to reinstall the LSP inside neovim, run this comm
 :MasonInstall lua-language-server --force
 ```
 
+you can check if lsp is working by entering this command in each file and checking if ther's anything under the `Active Clients` section 
+```ini
+:LspInfo
+```
 
 >[!tip]- These are all the installed ones it should show you after you're done. 
 > ```ini

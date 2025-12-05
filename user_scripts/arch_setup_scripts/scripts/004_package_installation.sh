@@ -47,7 +47,7 @@ pkgs_terminal=(
 
 # Group 9: Development
 pkgs_dev=(
-"neovim" "git" "git-delta" "meson" "cmake" "clang" "python-pipx" "uv" "rq" "jq" "bc" "luarocks" "viu" "chafa" "ueberzugpp" "ccache" "nodejs" "npm" "python-pynvim" "mold"
+"neovim" "git" "git-delta" "meson" "cmake" "clang" "python-pipx" "uv" "rq" "jq" "bc" "luarocks" "viu" "chafa" "ueberzugpp" "ccache" "nodejs" "npm" "python-pynvim" "mold" "shellcheck" "lua-language-serve"
 )
 
 # Group 10: Multimedia
@@ -57,7 +57,7 @@ pkgs_multimedia=(
 
 # Group 11: Sys Admin
 pkgs_sysadmin=(
-"btop" "htop" "nvtop" "inxi" "sysstat" "sysbench" "logrotate" "acpid" "tlp" "tlp-rdw" "thermald" "powertop" "ncdu" "gdu" "iotop" "iftop" "lshw" "wev" "pacman-contrib" "gnome-keyring" "libsecret" "seahorse" "yad" "dysk" "fwupd"
+"btop" "htop" "nvtop" "inxi" "sysstat" "sysbench" "logrotate" "acpid" "tlp" "tlp-rdw" "thermald" "powertop" "ncdu" "gdu" "iotop" "iftop" "lshw" "wev" "pacman-contrib" "gnome-keyring" "libsecret" "seahorse" "yad" "dysk" "fwupd" "caligula"
 )
 
 # Group 12: Gnome Utilities

@@ -86,6 +86,8 @@ readonly PACKAGES=(
   "pinta"
   "youtube-dl-gui-bin"
   "xdg-terminal-exec"
+  "sysmontask"
+  "edex-ui-bin"
 )
 
 # Only wait this long if an error occurs and intervention is requested.
