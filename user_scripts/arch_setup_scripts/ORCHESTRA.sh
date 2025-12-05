@@ -79,8 +79,8 @@ set -o pipefail
 # 2. Hardcoded Paths
 # We use curly braces ${HOME} to safely expand the variable.
 readonly SCRIPT_DIR="${HOME}/user_scripts/arch_setup_scripts/scripts"
-readonly STATE_FILE="${SCRIPT_DIR}/.install_state"
-readonly LOG_FILE="${SCRIPT_DIR}/install_$(date +%Y%m%d_%H%M%S).log"
+readonly STATE_FILE="${HOME}/Documents/.install_state"
+readonly LOG_FILE="${HOME}/Documents/install_$(date +%Y%m%d_%H%M%S).log"
 
 # Global Variables
 declare -g SUDO_PID=""
@@ -110,7 +110,11 @@ setup_logging() {
 
     touch "$LOG_FILE"
     exec 3>&1 4>&2
-    exec > >(tee -a "$LOG_FILE") 2>&1
+    
+    # FIX APPLIED: We redirect output to tee. 
+    # tee prints to STDOUT (screen) keeping colors.
+    # tee pipes to sed (file) stripping colors (ANSI sequences) so the log is clean.
+    exec > >(tee >(sed 's/\x1B\[[0-9;]*[a-zA-Z]//g; s/\x1B(B//g' >> "$LOG_FILE")) 2>&1
     
     echo "--- Installation Started: $(date '+%Y-%m-%d %H:%M:%S') ---"
     echo "--- Log File: $LOG_FILE ---"
