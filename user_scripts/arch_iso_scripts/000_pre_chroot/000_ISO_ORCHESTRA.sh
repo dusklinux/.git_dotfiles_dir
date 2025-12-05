@@ -11,7 +11,8 @@ INSTALL_SEQUENCE=(
   "003_mirrorlist.sh"
   "004_console_fix.sh"
   "005_pacstrap.sh"
-  "006_fstab.sh"
+  "006_script_directories_population_in_chroot.sh"
+  "007_fstab.sh"
 )
 
 # --- SETUP ---
@@ -47,6 +48,7 @@ execute_script() {
     # We allow scripts to take over stdin/stdout for user interaction
     if ./$script_name; then
         log OK "Module complete: $script_name"
+        sleep 1 # Pause for 1s to allow user verification of success
     else
         log ERR "Module failed: $script_name"
         read -r -p "Abort? [Y/n] " choice

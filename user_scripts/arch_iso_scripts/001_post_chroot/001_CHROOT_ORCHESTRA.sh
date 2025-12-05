@@ -8,7 +8,7 @@
 # --- 1. CONFIGURATION: EDIT THIS LIST ---
 # The script will look for these files in the SAME directory as this master script.
 INSTALL_SEQUENCE=(
-    "002_etc_skel_gitdeploy.sh"
+    "002_etc_skel.sh"
     "003_post_chroot.sh"
     "004_chroot_package_installer.sh"
     "005_mkinitcpio_generation.sh"
@@ -96,8 +96,24 @@ main() {
     echo -e "\n${B}${HL}=== ARCH CHROOT ORCHESTRATOR ===${RS}\n"
     log INFO "Working Directory: $(pwd)"
     
-    for script in "${INSTALL_SEQUENCE[@]}"; do
-        execute_script "$script"
+    # Get total count of scripts
+    local count="${#INSTALL_SEQUENCE[@]}"
+
+    # Iterate using index to allow look-ahead
+    for (( i=0; i<count; i++ )); do
+        local current="${INSTALL_SEQUENCE[i]}"
+        
+        # Run the current script
+        execute_script "$current"
+
+        # If this is NOT the last script, announce the next one and sleep
+        if (( i < count - 1 )); then
+            local next="${INSTALL_SEQUENCE[i+1]}"
+            echo "" # spacer for readability
+            log INFO "Next up: ${HL}$next${RS}"
+            log INFO "Pausing 1s for review..."
+            sleep 1
+        fi
     done
 
     echo -e "\n${G}${HL}=== ORCHESTRATION COMPLETE ===${RS}"
