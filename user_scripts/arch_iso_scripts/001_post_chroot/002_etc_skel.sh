@@ -43,13 +43,13 @@ die()         { log_error "$*"; exit 1; }
 
 declare -a COPY_TASKS=(
     # 1. Deployment Script (Script -> Executable)
-    "/root/deploy_dotfiles.sh :: /etc/skel/deploy_dotfiles.sh"
+    "deploy_dotfiles.sh :: /etc/skel/deploy_dotfiles.sh"
 
     # 2. Zsh Config (Config -> Not Executable)
-    "/root/dusk/.zshrc :: /etc/skel/.zshrc"
+    "dusk/.zshrc :: /etc/skel/.zshrc"
 
     # 3. User Scripts Directory (Directory contents)
-    # "/root/dusk/user_scripts/ :: /etc/skel/Documents/user_scripts"
+    # "dusk/user_scripts/ :: /etc/skel/Documents/user_scripts"
 )
 
 # Files matching these patterns will be forced to be executable (755)
