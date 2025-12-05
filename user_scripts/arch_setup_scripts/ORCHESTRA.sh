@@ -66,6 +66,7 @@ INSTALL_SEQUENCE=(
     "U | 053_new_github_repo_to_backup.sh"
     "U | 054_reconnect_and_push_new_changes_to_github.sh"
     "S | 055_grub_optimization.sh"
+    "U | 056_cache_purge.sh"
 )
 
 # ==============================================================================
