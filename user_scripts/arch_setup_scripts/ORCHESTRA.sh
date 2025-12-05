@@ -40,7 +40,7 @@ INSTALL_SEQUENCE=(
     "U | 027_animation_symlink.sh"
     "S | 028_udev_usb_notify.sh"
     "U | 029_terminal_default.sh"
-    "S | 030_hosts_files_block.sh"
+    "S | 030_dusk_fstab.sh"
     "S | 031_firefox_symlink_parition.sh"
     "S | 032_tlp_config.sh"
     "S | 033_zram_configuration.sh"
@@ -67,6 +67,7 @@ INSTALL_SEQUENCE=(
     "U | 054_reconnect_and_push_new_changes_to_github.sh"
     "S | 055_grub_optimization.sh"
     "U | 056_cache_purge.sh"
+    "S | 057_hosts_files_block.sh"
 )
 
 # ==============================================================================

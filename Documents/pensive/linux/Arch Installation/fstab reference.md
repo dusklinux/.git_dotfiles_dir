@@ -1,28 +1,12 @@
 # New
 
 ```ini
-# Static information about the filesystems.
-# See fstab(5) for details.
-
-# <file system> <dir> <type> <options> <dump> <pass>
-# /dev/nvme1n1p5
-UUID=90b57ac7-215e-49c0-8874-a82263b09e76	/         	btrfs     	rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@	0 0
-
-# /dev/nvme1n1p5
-UUID=90b57ac7-215e-49c0-8874-a82263b09e76	/home     	btrfs     	rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@home	0 0
-
-# /dev/nvme1n1p4
-UUID=6940-A81A      	/boot     	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
-
-
-
 
 #XXXXXXXXXXXXXXXXXXXXXXXX--HARD DISKS BTRFS & NTFS--XXXXXXXXXXXXXXXXXXXXXXXXX
 
 #External Machanacial Hard Disk - BTRFS (WD Passport)
 
 #UUID=bb5a5a44-4b30-4db2-822f-ceab3171ee51	/mnt/fast	btrfs		defaults,discard=async,comment=x-gvfs-show,compress=zstd:3,noatime,space_cache=v2,nofail,noauto,autodefrag,subvol=/	0 0
-
 
 #External Machanacial Hard Disk - NTFS (WD Passport)
 
@@ -44,14 +28,9 @@ UUID=5A921A119219F26D	/mnt/slow	ntfs3	defaults,noatime,nofail,noauto,comment=x-g
 UUID=46798d3b-cda7-4031-818f-37a06abbeb37	/mnt/wdfast	btrfs		defaults,discard=async,comment=x-gvfs-show,compress=zstd:3,noatime,space_cache=v2,nofail,noauto,autodefrag,subvol=/	0 0
 
 
-
-
 #External Machanacial Hard Disk - btrfs (OLD WD BOOK)
 
 UUID=2765359f-232e-4165-bc69-ef402b50c74c	/mnt/wdslow	btrfs		defaults,discard=async,comment=x-gvfs-show,compress=zstd:3,noatime,space_cache=v2,nofail,noauto,autodefrag,subvol=/	0 0
-
-
-
 
 
 #External Machanacial Hard Disk - NTFS (Enclosure)
@@ -69,12 +48,9 @@ UUID=5A428B8A428B6A19	/mnt/enclosure	ntfs3	defaults,noatime,nofail,noauto,commen
 UUID=848A215E8A214E4C	/mnt/windows	ntfs3	defaults,noatime,uid=1000,gid=1000,umask=002,windows_names,noauto,nofail,comment=x-gvfs-show 0 0
 
 
-
 #SSD BTRFS with Copy_on_Write Disabled which also disabled Compression (Browser)
 
 UUID=9cab0013-8640-483a-b3f0-4587cfedb694	/mnt/browser	btrfs		defaults,nodatacow,ssd,discard=async,comment=x-gvfs-show,noatime,space_cache=v2,nofail,noauto,subvol=/	0 0
-
-
 
 
 #SSD NTFS (Media)
@@ -85,14 +61,9 @@ UUID=9C38076638073F30	/mnt/media	ntfs3	defaults,noatime,uid=1000,gid=1000,umask=
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 
-
-
 #Disk Swap
 
 #UUID=6087d4bf-bd82-4c40-9197-3f5450b72241	none	swap	defaults 0 0
-
-
-
 
 #Ramdisk (don't use this, use zram1 instead)
 
