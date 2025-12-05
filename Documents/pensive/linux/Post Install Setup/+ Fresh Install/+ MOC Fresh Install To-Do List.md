@@ -72,7 +72,7 @@ echo 60 | sudo tee /sys/class/power_supply/BAT1/charge_control_end_threshold
 - [ ] **Enable UserSession Services**. 
 
 ```bash
-systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service hypridle.service hyprpolkitagent.service fumon.service gnome-keyring-daemon.service gnome-keyring-daemon.socket hyprsunset
+systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service hypridle.service hyprpolkitagent.service fumon.service gnome-keyring-daemon.service gnome-keyring-daemon.socket hyprsunset psd
 ```
 
 ---
@@ -291,7 +291,7 @@ hyprpm enable hyprexpo
 - [ ] **Enable Aur packages' services** [[AUR Package services]]
 
 ```bash
-sudo systemctl enable --now fwupd.service warp-svc.service asusd.service 
+sudo systemctl enable --now fwupd.service warp-svc.service asusd.service preload
 ```
 
 ---
@@ -719,6 +719,11 @@ This command links the `.mozilla` folder from an external drive mounted at `/mnt
 ```bash
 sudo ln -nfs /mnt/browser/.mozilla ~/.mozilla
 ```
+
+---
+
+- [ ] **Firefox cache to ram** with profile-sync-daemon. 
+-already configured but never hurts to take a look. 
 
 ---
 

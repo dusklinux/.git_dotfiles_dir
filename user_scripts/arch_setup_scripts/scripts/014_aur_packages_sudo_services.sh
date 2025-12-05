@@ -16,6 +16,7 @@ set -euo pipefail
 readonly TARGET_SERVICES=(
   "fwupd.service"
   "warp-svc.service"
+  "preload"
   "asusd.service"
   # Add more services below:
   # "bluetooth.service"

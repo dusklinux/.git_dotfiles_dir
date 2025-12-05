@@ -87,6 +87,7 @@ readonly PACKAGES=(
   "youtube-dl-gui-bin"
   "xdg-terminal-exec"
   "sysmontask"
+  "preload"
   "edex-ui-bin"
 )
 

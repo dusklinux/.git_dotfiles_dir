@@ -10,6 +10,7 @@
 .config/mpv/mpv.conf
 .config/nvim/
 .config/pacman/makepkg.conf
+.config/psd/psd.conf
 .config/pacseek/
 .config/swaync/
 .config/swayosd/

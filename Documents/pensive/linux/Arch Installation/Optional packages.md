@@ -176,10 +176,10 @@ sudo pacman -Syyu --needed libreoffice-fresh
 packages to add to existing que. 
 pacman
 ```bash
-caligula lua-language-server shellcheck
+
 ```
 
 paru 
 ```bash
-sysmontask edex-ui-bin
+preload
 ```
