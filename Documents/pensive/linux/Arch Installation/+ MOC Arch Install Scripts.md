@@ -62,3 +62,16 @@ and the just run the 001_CHROOT_ORCHESTRA.sh script and nothing else. this scrip
 ```bash
 ./001_CHROOT_ORCHESTRA.sh
 ```
+
+after the scrpts finish . 
+
+boot into the os . login> and run 
+```bash
+./deploy_dotfiles.sh
+```
+
+then run , and follow the on screen instructions. it's just yes or no questions. 
+```bash
+./user_scripts/arch_setup_scripts/ORCHESTRA.sh
+```
+

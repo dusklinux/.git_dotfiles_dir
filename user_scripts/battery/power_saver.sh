@@ -70,7 +70,8 @@ check_dependencies() {
     fi
 
     local -a missing=()
-    local -a recommended=(uwsm-app brightnessctl hyprctl pamixer rfkill tlp)
+    # Replaced pamixer with wpctl in recommended list
+    local -a recommended=(uwsm-app brightnessctl hyprctl wpctl rfkill tlp)
 
     for cmd in "${recommended[@]}"; do
         has_cmd "$cmd" || missing+=("$cmd")
@@ -166,7 +167,6 @@ main() {
     log_step "Resource monitors killed & media paused."
 
     # Warp Cleanup
-    # FIX: Use sh -c directly instead of the function `run_quiet` inside spin_exec
     if has_cmd warp-cli; then
         spin_exec "Disconnecting Warp..." \
              sh -c "warp-cli disconnect >/dev/null 2>&1 || true"
@@ -251,15 +251,16 @@ main() {
             fi
         fi
 
-        # --- Volume Cap ---
-        if has_cmd pamixer; then
+        # --- Volume Cap (Using wpctl/WirePlumber) ---
+        if has_cmd wpctl; then
             local current_vol
-            current_vol=$(pamixer --get-volume 2>/dev/null) || current_vol=""
+            # Get volume from wpctl (returns float like 0.60), convert to integer (60)
+            current_vol=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2 * 100)}') || current_vol=""
 
             if is_numeric "$current_vol"; then
                 if ((current_vol > VOLUME_CAP)); then
                     spin_exec "Volume ${current_vol}% → ${VOLUME_CAP}%..." \
-                        pamixer --set-volume "$VOLUME_CAP"
+                        wpctl set-volume @DEFAULT_AUDIO_SINK@ "${VOLUME_CAP}%"
                     log_step "Volume capped at ${VOLUME_CAP}%."
                 else
                     log_step "Volume at ${current_vol}%. No change needed."
@@ -268,7 +269,7 @@ main() {
                 log_warn "Could not read volume level."
             fi
         else
-            log_warn "pamixer not found. Skipping volume cap."
+            log_warn "wpctl not found. Skipping volume cap."
         fi
 
         # --- TLP Power Saver ---
