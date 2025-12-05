@@ -1,145 +1,203 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
 # Script: configure_skel.sh
-# Description: Stages multiple dotfiles/directories into /etc/skel.
+# Description: Stages dotfiles into /etc/skel with smart permissions.
 # Context: Arch Linux ISO (Chroot Environment)
 # -----------------------------------------------------------------------------
 
-# Strict Mode
+# =============================================================================
+# STRICT MODE & SETTINGS
+# =============================================================================
 set -euo pipefail
-shopt -s inherit_errexit 2>/dev/null || true
+# inherit_errexit: Ensures subshells inherit -e
+# nullglob: glob patterns that match nothing expand to nothing
+shopt -s inherit_errexit nullglob 2>/dev/null || true
 
-# -----------------------------------------------------------------------------
-# Visuals
-# -----------------------------------------------------------------------------
-declare -r BLUE=$'\033[0;34m'
-declare -r GREEN=$'\033[0;32m'
-declare -r RED=$'\033[0;31m'
-declare -r YELLOW=$'\033[0;33m'
-declare -r NC=$'\033[0m'
-
-# -----------------------------------------------------------------------------
-# Critical Pre-Flight Check (Unchanged)
-# -----------------------------------------------------------------------------
-printf "\n${RED}[CRITICAL CHECK]${NC} Verify Environment:\n"
-printf "Have you switched to the chroot environment by running: ${BLUE}arch-chroot /mnt${NC} ?\n"
-read -r -p "Type 'yes' to proceed, or anything else to exit: " user_conf
-
-if [[ "${user_conf,,}" != "yes" ]]; then
-    printf "\n${RED}[ABORTING]${NC} You must be inside the chroot environment to run this script.\n"
-    printf "Please run the following command first:\n"
-    printf "\n    ${BLUE}arch-chroot /mnt${NC}\n\n"
-    exit 1
+# =============================================================================
+# VISUALS & LOGGING
+# =============================================================================
+# Only use colors if connected to a terminal
+if [[ -t 1 ]]; then
+    declare -r BLUE=$'\033[0;34m'
+    declare -r GREEN=$'\033[0;32m'
+    declare -r RED=$'\033[0;31m'
+    declare -r YELLOW=$'\033[0;33m'
+    declare -r BOLD=$'\033[1m'
+    declare -r NC=$'\033[0m'
+else
+    declare -r BLUE="" GREEN="" RED="" YELLOW="" BOLD="" NC=""
 fi
 
-# -----------------------------------------------------------------------------
-# Configuration Section
-# -----------------------------------------------------------------------------
-# INSTRUCTIONS:
-# 1. Add entries to the array below.
-# 2. Format: "SOURCE_PATH :: DESTINATION_PATH"
-# 3. Use absolute paths. (Inside chroot, ~ usually creates path relative to /root)
-# 4. If copying a directory contents, ensure source ends with /
-# -----------------------------------------------------------------------------
+log_info()    { printf "%s[INFO]%s %s\n" "$BLUE" "$NC" "$*"; }
+log_warn()    { printf "%s[WARN]%s %s\n" "$YELLOW" "$NC" "$*" >&2; }
+log_success() { printf "%s[SUCCESS]%s %s\n" "$GREEN" "$NC" "$*"; }
+log_error()   { printf "%s[ERROR]%s %s\n" "$RED" "$NC" "$*" >&2; }
+die()         { log_error "$*"; exit 1; }
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+# Format: "SOURCE :: DESTINATION"
+# Note: Destinations must be explicit filenames or full directory paths.
+#       The script uses 'cp -T' so it will NOT auto-nest directories.
 
 declare -a COPY_TASKS=(
-    # Example 1: Copy a single file
-    #"/root/deploy_dotfiles.sh :: /etc/skel/deploy_dotfiles.sh"
-    
-    # Example 2: Copy .zshrc to the root of skel
-    # (Assuming source is at /root/dusk/.zshrc inside chroot)
-    #"/root/dusk/.zshrc :: /etc/skel/.zshrc"
-    
-    # Example 3: Copy a directory and its contents
-    # This copies 'user_scripts' folder INTO 'Documents'
-    #"/root/dusk/user_scripts/ :: /etc/skel/Documents/user_scripts"
-    
-    # -----------------------------------------------------------
-    # Add as many files/direcotires as you want, right below here.
-    #
-    # With the -T flag, you must be explicit in your configuration array.
-    # You cannot point to a folder and expect the script to
-    # "drop the file inside." You must define the full destination filename/foldername.
-    # 
-    # also since this is from the chroot environment, the default starting directory is "/root"
-    # -----------------------------------------------------------
-    
-    #deploy_dotfiles.sh
+    # 1. Deployment Script (Script -> Executable)
     "/root/deploy_dotfiles.sh :: /etc/skel/deploy_dotfiles.sh"
 
-    #populate .zshrc
+    # 2. Zsh Config (Config -> Not Executable)
     "/root/dusk/.zshrc :: /etc/skel/.zshrc"
 
+    # 3. User Scripts Directory (Directory contents)
+    # "/root/dusk/user_scripts/ :: /etc/skel/Documents/user_scripts"
 )
 
-# -----------------------------------------------------------------------------
-# Logging Helpers
-# -----------------------------------------------------------------------------
-log_info()    { printf "${BLUE}[INFO]${NC} %s\n" "$*"; }
-log_warn()    { printf "${YELLOW}[WARN]${NC} %s\n" "$*"; }
-log_success() { printf "${GREEN}[SUCCESS]${NC} %s\n" "$*"; }
-log_error()   { printf "${RED}[ERROR]${NC} %s\n" "$*" >&2; exit 1; }
+# Files matching these patterns will be forced to be executable (755)
+declare -a EXEC_PATTERNS=("*.sh" "*.bash" "*.pl" "*.py" "deploy_*")
 
-# -----------------------------------------------------------------------------
-# Helper Functions
-# -----------------------------------------------------------------------------
+# =============================================================================
+# PRE-FLIGHT CHECKS
+# =============================================================================
+
+check_root() {
+    if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
+        die "This script must be run as root to modify /etc/skel."
+    fi
+}
+
+preflight_confirmation() {
+    printf "\n%s[CRITICAL CHECK]%s Verify Environment:\n" "$RED" "$NC"
+    printf "Have you switched to the chroot environment by running: %sarch-chroot /mnt%s ?\n" "$BLUE" "$NC"
+    
+    local user_conf
+    read -r -p "Type 'yes' to proceed, or anything else to exit: " user_conf
+
+    if [[ "${user_conf,,}" != "yes" ]]; then
+        printf "\n%s[ABORTING]%s You must be inside the chroot environment.\n" "$RED" "$NC"
+        printf "Please run:\n    %sarch-chroot /mnt%s\n\n" "$BLUE" "$NC"
+        exit 1
+    fi
+}
+
+# =============================================================================
+# CORE FUNCTIONS
+# =============================================================================
+
+# Trims whitespace from start/end of a string
+trim() {
+    local s="$1"
+    s="${s#"${s%%[![:space:]]*}"}" # trim leading
+    s="${s%"${s##*[![:space:]]}"}" # trim trailing
+    printf '%s' "$s"
+}
+
+# Applies 755 to dirs/scripts, 644 to files
+smart_permissions() {
+    local target="$1"
+    
+    # 1. Set Ownership to root
+    chown -R root:root -- "$target"
+
+    if [[ -d "$target" ]]; then
+        # It's a directory
+        # Set all directories to 755 (rwx-rx-rx)
+        find "$target" -type d -exec chmod 755 {} +
+        # Set all files to 644 (rw-r--r--) initially
+        find "$target" -type f -exec chmod 644 {} +
+        
+        # Make specific patterns executable
+        for pat in "${EXEC_PATTERNS[@]}"; do
+            find "$target" -type f -name "$pat" -exec chmod 755 {} + 2>/dev/null || true
+        done
+    else
+        # It's a file
+        local basename="${target##*/}"
+        local is_exec=0
+        
+        # Check against patterns
+        for pat in "${EXEC_PATTERNS[@]}"; do
+            # shellcheck disable=SC2053
+            if [[ "$basename" == $pat ]]; then
+                is_exec=1
+                break
+            fi
+        done
+
+        if [[ $is_exec -eq 1 ]]; then
+            chmod 755 -- "$target"
+        else
+            chmod 644 -- "$target"
+        fi
+    fi
+}
+
 deploy_item() {
     local source_path="$1"
     local dest_path="$2"
 
-    # 1. Validate Source
-    if [[ ! -e "$source_path" ]]; then
-        log_warn "Source not found, skipping: $source_path"
+    # Safety: Ensure destination is actually inside /etc/skel or /root (optional)
+    # This prevents accidents like writing to /etc/passwd if config is wrong
+    if [[ "$dest_path" != /etc/skel* ]]; then
+        log_warn "Destination '$dest_path' is not inside /etc/skel. Skipping for safety."
         return
     fi
 
-    # 2. Prepare Destination Parent Directory
-    # We strip the filename/dirname from the dest path to find the parent
+    if [[ ! -e "$source_path" ]]; then
+        log_warn "Source not found: $source_path"
+        return
+    fi
+
+    # Create parent dir
     local dest_parent
     dest_parent=$(dirname "$dest_path")
-
     if [[ ! -d "$dest_parent" ]]; then
-        log_info "Creating parent directory: $dest_parent"
         mkdir -p -- "$dest_parent"
     fi
 
-    # 3. Execution
     log_info "Copying: $source_path -> $dest_path"
-    
-    # cp -r: recursive (for dirs), -f: force
-    cp -rfT -- "$source_path" "$dest_path"
 
-    # 4. Permissions & Ownership
-    # Ensure root owns the files in /etc/skel
-    chown -R root:root -- "$dest_path"
-    
-    # Set standard permissions (Directories 755, Files read/exec as needed)
-    # If it's a script/executable, we usually want 755. 
-    # If it's a config file, 644 is safer, but 755 covers both for skeleton purposes.
-    chmod -R 755 -- "$dest_path"
+    # cp flags:
+    # -r: recursive
+    # -f: force
+    # -P: no-dereference (preserve symlinks as links)
+    # -T: no-target-directory (treat dest as a file/exact dir, not a container)
+    cp -rfPT -- "$source_path" "$dest_path"
+
+    # Apply smart permissions
+    smart_permissions "$dest_path"
 }
 
-# -----------------------------------------------------------------------------
-# Main Execution
-# -----------------------------------------------------------------------------
-log_info "Starting Skeleton Configuration..."
+# =============================================================================
+# MAIN EXECUTION
+# =============================================================================
 
-for task in "${COPY_TASKS[@]}"; do
-    # Split the string by the delimiter ' :: '
-    # We use parameter expansion to separate source and dest
-    local src="${task%% :: *}"
-    local dest="${task##* :: }"
+main() {
+    check_root
+    preflight_confirmation
 
-    # Trim leading/trailing whitespace just in case
-    src="${src#"${src%%[![:space:]]*}"}"
-    src="${src%"${src##*[![:space:]]}"}"
-    dest="${dest#"${dest%%[![:space:]]*}"}"
-    dest="${dest%"${dest##*[![:space:]]}"}"
+    # Ensure skel exists
+    if [[ ! -d "/etc/skel" ]]; then
+        mkdir -p /etc/skel
+    fi
 
-    deploy_item "$src" "$dest"
-done
+    log_info "Starting Skeleton Configuration..."
 
-# -----------------------------------------------------------------------------
-# Completion
-# -----------------------------------------------------------------------------
-log_success "Skeleton configuration complete."
+    for task in "${COPY_TASKS[@]}"; do
+        # 1. Split string by delimiter
+        local src="${task%% :: *}"
+        local dest="${task##* :: }"
+
+        # 2. Trim whitespace
+        src=$(trim "$src")
+        dest=$(trim "$dest")
+
+        # 3. Run
+        if [[ -n "$src" && -n "$dest" ]]; then
+            deploy_item "$src" "$dest"
+        fi
+    done
+
+    log_success "Skeleton configuration complete."
+}
+
+main "$@"

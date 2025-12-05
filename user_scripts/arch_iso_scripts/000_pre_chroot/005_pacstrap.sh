@@ -25,6 +25,7 @@ PACKAGES=(
 read -r -t 0.1 -n 10000 discard || true
 
 echo "Installing: ${PACKAGES[*]}"
-pacstrap -K /mnt "${PACKAGES[@]}"
+# Added --needed to prevent redownloading/reinstalling if already present
+pacstrap -K /mnt "${PACKAGES[@]}" --needed
 
 echo "Pacstrap complete."
