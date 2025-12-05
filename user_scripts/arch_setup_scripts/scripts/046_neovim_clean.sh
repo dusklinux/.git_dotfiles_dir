@@ -25,10 +25,12 @@ if [[ $EUID -eq 0 ]]; then
 fi
 
 # 4. Target Definition (Associative Array)
+# Added "Cache Directory" per user request
 declare -A TARGETS=(
     ["Lazy Lockfile"]="${HOME}/.config/nvim/lazy-lock.json"
     ["Data Directory"]="${HOME}/.local/share/nvim"
     ["State Directory"]="${HOME}/.local/state/nvim"
+    ["Cache Directory"]="${HOME}/.cache/nvim"
 )
 
 # 5. Execution Loop

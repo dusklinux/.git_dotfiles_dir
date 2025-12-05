@@ -55,16 +55,17 @@ INSTALL_SEQUENCE=(
     "S | 042_ftp_arch.sh"
     "U | 043_tldr_update.sh"
     "U | 044_spotify.sh"
-    "U | 045_neovim_clean.sh"
-    "U | 046_mouse_button_reverse.sh"
+    "U | 045_mouse_button_reverse.sh"
+    "U | 046_neovim_clean.sh"
     "S | 047_node_neovim_npm.sh"
-    "S | 048_grub_optimization.sh"
+    "U | 048_neovim_instructions.sh"
     "S | 049_tty_autologin.sh"
     "S | 050_system_services.sh"
     "S | 051_initramfs_optimization.sh"
     "U | 052_git_config.sh"
     "U | 053_new_github_repo_to_backup.sh"
     "U | 054_reconnect_and_push_new_changes_to_github.sh"
+    "S | 055_grub_optimization.sh"
 )
 
 # ==============================================================================
