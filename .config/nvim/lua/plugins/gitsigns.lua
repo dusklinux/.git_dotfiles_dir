@@ -15,8 +15,7 @@ return {
 		linehl = false,
 
 		-- 2. Behavior Settings
-		-- OPTIMIZATION: Set to false to respect the global 'signcolumn="yes"' in options.lua
-		signcolumn = false,
+		signcolumn = true,
 
 		-- Critical for dotfiles: show the "new file" bar for untracked files
 		attach_to_untracked = true,

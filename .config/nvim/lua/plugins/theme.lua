@@ -1,3 +1,4 @@
+-- lua/plugins/theme.lua
 return {
   {
     "echasnovski/mini.base16",
@@ -7,6 +8,15 @@ return {
       -- Define the path to your Matugen output
       local matugen_path = os.getenv("HOME") .. "/.config/matugen/generated/neovim-colors.lua"
 
+      -- SAFEGUARD: A default palette to prevent crashes if Matugen hasn't run yet.
+      -- This ensures vim.g.base16_guiXX globals exist for Lualine/Noice.
+      local default_colors = {
+        base00 = "#1e1e2e", base01 = "#181825", base02 = "#313244", base03 = "#45475a",
+        base04 = "#585b70", base05 = "#cdd6f4", base06 = "#f5e0dc", base07 = "#b4befe",
+        base08 = "#f38ba8", base09 = "#fab387", base0A = "#f9e2af", base0B = "#a6e3a1",
+        base0C = "#94e2d5", base0D = "#89b4fa", base0E = "#cba6f7", base0F = "#f2cdcd"
+      }
+
       -- Function to safely source the theme
       local function load_theme()
         -- OPTIMIZATION: Use libuv (fast) to check file existence
@@ -14,12 +24,13 @@ return {
           local ok, err = pcall(dofile, matugen_path)
           if not ok then
             vim.notify("Matugen Load Error: " .. err, vim.log.levels.ERROR)
-            -- Fallback to prevent crash if matugen fails
-            require("mini.base16").setup() 
+            -- FIX: Use your wrapper to set globals, not raw mini.base16
+            require("base16-colorscheme").setup(default_colors)
           end
         else
-          vim.notify("Matugen colors not found. Generating defaults.", vim.log.levels.WARN)
-          require("mini.base16").setup()
+          vim.notify("Matugen colors not found. Using safe defaults.", vim.log.levels.WARN)
+          -- FIX: Use your wrapper to set globals, ensuring Lualine doesn't crash
+          require("base16-colorscheme").setup(default_colors)
         end
       end
 

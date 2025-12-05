@@ -5,7 +5,7 @@
 
 return {
 	"neovim/nvim-lspconfig",
-	event = { "BufReadPre", "BufNewFile" }, -- OPTIMIZATION: Load only when reading a file
+	event = { "BufReadPre", "BufNewFile" },
 	dependencies = {
 		"williamboman/mason.nvim",
 		"williamboman/mason-lspconfig.nvim",
@@ -23,23 +23,14 @@ return {
 			},
 		})
 
-		-- 2. Define servers
-		local servers = {
+		-- 2. Define capabilities ONCE
+		local capabilities = require("cmp_nvim_lsp").default_capabilities()
+
+		-- 3. Mason Managed Servers (Everything EXCEPT Lua)
+		-- We REMOVED lua_ls from here because Mason's version is broken on Arch.
+		local mason_servers = {
 			bashls = {},
 			pyright = {},
-			lua_ls = {
-				settings = {
-					Lua = {
-						diagnostics = { globals = { "vim" } },
-						workspace = {
-							library = {
-								[vim.fn.expand("$VIMRUNTIME/lua")] = true,
-								[vim.fn.stdpath("config") .. "/lua"] = true,
-							},
-						},
-					},
-				},
-			},
 			cssls = {},
 			html = {},
 			ts_ls = {}, 
@@ -48,26 +39,36 @@ return {
 			marksman = {},
 		}
 
-		-- 3. OPTIMIZATION: Define capabilities ONCE before the loop
-		local capabilities = require("cmp_nvim_lsp").default_capabilities()
-
-		-- 4. Ensure they are installed
+		-- 4. Setup Mason Handlers
 		require("mason-lspconfig").setup({
-			ensure_installed = vim.tbl_keys(servers),
+			ensure_installed = vim.tbl_keys(mason_servers),
 			handlers = {
 				function(server_name)
-					local server_config = servers[server_name] or {}
-
-					-- Merge the capabilities we defined above
-					server_config.capabilities =
-						vim.tbl_deep_extend("force", {}, capabilities, server_config.capabilities or {})
-
+					local server_config = mason_servers[server_name] or {}
+					server_config.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server_config.capabilities or {})
 					require("lspconfig")[server_name].setup(server_config)
 				end,
 			},
 		})
 
-		-- 5. Aesthetic Tweaks
+		-- 5. Manual Setup for System Lua LSP (The Arch Fix)
+		-- This uses the /usr/bin/lua-language-server installed via pacman
+		require("lspconfig").lua_ls.setup({
+			capabilities = capabilities,
+			settings = {
+				Lua = {
+					diagnostics = { globals = { "vim" } },
+					workspace = {
+						library = {
+							[vim.fn.expand("$VIMRUNTIME/lua")] = true,
+							[vim.fn.stdpath("config") .. "/lua"] = true,
+						},
+					},
+				},
+			},
+		})
+
+		-- 6. Aesthetic Tweaks
 		vim.diagnostic.config({
 			virtual_text = true,
 			underline = true,

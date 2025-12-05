@@ -176,7 +176,7 @@ sudo pacman -Syyu --needed libreoffice-fresh
 packages to add to existing que. 
 pacman
 ```bash
-caligula
+caligula lua-language-server shellcheck
 ```
 
 paru 

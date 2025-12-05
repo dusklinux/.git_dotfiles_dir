@@ -334,6 +334,12 @@ stylua
 black
 ```
 
+sometimes you need to run this to reinstall the LSP inside neovim, run this command if you exit code 127 notification error in nvim. 
+```bash
+:MasonInstall lua-language-server --force
+```
+
+
 >[!tip]- These are all the installed ones it should show you after you're done. 
 > ```ini
 >   Installed
