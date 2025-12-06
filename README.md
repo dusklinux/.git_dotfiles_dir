@@ -1,6 +1,6 @@
-Great News! the entire thing has been semi automated with scripts. you still need to enter a few commands but they are about 99% less in number than before. the commands you need to run are marely to clone the github repo and run the scripts.
+Great News! the entire thing has been semi automated with scripts. you still need to enter a few commands but they are about 99% less in number than before. the commands you need to run are merely to clone the github repo and run the scripts.
 
-These dotfiles are configured for intel with our without nvidia. but you can just as easily install it on amd, with a few minor changes to the 002_packages script. replace intel specific packages with amd.
+These dotfiles are configured for intel with or without nvidia. but you can just as easily install it on amd, with a few minor changes to the packages installer script `004_package_installation.sh` . replace intel specific packages with amd.
 If you have an amd gpu/cpu. you're going to have to research packages specific to your cpu/gpu. also make sure to include the microcode for amd.
 
 🌆 Dusk Linux Dotfiles
