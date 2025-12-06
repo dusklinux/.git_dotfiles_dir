@@ -121,9 +121,9 @@ nvim ~/.config/systemd/user/psd.service.d/override.conf
 
 ```ini
 [Unit]
-# This is the magic command.
-# It tells systemd: "Check if /mnt/browser is mounted. If not, WAIT."
-RequiresMountsFor=/mnt/browser
+# ONLY start if the actual profile folder is visible. 
+# (This confirms the drive is unlocked AND mounted).
+ConditionPathExists=/mnt/browser/.mozilla/firefox
 ```
 
 
@@ -163,8 +163,15 @@ systemctl --user status psd
 ls -ld ~/.mozilla/firefox/*.default-release
 ```
 
-## this is what the result should look like to be certain it's working. 
-```bash
-ls -ld ~/.mozilla/firefox/*.default-release
-lrwxrwxrwx - dusk  5 Dec 23:56  /home/dusk/.mozilla/firefox/fz2fc1ss.default-release -> /run/user/1000/psd/dusk-firefox-fz2fc1ss.default-release
-```
+
+> [!NOTE] ## this is what the result should look like to be certain it's working. 
+> ```bash
+> ls -ld ~/.mozilla/firefox/*.default-release
+> lrwxrwxrwx - dusk  5 Dec 23:56  /home/dusk/.mozilla/firefox/fz2fc1ss.default-release -> /run/user/1000/psd/dusk-firefox-fz2fc1ss.default-release
+> ```
+> 
+> We know this because of your `ls -ld` output: `drwx------ ... /home/dusk/.mozilla/firefox/fz2fc1ss.default-release`
+> 
+> - The `d` at the start means **Directory**. This means your profile is still sitting on your physical disk (accessed via your `/mnt` symlink).
+>     
+> - If it were in RAM, that `d` would be an `l` (**Link**), pointing to `/run/user/1000/psd/...`.

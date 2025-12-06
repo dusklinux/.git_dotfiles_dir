@@ -72,7 +72,7 @@ echo 60 | sudo tee /sys/class/power_supply/BAT1/charge_control_end_threshold
 - [ ] **Enable UserSession Services**. 
 
 ```bash
-systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service hypridle.service hyprpolkitagent.service fumon.service gnome-keyring-daemon.service gnome-keyring-daemon.socket hyprsunset psd
+systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service hypridle.service hyprpolkitagent.service fumon.service gnome-keyring-daemon.service gnome-keyring-daemon.socket hyprsunset
 ```
 
 ---
@@ -720,10 +720,20 @@ This command links the `.mozilla` folder from an external drive mounted at `/mnt
 sudo ln -nfs /mnt/browser/.mozilla ~/.mozilla
 ```
 
+
 ---
 
+**OPTIONAL**
+**DONT RUN THIS** if you've linked your browser to another partition (only do it if it's configured in a usually way, default. )
 - [ ] **Firefox cache to ram** with profile-sync-daemon. 
--already configured but never hurts to take a look. 
+
+```bash
+sudo pacman -S profile-sync-daemon
+```
+ 
+```bash
+systemctl --user enable psd.service
+```
 
 ---
 

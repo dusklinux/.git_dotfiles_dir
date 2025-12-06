@@ -57,7 +57,7 @@ pkgs_filesystem=(
 
 # Group 7: Network & Internet
 pkgs_network=(
-"networkmanager" "iwd" "nm-connection-editor" "inetutils" "wget" "curl" "openssh" "firewalld" "vsftpd" "reflector" "bmon" "ethtool" "httrack" "filezilla" "qbittorrent" "wavemon" "firefox" "profile-sync-daemon" "arch-wiki-lite" "arch-wiki-docs"
+"networkmanager" "iwd" "nm-connection-editor" "inetutils" "wget" "curl" "openssh" "firewalld" "vsftpd" "reflector" "bmon" "ethtool" "httrack" "filezilla" "qbittorrent" "wavemon" "firefox" "arch-wiki-lite" "arch-wiki-docs"
 )
 
 # Group 8: Terminal & Shell

@@ -45,7 +45,6 @@ services=(
     "fumon.service"
     "gnome-keyring-daemon.service"
     "gnome-keyring-daemon.socket"
-    "psd"
     "hyprsunset.service"
 )
 

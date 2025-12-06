@@ -86,28 +86,6 @@ ln -nfs /mnt/browser/.mozilla "$REAL_HOME/.mozilla"
 chown -h "$REAL_USER":"$REAL_GROUP" "$REAL_HOME/.mozilla"
 
 # ------------------------------------------------------------------------------
-# 6. Install PSD Systemd Override (Added)
-# ------------------------------------------------------------------------------
-OVERRIDE_SOURCE="$REAL_HOME/user_scripts/services/psd/override.conf"
-OVERRIDE_DEST_DIR="$REAL_HOME/.config/systemd/user/psd.service.d"
-
-if [ -f "$OVERRIDE_SOURCE" ]; then
-    echo -e "${YELLOW}:: Detecting PSD override file. Installing...${NC}"
-
-    # Create the directory structure if it doesn't exist
-    mkdir -p "$OVERRIDE_DEST_DIR"
-
-    # Link the override file
-    ln -nfs "$OVERRIDE_SOURCE" "$OVERRIDE_DEST_DIR/override.conf"
-
-    # Fix ownership of the systemd config directory (since we are root)
-    chown -R "$REAL_USER":"$REAL_GROUP" "$REAL_HOME/.config/systemd"
-else
-    echo -e "${RED}Warning: PSD override source not found at $OVERRIDE_SOURCE${NC}"
-    echo -e "${RED}Skipping systemd override installation.${NC}"
-fi
-
-# ------------------------------------------------------------------------------
 # Completion
 # ------------------------------------------------------------------------------
 echo -e "${GREEN}:: Firefox migration complete.${NC}"

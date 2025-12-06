@@ -181,5 +181,4 @@ pacman
 
 paru 
 ```bash
-preload
 ```
