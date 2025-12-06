@@ -3,7 +3,7 @@
 # Description: Optimizes Kernel VM parameters for ZRAM on Arch/Hyprland
 # Author:      DevOps Engineer (Arch/UWSM)
 # Standards:   Bash 5+, strict mode, no backups, clean logging
-# Logic:       Detects ZRAM -> Prompts -> Overwrites Config -> Reloads Sysctl
+# Logic:       Detects ZRAM -> Mode Menu -> Overwrites Config -> Reloads Sysctl
 # -----------------------------------------------------------------------------
 
 set -euo pipefail
@@ -46,15 +46,76 @@ fi
 
 log_success "Active ZRAM device detected."
 
-# --- 3. User Confirmation ---
-printf "${C_YELLOW}[?]${C_RESET} Optimize kernel parameters for high-performance ZRAM? (Higher RAM usage) [y/N]: "
-read -r -n 1 response
+# --- 3. Mode Selection & Parameter Definition ---
+
+# OPTION 1: Standard (Your original parameters)
+read -r -d '' CONF_STANDARD <<EOF || true
+vm.swappiness = 180
+vm.watermark_boost_factor = 0
+vm.watermark_scale_factor = 125
+vm.page-cluster = 0
+EOF
+
+# OPTION 2: Aggressive (High RAM/Performance)
+# TODO: EDIT THESE PARAMETERS AS NEEDED FOR YOUR SETUP
+read -r -d '' CONF_AGGRESSIVE <<EOF || true
+# --- ZRAM & SWAP BEHAVIOR ---
+# Aggressively swap anonymous memory to ZRAM to free up space for page cache
+vm.swappiness = 190
+# ZRAM is non-rotational; disable read-ahead
+vm.page-cluster = 0
+
+# --- FILESYSTEM CACHE (The "Snappy" Factor) ---
+# Retain dentry and inode caches strictly
+vm.vfs_cache_pressure = 10
+# Allow dirty data to stay in RAM for a bit, but flush in smooth streams
+vm.dirty_bytes = 1073741824
+vm.dirty_background_bytes = 268435456
+
+# --- MEMORY ALLOCATION & COMPACTION ---
+# Increase the reserve to prevent Direct Reclaim stutters
+vm.watermark_scale_factor = 300
+# Disable the boost factor as we have a static high scale factor
+vm.watermark_boost_factor = 0
+# Aggressively defragment memory for HugePages
+vm.compaction_proactiveness = 50
+# Reserve space for atomic operations (Network/DMA)
+vm.min_free_kbytes = 131072
+
+# --- APPLICATION COMPATIBILITY ---
+# Prevent "map allocation failed" errors in heavy games/apps
+vm.max_map_count = 2147483642
+EOF
+
+printf "${C_YELLOW}[?]${C_RESET} Select ZRAM Optimization Level:\n"
+printf "    1) Standard (Balanced for typical Arch desktop)\n"
+printf "    2) Aggressive (High Performance/High RAM utilization)\n"
+printf "    3) Cancel\n"
+printf "Choice [1/2/3]: "
+read -r -n 1 selection
 printf "\n"
 
-if [[ ! "$response" =~ ^[yY]$ ]]; then
-    log_info "Operation cancelled by user."
-    exit 0
-fi
+# Variable to hold the final config content
+selected_conf=""
+
+case "$selection" in
+    1)
+        log_info "Selected: Standard Optimization."
+        selected_conf="$CONF_STANDARD"
+        ;;
+    2)
+        log_info "Selected: Aggressive Optimization."
+        selected_conf="$CONF_AGGRESSIVE"
+        ;;
+    3)
+        log_info "Operation cancelled by user."
+        exit 0
+        ;;
+    *)
+        log_error "Invalid selection."
+        exit 1
+        ;;
+esac
 
 # --- 4. Apply Configuration (Overwrite Mode) ---
 if [[ -f "$CONFIG_FILE" ]]; then
@@ -66,13 +127,8 @@ fi
 # Ensure directory exists
 [[ -d "/etc/sysctl.d" ]] || mkdir -p "/etc/sysctl.d"
 
-# 'cat >' truncates the file to 0 length before writing, ensuring a clean overwrite.
-cat <<EOF > "$CONFIG_FILE"
-vm.swappiness = 180
-vm.watermark_boost_factor = 0
-vm.watermark_scale_factor = 125
-vm.page-cluster = 0
-EOF
+# Write the selected configuration
+echo "$selected_conf" > "$CONFIG_FILE"
 
 log_success "Configuration written."
 

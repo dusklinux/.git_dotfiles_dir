@@ -18,10 +18,32 @@ sudo nvim /etc/sysctl.d/99-vm-zram-parameters.conf
 Insert the following content into the file you just created.
 
 ```ini
-vm.swappiness = 180
-vm.watermark_boost_factor = 0
-vm.watermark_scale_factor = 125
+# --- ZRAM & SWAP BEHAVIOR ---
+# Aggressively swap anonymous memory to ZRAM to free up space for page cache
+vm.swappiness = 190
+# ZRAM is non-rotational; disable read-ahead
 vm.page-cluster = 0
+
+# --- FILESYSTEM CACHE (The "Snappy" Factor) ---
+# Retain dentry and inode caches strictly
+vm.vfs_cache_pressure = 10
+# Allow dirty data to stay in RAM for a bit, but flush in smooth streams
+vm.dirty_bytes = 1073741824
+vm.dirty_background_bytes = 268435456
+
+# --- MEMORY ALLOCATION & COMPACTION ---
+# Increase the reserve to prevent Direct Reclaim stutters
+vm.watermark_scale_factor = 300
+# Disable the boost factor as we have a static high scale factor
+vm.watermark_boost_factor = 0
+# Aggressively defragment memory for HugePages
+vm.compaction_proactiveness = 50
+# Reserve space for atomic operations (Network/DMA)
+vm.min_free_kbytes = 131072
+
+# --- APPLICATION COMPATIBILITY ---
+# Prevent "map allocation failed" errors in heavy games/apps
+vm.max_map_count = 2147483642
 ```
 
 > [!NOTE] Parameter Explanations
@@ -54,16 +76,7 @@ sudo sysctl --system
 You can verify all parameters with a single command:
 
 ```bash
-sysctl vm.swappiness vm.watermark_scale_factor vm.page-cluster vm.watermark_boost_factor
-```
-
-Alternatively, you can inspect each parameter individually:
-
-```bash
-sysctl vm.swappiness
-sysctl vm.watermark_boost_factor
-sysctl vm.watermark_scale_factor
-sysctl vm.page-cluster
+sysctl vm.swappiness vm.watermark_scale_factor vm.page-cluster vm.watermark_boost_factor vm.max_map_count vm.min_free_kbytes vm.compaction_proactiveness vm.dirty_background_bytes vm.dirty_bytes vm.vfs_cache_pressure
 ```
 
 If the output matches the values you set in the configuration file, your system is now optimized for ZRAM.
