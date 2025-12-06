@@ -284,7 +284,7 @@ process_battery_event() {
                 ;;
             Full)
                 fn_notify "normal" "✓ Fully Charged" \
-                    "Battery at 100%" \
+                    "Battery at ${percentage}%" \
                     "battery-full-charged-symbolic" ""
                 STATE_LAST_FULL_NOTIFY=$now
                 ;;
