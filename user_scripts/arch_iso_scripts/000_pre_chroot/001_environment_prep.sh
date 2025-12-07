@@ -69,13 +69,8 @@ msg_info "Installing Tools (Neovim, Git, Curl)..."
 pacman -Sy --needed --noconfirm neovim git curl
 
 # 6. Environment Variables (Yazi/Editor)
-msg_info "Setting EDITOR/VISUAL to Neovim..."
+msg_info "Setting EDITOR/VISUAL to Neovim (Live & Chroot)..."
 export EDITOR='nvim'
 export VISUAL='nvim'
-# Persist to bashrc so new terminals/shells inherit this
-{
-    echo "export EDITOR='nvim'"
-    echo "export VISUAL='nvim'"
-} >> "$HOME/.bashrc"
 
 msg_ok "Environment Ready."
