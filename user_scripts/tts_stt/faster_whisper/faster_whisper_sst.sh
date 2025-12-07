@@ -1,178 +1,150 @@
 #!/bin/bash
 #
 # Name: transcribe_voice
-#
-# Description: A completely re-architected, robust script to record audio,
-#              transcribe it, and copy the result to the clipboard.
-#              This version features extensive, mandatory logging to a
-#              dedicated file for unparalleled debugging and transparency.
-#
-# Author: Gemini
-# Date: 2025-06-11
-# Version: 2.1 (Explicit Python Interpreter Invocation)
-#
-# Dependencies: bash, ffmpeg, yad, wl-copy, pactl, notify-send
+# Architecture: Arch Linux / Hyprland / uv
+# Description: Records audio via parecord, processes via Python/Whisper.
+# Features: Non-blocking sounds, Low Latency recording, Timestamp naming.
 
-# --- Strict Mode & Configuration ---
+# --- Strict Mode ---
 set -euo pipefail
-#
-# --- User-configurable Constants ---
-readonly VENV_PATH="/home/dusk/contained_apps/uv/fasterwhisper_cpu/"
-readonly PYTHON_SCRIPT="/home/dusk/user_scripts/faster_whisper/config.py"
+
+# --- Configuration ---
+# Set to "false" to mute all audio cues/indicator or "true" to enable them.
+readonly ENABLE_SOUNDS="false"
+
+readonly HOME_DIR="$HOME"
+readonly SCRIPT_DIR="${HOME_DIR}/user_scripts/tts_stt/faster_whisper"
+readonly VENV_PYTHON="${HOME_DIR}/contained_apps/uv/fasterwhisper_cpu/bin/python3"
+readonly PYTHON_SCRIPT="${SCRIPT_DIR}/config.py"
 readonly AUDIO_DIR="/mnt/zram1/mic"
 
-# --- Logging and Runtime Configuration ---
+# --- Logging Setup ---
 readonly LOG_FILE="/tmp/transcribe_voice.log"
-readonly PYTHON_OUTPUT_TEMP_FILE="/tmp/transcription.output"
-readonly PYTHON_LOG_TEMP_FILE="/tmp/transcription.log"
->"$LOG_FILE"
->"$PYTHON_OUTPUT_TEMP_FILE"
->"$PYTHON_LOG_TEMP_FILE"
+readonly PY_OUT="/tmp/transcription.output"
+readonly PY_LOG="/tmp/transcription.log"
+readonly REC_LOG="/tmp/recording_native.log"
 
-# --- Script Globals ---
-YAD_PID=""
-FFMPEG_PID=""
+# Clear logs
+: > "$LOG_FILE" > "$PY_OUT" > "$PY_LOG" > "$REC_LOG"
 
-# --- Function Definitions ---
+# --- Globals ---
+REC_PID=""
 
-log_message() {
-    local message="$1"
-    echo -e "[$(date '+%F %T')] $message" | tee -a "$LOG_FILE" >&2
+# --- Functions ---
+
+log() {
+    echo -e "[$(date '+%T')] $1" | tee -a "$LOG_FILE" >&2
+}
+
+play_sound() {
+    # Only play if enabled
+    if [[ "$ENABLE_SOUNDS" == "true" ]]; then
+        # Run in background (&) so UI doesn't lag
+        canberra-gtk-play -i "$1" >/dev/null 2>&1 &
+    fi
 }
 
 cleanup() {
-    local exit_status=$?
-    log_message "--- Running cleanup ---"
-    if [[ -n "$YAD_PID" && -e "/proc/$YAD_PID" ]]; then
-        log_message "Killing YAD process: $YAD_PID"
-        kill "$YAD_PID" 2>/dev/null || true
+    local code=$?
+    if [[ -n "$REC_PID" ]] && kill -0 "$REC_PID" 2>/dev/null; then
+        log "Stopping recording process..."
+        kill "$REC_PID" 2>/dev/null || true
     fi
-    if [[ -n "$FFMPEG_PID" && -e "/proc/$FFMPEG_PID" ]]; then
-        log_message "Killing FFMPEG process: $FFMPEG_PID"
-        kill "$FFMPEG_PID" 2>/dev/null || true
-    fi
-    if [[ $exit_status -eq 0 ]]; then
-        rm -f "$PYTHON_OUTPUT_TEMP_FILE" "$PYTHON_LOG_TEMP_FILE"
-    else
-        log_message "An error occurred (Exit Code: $exit_status). Python's diagnostic output is in: $PYTHON_LOG_TEMP_FILE"
-    fi
-    log_message "--- Cleanup finished ---"
-    exit $exit_status
-}
-
-fatal_error_dialog() {
-    local error_details="$1"
-    local escaped_details
-    escaped_details=$(echo -n "$error_details" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-
-    yad --title="Fatal Transcription Error" \
-        --text="<span color='red' size='large'><b>An Unrecoverable Error Occurred</b></span>\n\n<b>Details:</b>" \
-        --width=800 --height=600 --button="Close:1" --fixed --center \
-        --text-info --wrap < <(echo -e "$escaped_details\n\n--- A detailed execution log is available at: $LOG_FILE ---")
     
-    log_message "FATAL: $error_details"
+    if [[ $code -ne 0 ]]; then
+        play_sound "dialog-error"
+        log "Script failed with exit code $code."
+        if [[ -s "$REC_LOG" ]]; then
+            log "Recording Log Content:"
+            cat "$REC_LOG" >> "$LOG_FILE"
+        fi
+        notify-send -u critical "Transcription Failed" "Check logs at $LOG_FILE"
+    fi
+}
+trap cleanup EXIT INT TERM
+
+fatal() {
+    log "FATAL: $1"
+    notify-send -u critical "Error" "$1"
     exit 1
 }
 
-check_dependencies() {
-    log_message "Checking for required dependencies..."
-    local dependencies=("ffmpeg" "yad" "wl-copy" "pactl" "notify-send")
-    for dep in "${dependencies[@]}"; do
-        if ! command -v "$dep" &> /dev/null; then
-            local install_hint=""
-            if [[ "$dep" == "notify-send" ]]; then
-                install_hint=" (Hint: On Arch Linux, install the 'libnotify' package)"
-            fi
-            fatal_error_dialog "Required dependency '$dep' is not installed or not in your PATH.$install_hint"
-        fi
-        log_message "  [✔] Found $dep"
-    done
-}
+# --- Main Execution ---
 
-# --- Main Script Logic ---
+# 1. Prereq Checks
+[[ -x "$VENV_PYTHON" ]] || fatal "Python venv not found at $VENV_PYTHON"
+[[ -f "$PYTHON_SCRIPT" ]] || fatal "Python script not found at $PYTHON_SCRIPT"
+command -v parecord >/dev/null 2>&1 || fatal "'parecord' not found. Install 'pulseaudio-utils'."
+mkdir -p "$AUDIO_DIR" || fatal "Cannot create $AUDIO_DIR"
 
-trap cleanup EXIT SIGINT SIGTERM
+# 2. Determine Filename (Timestamp Strategy)
+readonly AUDIO_FILE="${AUDIO_DIR}/rec_$(date +%Y%m%d_%H%M%S).wav"
+log "Target Audio: $AUDIO_FILE"
 
-log_message "--- Script initiated ---"
-
-check_dependencies
-log_message "Creating audio directory (if it doesn't exist): $AUDIO_DIR"
-mkdir -p "$AUDIO_DIR" || fatal_error_dialog "Failed to create audio directory at '$AUDIO_DIR'. Check permissions."
-
-log_message "Determining next audio filename..."
-last_num=0
-for f in "$AUDIO_DIR"/*_mic.wav; do
-    [ -e "$f" ] || continue
-    base_f=$(basename -- "$f")
-    num_part=${base_f%%_*}
-    if [[ "$num_part" =~ ^[0-9]+$ && "$num_part" -gt "$last_num" ]]; then
-        last_num=$num_part
-    fi
-done
-next_num=$((last_num + 1))
-readonly AUDIO_FILE="${AUDIO_DIR}/${next_num}_mic.wav"
-log_message "Next audio file will be: $AUDIO_FILE"
-
-
-log_message "Determining default audio source..."
+# 3. Record Audio (Native PulseAudio)
 DEFAULT_SOURCE=$(pactl get-default-source)
-log_message "Using audio source: $DEFAULT_SOURCE"
+log "Recording from: $DEFAULT_SOURCE"
 
-log_message "Starting audio recording (ffmpeg)..."
-ffmpeg -y -f pulse -i "$DEFAULT_SOURCE" "$AUDIO_FILE" -loglevel error &
-FFMPEG_PID=$!
-log_message "ffmpeg started with PID: $FFMPEG_PID"
+# Audio Feedback: Start
+play_sound "message-new-instant"
 
-log_message "Displaying 'Recording' dialog..."
-yad --title="Voice Transcriber" --text="<span size='large'><b>🔴 Recording...</b></span>\n\nClick <b>Stop</b> to finish recording." --width=350 --height=120 --button="Stop:0" --fixed --center
-log_message "Stop button clicked. Ending recording."
+# --latency-msec=50 reduces buffering so data hits disk faster
+parecord --device="$DEFAULT_SOURCE" \
+         --channels=1 \
+         --rate=16000 \
+         --file-format=wav \
+         --latency-msec=50 \
+         "$AUDIO_FILE" > "$REC_LOG" 2>&1 &
+REC_PID=$!
 
-log_message "Sending SIGINT to ffmpeg PID $FFMPEG_PID to finalize audio file."
-kill -SIGINT "$FFMPEG_PID"
-wait "$FFMPEG_PID" 2>/dev/null || true
-FFMPEG_PID=""
-log_message "ffmpeg process terminated."
-
-# Removed the 'Transcribing' dialog as per user request.
-log_message "Commencing transcription process via Python script..."
-
-py_exit_code=0
-# *** RE-ARCHITECTED ***: Invoke the Python interpreter from the virtual environment
-# directly by its absolute path. This is the most robust method to ensure the
-# correct interpreter and its associated packages are used, preventing the
-# 'ModuleNotFoundError' by bypassing any ambiguity in the system's $PATH.
-(
-    "${VENV_PATH}bin/python3" -u "$PYTHON_SCRIPT" > "$PYTHON_OUTPUT_TEMP_FILE"
-) 2> "$PYTHON_LOG_TEMP_FILE" || py_exit_code=$?
-
-cat "$PYTHON_LOG_TEMP_FILE" >> "$LOG_FILE"
-log_message "--- Python execution finished with exit code: $py_exit_code ---"
-
-# The YAD_PID is now irrelevant as the progress dialog has been removed.
-# kill "$YAD_PID" 2>/dev/null || true
-# YAD_PID=""
-
-if [[ $py_exit_code -ne 0 ]]; then
-    error_content=$(<"$PYTHON_LOG_TEMP_FILE")
-    notify-send --app-name="Transcriber" --icon=dialog-error "Transcription Failed" "The Python script returned an error. Check logs." --expire-time=10000 || true
-    fatal_error_dialog "The Python transcription script failed with exit code $py_exit_code.\n\n$error_content"
+sleep 0.2
+if ! kill -0 "$REC_PID" 2>/dev/null; then
+    fatal "Recording failed to start. Check $REC_LOG."
 fi
 
-log_message "Transcription successful. Processing output."
-FINAL_TEXT=$(<"$PYTHON_OUTPUT_TEMP_FILE")
-log_message "Final text processed."
+# 4. GUI Control
+yad --title="Voice Transcriber" \
+    --text="<span size='large' weight='bold'>🎙️ Recording...</span>\n\nWriting to ZRAM." \
+    --width=300 --button="Stop Recording:0" \
+    --fixed --center --on-top --undecorated
+
+# 5. Stop Recording
+log "Stopping recording..."
+
+# "Tail Capture": Wait 0.5s to capture the last word
+sleep 0.5 
+
+kill -SIGINT "$REC_PID"
+wait "$REC_PID" || true
+REC_PID=""
+
+# Audio Feedback: Processing
+play_sound "button-toggle-on"
+
+# 6. Verify Recording
+if [[ ! -s "$AUDIO_FILE" ]]; then
+    fatal "Audio file is empty or missing: $AUDIO_FILE"
+fi
+
+# 7. Transcribe
+log "Invoking Whisper (distil-small.en)..."
+notify-send -t 2000 "Transcribing..." "Processing audio..."
+
+if ! "$VENV_PYTHON" -u "$PYTHON_SCRIPT" "$AUDIO_FILE" > "$PY_OUT" 2> "$PY_LOG"; then
+    fatal "Python script failed. See $PY_LOG"
+fi
+
+# 8. Finalize
+FINAL_TEXT=$(<"$PY_OUT")
 
 if [[ -n "$FINAL_TEXT" ]]; then
-    log_message "Copying final text to clipboard."
     echo -n "$FINAL_TEXT" | wl-copy
-    log_message "Text copied."
-    notify-send --app-name="Transcriber" --icon=emblem-ok "Transcription Success" "Text copied to clipboard." --expire-time=3000 || true
+    log "Success: '$FINAL_TEXT'"
+    play_sound "complete"
+    notify-send -t 3000 "Transcription Ready" "Copied to clipboard."
 else
-    log_message "Warning: Transcription produced no text."
-    notify-send --app-name="Transcriber" --icon=dialog-warning "Transcription Warning" "Process finished, but no text was produced." --expire-time=5000 || true
+    log "Warning: Empty transcription."
+    notify-send -u low "Transcription Empty" "No speech detected."
 fi
-
-log_message "--- Script finished successfully ---"
-
 
 exit 0

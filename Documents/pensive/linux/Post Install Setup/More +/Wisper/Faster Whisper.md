@@ -85,20 +85,13 @@ For a streamlined workflow, a shell script (`faster_whisper_sst.sh`) is availabl
 Run the script from your terminal:
 
 ```bash
-$HOME/user_scripts/faster_whisper/faster_whisper_sst.sh
+$HOME/user_scripts/tts_stt/faster_whisper/faster_whisper_sst.sh
 ```
 
 > [!important] Running the script for the first time will take time cuz it needs to download the models. 
 
----
 
-## Appendix: Reference Commands
-
-The following commands are not required for the setup above but are useful for audio management and alternative transcription methods.
-
-| Description | Command |
-| :--- | :--- |
-| **Find Audio Input Sources** | `pactl list short sources` |
-| **Record Audio with FFmpeg** | `ffmpeg -f pulse -i 'alsa_input.pci-0000_00_1f.3-platform-skl_hda_dsp_generic.HiFi_Mic1_source' /mnt/zram1/mic/1_mic.wav` |
-| **Transcribe with whisper.cpp** | `./whisper.cpp/build/bin/whisper-cli -m /home/dusk/whisper.cpp/ggml_model/ggml-base.en.bin -f /mnt/zram/mic/1_mic.wav` |
-
+it'll downlaod the models at this location. 
+```bash
+cd ~/.cache/huggingface/hub
+```

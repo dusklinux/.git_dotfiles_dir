@@ -1,3 +1,5 @@
+> [!top] not recommanded ,use the other one instead 
+
 # Real-Time Transcription Setup: faster-whisper (Intel 12700H Optimized)
 
 ## 1. System Dependencies (Arch Linux)
@@ -206,7 +208,7 @@ if __name__ == "__main__":
 Since your virtual environment is separate from the script, you run it by calling the specific python executable inside your venv. You do NOT need to run `source activate` with this method.
 
 ```
-~/contained_apps/uv/rt-whisper/bin/python ~/user_scripts/faster_whisper/new_faster/main.py
+~/contained_apps/uv/rt-whisper/bin/python ~/user_scripts/tts_stt/faster_whisper/new_faster/main.py
 ```
 
 ### Advanced: CPU Pinning (Optional)
@@ -214,7 +216,7 @@ Since your virtual environment is separate from the script, you run it by callin
 If you experience stuttering (audio cutting out) because the system moves the process to E-cores, you can add `taskset` to the front of the command above.
 
 ```
-taskset -c 0-11 ~/contained_apps/uv/rt-whisper/bin/python ~/user_scripts/faster_whisper/new_faster/main.py
+taskset -c 0-11 ~/contained_apps/uv/rt-whisper/bin/python ~/user_scripts/tts_stt/faster_whisper/new_faster/main.py
 ```
 
 ### Troubleshooting
