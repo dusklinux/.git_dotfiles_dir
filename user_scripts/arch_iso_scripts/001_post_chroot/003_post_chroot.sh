@@ -29,6 +29,12 @@ ask_next_step() {
     printf "\n${BLUE}----------------------------------------------------------------${RESET}\n"
     printf "${BOLD}UPCOMING STEP:${RESET} %s\n" "$step_description"
 
+    # === NEW: Check for Automated Mode ===
+    if [[ "${INTERACTIVE_MODE:-false}" == "false" ]]; then
+        printf "${GREEN}>> Auto-proceeding...${RESET}\n"
+        return 0
+    fi
+
     while true; do
         read -r -p "Action: [P]roceed, [S]kip, or [Q]uit? (p/s/q) [Default: p]: " choice
         choice=${choice:-p} # Default to proceed
@@ -68,6 +74,23 @@ fi
 log_success "Environment confirmed."
 
 # --- 4. Main Logic ---
+
+# === NEW: Execution Mode Selection ===
+log_step "Execution Mode"
+printf "Select execution mode:\n"
+printf "  ${BOLD}[A]${RESET}utomated  - Proceed through all steps without pausing (Default)\n"
+printf "  ${BOLD}[I]${RESET}nteractive - Ask for confirmation before every step\n"
+read -r -p "Enter choice [A/i]: " mode_choice
+mode_choice=${mode_choice:-a}
+
+if [[ "$mode_choice" =~ ^[Ii] ]]; then
+    INTERACTIVE_MODE="true"
+    log_info "Running in INTERACTIVE mode."
+else
+    INTERACTIVE_MODE="false"
+    log_info "Running in AUTOMATED mode."
+fi
+
 
 # === Step 19: Setting System Time ===
 if ask_next_step "Configure Timezone & Hardware Clock"; then

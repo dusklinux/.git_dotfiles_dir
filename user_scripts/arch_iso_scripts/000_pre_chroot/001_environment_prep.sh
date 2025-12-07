@@ -27,24 +27,32 @@ if [[ -n "$BAT_DIR" ]]; then
 fi
 
 # 3. Cowspace (Critical for RAM-heavy compiles/installs)
-# We only ask if RAM is < 32GB, otherwise default is usually fine, 
-# but we will keep your logic as it's good for custom setups.
+# Logic Update: Only remount if user explicitly provides a value.
 TOTAL_RAM=$(free -h | awk '/^Mem:/ {print $2}')
-msg_info "System RAM: $TOTAL_RAM"
+CURRENT_COW=$(df -h /run/archiso/cowspace | awk 'NR==2 {print $2}')
 
-# Non-interactive default if user just hits enter
-DEFAULT_COW="2G"
-read -r -p ":: Enter Cowspace size (e.g. 4G) [Default: $DEFAULT_COW]: " USER_COW
-TARGET_COW="${USER_COW:-$DEFAULT_COW}"
+msg_info "System RAM: $TOTAL_RAM | Current Cowspace: $CURRENT_COW"
 
-if [[ ! "$TARGET_COW" =~ ^[0-9]+[GgMm]$ ]]; then
-    echo "Invalid format. using Default."
-    TARGET_COW="$DEFAULT_COW"
+read -r -p ":: Enter new Cowspace size (e.g. 4G) [Leave empty to keep default]: " USER_COW
+
+# Trim whitespace just in case
+USER_COW="${USER_COW// /}"
+
+if [[ -n "$USER_COW" ]]; then
+    if [[ "$USER_COW" =~ ^[0-9]+[GgMm]$ ]]; then
+        msg_info "Resizing Cowspace to $USER_COW..."
+        if mount -o remount,size="$USER_COW" /run/archiso/cowspace; then
+            NEW_SIZE=$(df -h /run/archiso/cowspace | awk 'NR==2 {print $2}')
+            msg_ok "Cowspace successfully resized: $NEW_SIZE"
+        else
+            msg_warn "Remount failed. Keeping previous size."
+        fi
+    else
+        msg_warn "Invalid format '$USER_COW'. Skipping resize."
+    fi
+else
+    msg_info "No input detected. Keeping default Cowspace ($CURRENT_COW)."
 fi
-
-msg_info "Resizing Cowspace to $TARGET_COW..."
-mount -o remount,size="$TARGET_COW" /run/archiso/cowspace
-df -h /run/archiso/cowspace | awk 'NR==2 {print "   New Size: " $2}'
 
 # 4. Time & Network
 msg_info "Configuring Time (NTP)..."
@@ -59,5 +67,15 @@ msg_info "Installing Tools (Neovim, Git, Curl)..."
 # Updates database and installs tools. 
 # --needed skips if already there (saves time)
 pacman -Sy --needed --noconfirm neovim git curl
+
+# 6. Environment Variables (Yazi/Editor)
+msg_info "Setting EDITOR/VISUAL to Neovim..."
+export EDITOR='nvim'
+export VISUAL='nvim'
+# Persist to bashrc so new terminals/shells inherit this
+{
+    echo "export EDITOR='nvim'"
+    echo "export VISUAL='nvim'"
+} >> "$HOME/.bashrc"
 
 msg_ok "Environment Ready."
