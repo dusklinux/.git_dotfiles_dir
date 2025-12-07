@@ -17,7 +17,7 @@ echo "Detected CPU: $CPU_VENDOR ($UCODE_PKG)"
 # Package List
 PACKAGES=(
     base base-devel linux linux-headers linux-firmware
-    neovim btrfs-progs dosfstools git man-db man-pages
+    neovim btrfs-progs dosfstools git
 )
 [[ -n "$UCODE_PKG" ]] && PACKAGES+=("$UCODE_PKG")
 

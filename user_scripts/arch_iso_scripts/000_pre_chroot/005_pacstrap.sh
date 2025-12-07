@@ -23,8 +23,8 @@ USE_GENERIC_FIRMWARE=0
 # Base packages every system needs
 FINAL_PACKAGES=(
     base base-devel linux linux-headers 
-    neovim btrfs-progs dosfstools git man-db man-pages 
-    networkmanager
+    neovim btrfs-progs dosfstools git
+    networkmanager yazi
 )
 
 # --- Logging Helpers ---
