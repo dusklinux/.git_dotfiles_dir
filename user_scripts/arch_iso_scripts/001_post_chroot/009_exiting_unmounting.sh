@@ -10,6 +10,13 @@
 # -----------------------
 set -euo pipefail
 
+# [FIX] Sanitize Terminal Environment
+# If the current terminal type is unknown (e.g., xterm-kitty in a minimal chroot),
+# fallback to generic 'xterm' to prevent 'clear' or 'tput' from crashing.
+if ! tput longname &>/dev/null; then
+    export TERM=xterm
+fi
+
 # 2. Visual Configuration (Modern Bash)
 # -------------------------------------
 # ANSI Color Codes
