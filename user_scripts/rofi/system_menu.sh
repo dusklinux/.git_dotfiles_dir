@@ -99,44 +99,50 @@ route_selection() {
 # --- SEARCH LOGIC (FIXED) ---
 
 perform_global_search() {
-    local target
-    local cmd
+    local selected_relative
+    local full_path
+    local search_output
 
-    # 1. Search Command
+    # 1. Generate List (Relative Paths)
+    # We cd into the dir first so fd/find outputs relative paths
     if command -v fd >/dev/null 2>&1; then
-        cmd="fd --type f --hidden --exclude .git . ${SEARCH_DIR}"
+        # fd default is relative when no path arg is given
+        search_output=$(cd "${SEARCH_DIR}" && fd --type f --hidden --exclude .git .)
     else
-        cmd="find ${SEARCH_DIR} -type f -not -path '*/.*'"
+        # find outputs ./file, sed strips the leading ./ for clean UI
+        search_output=$(cd "${SEARCH_DIR}" && find . -type f -not -path '*/.*' | sed 's|^\./||')
     fi
 
-    # 2. Get Selection (Wide Menu)
-    target=$($cmd | "${ROFI_CMD[@]}" -theme-str 'window {width: 80%;}' -p "Global Search ($SEARCH_DIR)")
+    # 2. Get Selection (Rofi displays clean relative paths)
+    selected_relative=$(printf "%s\n" "$search_output" | "${ROFI_CMD[@]}" -theme-str 'window {width: 80%;}' -p "Search")
 
-    # 3. Handle Selection (Smart Open)
-    if [[ -n "$target" ]]; then
+    # 3. Handle Selection
+    if [[ -n "$selected_relative" ]]; then
         
+        # RECONSTRUCT FULL PATH for execution
+        full_path="${SEARCH_DIR}/${selected_relative}"
+
         # A. Handle Directories (Yazi)
-        if [[ -d "$target" ]]; then
-            # We construct the command carefully to handle spaces in paths
-            run_term "$FILE_MANAGER \"$target\"" "yazi_filemanager"
+        if [[ -d "$full_path" ]]; then
+            run_term "$FILE_MANAGER \"$full_path\"" "yazi_filemanager"
         fi
 
         # B. Check MIME Type for Files
         local mime_type
-        mime_type=$(file --mime-type -b "$target")
+        mime_type=$(file --mime-type -b "$full_path")
 
         case "$mime_type" in
             # Text/Code -> Open in Editor (Terminal)
             text/*|application/json|application/x-shellscript|application/toml|application/x-yaml|application/xml|application/x-conf|application/x-config)
-                open_editor "$target"
+                open_editor "$full_path"
                 ;;
             # Empty files -> Open in Editor
             inode/x-empty)
-                open_editor "$target"
+                open_editor "$full_path"
                 ;;
             # Everything else -> xdg-open (GUI)
             *)
-                uwsm-app -- xdg-open "$target" >/dev/null 2>&1 &
+                uwsm-app -- xdg-open "$full_path" >/dev/null 2>&1 &
                 disown
                 exit 0
                 ;;
@@ -145,8 +151,6 @@ perform_global_search() {
         show_main_menu
     fi
 }
-
-# ... (Rest of menus are identical) ...
 
 show_learn_menu() {
     local choice
