@@ -57,30 +57,9 @@ uv pip install faster-whisper
 
 ## Part 2: Running Transcription
 
-Once installed, you can transcribe audio using one of the following methods.
-
-### Method 1: Manual Transcription via Python Script
-
-This method involves directly running a Python configuration script.
-
-> [!WARNING] Configuration Required
-> Before running, you must edit your Python script (`config.py`).
-> 1.  **Set User Variables**: Update the absolute paths for your virtual environment and the Python script itself.
-> 2.  **Model Selection**: The script defaults to the `small.en` model. You can change this to another model if desired.
-> 3.  **Audio Input**: The script is configured to look for an audio file at `/mnt/zram1/mic/1_mic.wav`. Ensure this file exists before running.
-
-Execute the script with the following command:
-
-```bash
-python /path/to/the/config.py
-```
-
-### Method 2: Fully Automated Shell Script
+# Fully Automated Shell Script
 
 For a streamlined workflow, a shell script (`faster_whisper_sst.sh`) is available to automate the entire process: recording audio, activating the Python environment, transcribing the audio, and copying the formatted text to your clipboard.
-
-> [!IMPORTANT] Edit Script Parameters
-> You **must** edit the user-defined parameters at the top of the `faster_whisper_sst.sh` script to match your system's paths and settings before running it.
 
 Run the script from your terminal:
 
@@ -88,7 +67,7 @@ Run the script from your terminal:
 $HOME/user_scripts/tts_stt/faster_whisper/faster_whisper_sst.sh
 ```
 
-> [!important] Running the script for the first time will take time cuz it needs to download the models. 
+> [!important] Running the script for the first time will take time cuz it needs to download the model. which is around 320 mb in size. `distil-small.en` 
 
 
 it'll downlaod the models at this location. 
