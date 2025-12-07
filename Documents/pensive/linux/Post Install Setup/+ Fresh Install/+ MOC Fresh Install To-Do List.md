@@ -72,7 +72,7 @@ symbolic link so systemd resolved gets used instead of the isp.
 sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 ```
 
-
+[[Systemd Resolve Config]]
 
 ---
 *Script*
