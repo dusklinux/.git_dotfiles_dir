@@ -70,6 +70,7 @@ INSTALL_SEQUENCE=(
     "S | 057_hosts_files_block.sh"
     "S | 058_gtk_root_symlink.sh"
     "S | 059_preload_config.sh"
+    "S | 060_dns_systemd_resolve.sh"
 )
 
 # ==============================================================================

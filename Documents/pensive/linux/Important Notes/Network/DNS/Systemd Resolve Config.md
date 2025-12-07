@@ -23,7 +23,7 @@ sudo nvim /etc/systemd/resolved.conf
 > #comment if you want to see stuff on your local network like yoru printer. 
 > #MulticastDNS=resolve
 > # OR
-> #this announces your setup to the the locla network. 
+> #this announces your setup to the the local network. 
 > MulticastDNS=yes
 > 
 > LLMNR=no
