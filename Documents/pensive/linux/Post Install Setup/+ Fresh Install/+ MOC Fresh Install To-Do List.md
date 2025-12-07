@@ -1083,10 +1083,10 @@ nvim ~/.config/uwsm/env-hyprland
 
 - [ ] **Install Tools:**
     - [ ] Install `ollama`. [[+ MOC Ollama]]
-    - [ ] Install `faster-whisper`. [[Faster Whisper]]
-    - [ ] Install Nvidia `parakeet` [[Parakeet]]
-	- [ ] Install `kokoro` [[Kokoro Rust CPU]]
-	- [ ] Install `kokoro` [[Kokoro GPU]]
+    - [ ] Install `faster-whisper`. [[Faster Whisper]] (Recommanded, for CPU only) TTS
+    - [ ] Install Nvidia `parakeet` [[Parakeet]] (Recommanded, requires nvidia) TTS
+	- [ ] Install `kokoro` [[Kokoro Rust CPU]] (Recommanded, for CPU only) STT
+	- [ ] Install `kokoro` [[Kokoro GPU]] (Recommanded, requires nvidia) STT
 	- [ ] Install `DaVinci Resolve` [[DaVinci Resolve]]
 	- [ ] Install `Steam, wine, lutris` [[Gaming]]
 	- [ ] Install `Waydroid` :- Android container. lightweight. [[+ MOC Waydroid]]
