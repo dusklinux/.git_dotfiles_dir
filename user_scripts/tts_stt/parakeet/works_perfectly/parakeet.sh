@@ -17,7 +17,7 @@ set -euo pipefail
 
 # --- User-configurable Constants ---
 readonly VENV_PATH="/home/dusk/contained_apps/uv/parakeet/" # <-- IMPORTANT: Set your Parakeet venv path
-readonly PYTHON_SCRIPT="/home/dusk/user_scripts/parakeet/transcribe_parakeet.py" # <-- IMPORTANT: Set the path to the Python script
+readonly PYTHON_SCRIPT="/home/dusk/user_scripts/tts_stt/parakeet/transcribe_parakeet.py" # <-- IMPORTANT: Set the path to the Python script
 readonly AUDIO_DIR="/mnt/zram1/mic" # <-- Your specified audio directory
 
 # --- Logging and Runtime Configuration ---

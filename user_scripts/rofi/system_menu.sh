@@ -169,10 +169,10 @@ show_ai_menu() {
     choice=$(menu "AI Tools" "󰔊  TTS - Kokoro (GPU)\n󰔊  TTS - Kokoro (CPU)\n  STT - Faster Whisper\n  STT - Parakeet (GPU)\n󰍉  OCR Selection")
 
     case "${choice,,}" in
-        *kokoro*gpu*) run_app "$SCRIPTS_DIR/kokoro_gpu/speak.sh" ;;
-        *kokoro*cpu*) run_app "$SCRIPTS_DIR/kokoro_cpu/kokoro.sh" ;;
-        *whisper*)    run_app "$SCRIPTS_DIR/faster_whisper/faster_whisper_sst.sh" ;;
-        *parakeet*)   run_app "$SCRIPTS_DIR/parakeet/parakeet.sh" ;;
+        *kokoro*gpu*) run_app "$SCRIPTS_DIR/tts_stt/kokoro_gpu/speak.sh" ;;
+        *kokoro*cpu*) run_app "$SCRIPTS_DIR/tts_stt/kokoro_cpu/kokoro.sh" ;;
+        *whisper*)    run_app "$SCRIPTS_DIR/tts_stt/faster_whisper/faster_whisper_sst.sh" ;;
+        *parakeet*)   run_app "$SCRIPTS_DIR/tts_stt/parakeet/parakeet.sh" ;;
         *ocr*)
             if region=$(slurp); then
                 grim -g "$region" - | tesseract stdin stdout -l eng | wl-copy

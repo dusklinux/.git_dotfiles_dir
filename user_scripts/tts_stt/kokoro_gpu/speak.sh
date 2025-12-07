@@ -7,7 +7,7 @@ set -euo pipefail
 
 # --- Configuration ---
 readonly KOKORO_APP_DIR="$HOME/contained_apps/uv/kokoro_gpu"
-readonly PYTHON_SCRIPT_PATH="$HOME/user_scripts/kokoro_gpu/speak.py"
+readonly PYTHON_SCRIPT_PATH="$HOME/user_scripts/tts_stt/kokoro_gpu/speak.py"
 readonly SAVE_DIR="/mnt/zram1/kokoro_gpu"
 readonly MPV_PLAYBACK_SPEED="2.2"
 readonly AUDIO_RATE=24000

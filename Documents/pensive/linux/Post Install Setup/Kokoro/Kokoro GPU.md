@@ -3,11 +3,7 @@ sudo pacman -S --needed mpv ffmpeg wl-clipboard mbuffer
 ```
 
 ```bash
-paru -S cuda-12.5
-```
-
-```bash
-paru -S cudnn9.3-cuda12.5
+paru -S --needed --noconfirm cuda-12.5 cudnn9.3-cuda12.5 
 ```
 
 ```bash

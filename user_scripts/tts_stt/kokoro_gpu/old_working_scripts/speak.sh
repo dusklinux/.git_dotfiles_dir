@@ -3,7 +3,7 @@ set -o pipefail
 
 # --- Configuration ---
 KOKORO_APP_DIR="$HOME/contained_apps/uv/kokoro_gpu"
-PYTHON_SCRIPT_PATH="$HOME/user_scripts/kokoro_gpu/speak.py"
+PYTHON_SCRIPT_PATH="$HOME/user_scripts/tts_stt/kokoro_gpu/speak.py"
 SAVE_DIR="/mnt/zram1/kokoro_gpu"
 MPV_PLAYBACK_SPEED="2.2"
 AUDIO_RATE=24000

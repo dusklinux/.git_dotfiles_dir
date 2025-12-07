@@ -18,7 +18,7 @@ set -euo pipefail
 
 # --- Configuration ---
 readonly VENV_PATH="/home/dusk/contained_apps/uv/parakeet"
-readonly PYTHON_SCRIPT="/home/dusk/user_scripts/parakeet/transcribe_parakeet.py"
+readonly PYTHON_SCRIPT="/home/dusk/user_scripts/tts_stt/parakeet/transcribe_parakeet.py"
 readonly AUDIO_DIR="/mnt/zram1/mic"
 
 # --- Logging (PID-unique temp files for concurrent safety) ---
