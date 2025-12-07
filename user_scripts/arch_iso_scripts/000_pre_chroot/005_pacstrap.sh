@@ -1,46 +1,66 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# MODULE: PACSTRAP (VERIFIED HARDWARE SPLIT)
+# MODULE: PACSTRAP (VERIFIED HARDWARE & FIXED REGEX)
+# AUTHOR: Elite DevOps Setup
 # -----------------------------------------------------------------------------
 set -uo pipefail
 
 # --- Colors ---
 if [[ -t 1 ]]; then
-    readonly C_BOLD=$'\033[1m' C_GREEN=$'\033[32m' C_YELLOW=$'\033[33m' C_RED=$'\033[31m' C_RESET=$'\033[0m'
+    readonly C_BOLD=$'\033[1m' 
+    readonly C_GREEN=$'\033[32m' 
+    readonly C_YELLOW=$'\033[33m' 
+    readonly C_RED=$'\033[31m' 
+    readonly C_RESET=$'\033[0m'
 else
     readonly C_BOLD="" C_GREEN="" C_YELLOW="" C_RED="" C_RESET=""
 fi
 
-# --- Config ---
+# --- Configuration ---
 MOUNT_POINT="/mnt"
 USE_GENERIC_FIRMWARE=0
-FINAL_PACKAGES=(base base-devel linux linux-headers neovim btrfs-progs dosfstools git man-db man-pages networkmanager)
 
+# Base packages every system needs
+FINAL_PACKAGES=(
+    base base-devel linux linux-headers 
+    neovim btrfs-progs dosfstools git man-db man-pages 
+    networkmanager
+)
+
+# --- Logging Helpers ---
 log_info() { echo -e "${C_GREEN}[INFO]${C_RESET} $1"; }
 log_warn() { echo -e "${C_YELLOW}[WARN]${C_RESET} $1"; }
 log_err()  { echo -e "${C_RED}[ERROR]${C_RESET} $1"; }
 
-# --- Helper: Check if package exists in verified repos ---
+# --- Helper: Check if package exists in Arch Repos ---
 package_exists() {
     pacman -Si "$1" &> /dev/null
 }
 
-# --- Helper: Detect & Add ---
+# --- Helper: Detect Hardware & Add Package ---
+# FIXED: Now uses grep -iE (Extended Regex) to support word boundaries (\b)
 detect_and_add() {
-    local name="$1"     # Human Name
-    local pattern="$2"  # lspci grep pattern
+    local name="$1"     # Human Name (e.g. "AMD Legacy")
+    local pattern="$2"  # Regex Pattern
     local pkg="$3"      # Arch Package Name
     
+    # If we already fell back to generic, stop checking specific ones
     if [[ $USE_GENERIC_FIRMWARE -eq 1 ]]; then return; fi
 
     echo -ne "   > Scanning for $name... "
-    if lspci -mm | grep -i "$pattern" &> /dev/null; then
+    
+    # lspci -mm: Machine readable output
+    # grep -iE: Case insensitive + Extended Regex (required for | and \b)
+    if lspci -mm | grep -iE "$pattern" &> /dev/null; then
         echo -e "${C_GREEN}FOUND${C_RESET}"
+        
+        # Verify package actually exists before adding
         if package_exists "$pkg"; then
             echo -e "     -> Queuing Verified Package: ${C_BOLD}$pkg${C_RESET}"
             FINAL_PACKAGES+=("$pkg")
         else
             echo -e "     -> ${C_YELLOW}Hardware found, but package '$pkg' missing in repo.${C_RESET}"
+            echo -e "     -> Switching to Safe Mode (Generic Firmware)."
             USE_GENERIC_FIRMWARE=1
         fi
     else
@@ -49,78 +69,115 @@ detect_and_add() {
 }
 
 # ==============================================================================
-# 1. PRE-FLIGHT
+# 1. SAFETY PRE-FLIGHT CHECKS
 # ==============================================================================
 echo -e "${C_BOLD}=== PACSTRAP: HARDWARE-VERIFIED EDITION ===${C_RESET}"
 
-[[ $EUID -ne 0 ]] && { log_err "Run as root."; exit 1; }
-! mountpoint -q "$MOUNT_POINT" && { log_err "Mount /mnt first."; exit 1; }
-! ping -c 1 archlinux.org &> /dev/null && { log_err "No Internet."; exit 1; }
+# Check Root
+if [[ $EUID -ne 0 ]]; then
+   log_err "This script must be run as root."
+   exit 1
+fi
 
-log_info "Syncing DB to verify package existence..."
+# Check Mount
+if ! mountpoint -q "$MOUNT_POINT"; then
+    log_err "$MOUNT_POINT is not a mountpoint. Mount your partitions first."
+    exit 1
+fi
+
+# Check Network
+if ! ping -c 1 archlinux.org &> /dev/null; then
+    log_err "No internet connection. Cannot install packages."
+    exit 1
+fi
+
+# Sync DB (Crucial for package_exists check)
+log_info "Syncing package databases..."
 pacman -Sy --noconfirm &> /dev/null
 
 # ==============================================================================
-# 2. CPU & MICROCODE
+# 2. CPU MICROCODE
 # ==============================================================================
 CPU_VENDOR=$(grep -m1 'vendor_id' /proc/cpuinfo | awk '{print $3}')
 case "$CPU_VENDOR" in
     "GenuineIntel")
         log_info "CPU: Intel Detected"
         FINAL_PACKAGES+=("intel-ucode")
-        # Intel usually implies Intel Chipset firmware
+        # Intel CPUs usually imply Intel Chipset/WiFi
         detect_and_add "Intel Chipset/WiFi" "intel" "linux-firmware-intel"
         ;;
     "AuthenticAMD")
         log_info "CPU: AMD Detected"
         FINAL_PACKAGES+=("amd-ucode")
         ;;
-    *) log_warn "Unknown CPU. VM?" ;;
+    *)
+        log_warn "Unknown CPU Vendor ($CPU_VENDOR). VM Environment?"
+        ;;
 esac
 
 # ==============================================================================
-# 3. PERIPHERAL DETECTION (Based on your Screenshots)
+# 3. PERIPHERAL DETECTION (With "Corporation" Fix)
 # ==============================================================================
 log_info "Scanning PCI Bus..."
 
+# Ensure lspci is available
 if ! command -v lspci &>/dev/null; then
-    log_warn "lspci missing. Installing pciutils..."
+    log_warn "'lspci' not found. Installing pciutils temporarily..."
     pacman -S --noconfirm pciutils &>/dev/null
 fi
 
-# -- GPU --
-detect_and_add "Nvidia GPU"        "nvidia"             "linux-firmware-nvidia"
-detect_and_add "AMD GPU (Modern)"  "amdgpu\|navi\|rdna" "linux-firmware-amdgpu"
-detect_and_add "AMD GPU (Legacy)"  "radeon\|ati"        "linux-firmware-radeon"
+# -- GRAPHICS --
+# Note: \b ensures we match "ati" as a whole word, not inside "Corporation"
+detect_and_add "Nvidia GPU"        "nvidia"                 "linux-firmware-nvidia"
+detect_and_add "AMD GPU (Modern)"  "amdgpu|navi|rdna"       "linux-firmware-amdgpu"
+detect_and_add "AMD GPU (Legacy)"  "\b(radeon|ati)\b"       "linux-firmware-radeon"
 
-# -- NETWORK (Crucial for laptops) --
-detect_and_add "Mediatek WiFi/BT"  "mediatek"           "linux-firmware-mediatek"
-detect_and_add "Broadcom WiFi"     "broadcom"           "linux-firmware-broadcom"
-detect_and_add "Atheros WiFi"      "atheros"            "linux-firmware-atheros"
-detect_and_add "Realtek Eth/WiFi"  "realtek\|rtl"       "linux-firmware-realtek"
+# -- NETWORKING --
+detect_and_add "Mediatek WiFi/BT"  "mediatek"               "linux-firmware-mediatek"
+detect_and_add "Broadcom WiFi"     "broadcom"               "linux-firmware-broadcom"
+detect_and_add "Atheros WiFi"      "atheros"                "linux-firmware-atheros"
+# Match "Realtek" OR "RTL" at start of word (e.g. RTL8821)
+detect_and_add "Realtek Eth/WiFi"  "realtek|\brtl"          "linux-firmware-realtek"
+
 
 # ==============================================================================
-# 4. FINAL ASSEMBLY
+# 4. FINAL PACKAGE ASSEMBLY
 # ==============================================================================
-# Fallback Logic
+
+# If any detection failed/missing, we must install the massive generic package
 if [[ $USE_GENERIC_FIRMWARE -eq 1 ]]; then
-    log_warn "Detection uncertain or package missing. Falling back to GENERIC firmware."
-    # Filter out specific firmware to avoid conflicts
-    TEMP_LIST=()
+    log_warn "Fallback Triggered: Installing generic linux-firmware."
+    
+    # Filter out any specific firmware we might have added earlier to avoid conflicts
+    CLEAN_LIST=()
     for pkg in "${FINAL_PACKAGES[@]}"; do
-        [[ ! $pkg == "linux-firmware-"* ]] && TEMP_LIST+=("$pkg")
+        if [[ ! $pkg == "linux-firmware-"* ]]; then
+            CLEAN_LIST+=("$pkg")
+        fi
     done
-    FINAL_PACKAGES=("${TEMP_LIST[@]}" "linux-firmware")
+    FINAL_PACKAGES=("${CLEAN_LIST[@]}" "linux-firmware")
+
 else
-    # Optimization Logic: Add the license package required by split firmware
+    # Optimization Path: Add the license file required by split packages
     FINAL_PACKAGES+=("linux-firmware-whence")
 fi
 
-echo -e "\n${C_BOLD}Final Package List:${C_RESET}"
+# ==============================================================================
+# 5. EXECUTION
+# ==============================================================================
+echo ""
+echo -e "${C_BOLD}Final Package List:${C_RESET}"
 printf '%s\n' "${FINAL_PACKAGES[@]}"
+echo ""
 
-read -r -p "Run Pacstrap? [Y/n] " confirm
-[[ "${confirm,,}" =~ ^(y|yes|)$ ]] || exit 0
+read -r -p "Ready to run pacstrap? [Y/n] " confirm
+if [[ ! "${confirm,,}" =~ ^(y|yes|)$ ]]; then
+    log_warn "Aborted by user."
+    exit 0
+fi
 
 echo "Installing..."
+# -K initializes keyring in the target
 pacstrap -K "$MOUNT_POINT" "${FINAL_PACKAGES[@]}" --needed
+
+echo -e "\n${C_GREEN}Pacstrap Complete.${C_RESET}"
