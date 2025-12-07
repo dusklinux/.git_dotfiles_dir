@@ -208,6 +208,14 @@ for bash shells , without the quotes
 ssh-keygen -R [localhost]:2222
 ```
 
+
+## guest firefall fix , eg for OMARCHY
+
+```bash
+sudo ufw disable
+sudo iptables -F
+```
+
 ### guest firewall fix.  (if it's not letting through the connection )
 
 ```bash
