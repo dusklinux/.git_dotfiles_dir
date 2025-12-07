@@ -277,6 +277,11 @@ vim /etc/pacman.d/mirrorlist
 >[!Note]- Microcode: `intel-ucode` or `amd-ucode`, Pick for your CPU: AMD/Intel
 >Neglecting this can lead to stability issues or unpatched processor vulnerabilities. The microcode is loaded early in the boot process to patch the CPU's internal instruction set behavior.
 
+> [!tip]- Install linux-firmware specific to your hardware instead of the monolith. 
+> The biggest culprit for the "useless" packages (like `linux-firmware-radeon`, `linux-firmware-nvidia`, `linux-firmware-mediatek`) is the generic/monolith linux-firmware. Arch Linux recently split the massive `linux-firmware` package into smaller chunks.
+> - **The Catch:** When you install the generic package named `linux-firmware`, it **depends on** all those smaller chunks by default to ensure the system creates a bootable image for _any_ hardware.
+> - **The Fix:** Since you are on an Intel-Nvidia only laptop, you can explicitly replace `linux-firmware` with just `linux-firmware-intel` and `intel-firmware-nvidia`
+
 ```bash
 pacstrap -K /mnt base base-devel linux linux-headers linux-firmware intel-ucode neovim dosfstools btrfs-progs
 ```

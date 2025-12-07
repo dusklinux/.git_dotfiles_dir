@@ -1,0 +1,80 @@
+```bash
+sudo systemctl enable --now systemd-resolved
+```
+
+```bash
+sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+```
+
+```bash
+sudo nvim /etc/systemd/resolved.conf
+```
+
+> [!NOTE]- custom config privacy oriented. 
+> ```ini
+> # ===
+> #custom configured
+> DNS=9.9.9.9#dns.quad9.net 149.112.112.112#dns.quad9.net 1.1.1.1#cloudflare-dns.com 1.0.0.1#cloudflare-dns.com
+> FallbackDNS=9.9.9.9#dns.quad9.net 1.1.1.1#cloudflare-dns.com
+> Domains=~.
+> DNSSEC=yes
+> DNSOverTLS=yes
+> 
+> #comment if you want to see stuff on your local network like yoru printer. 
+> #MulticastDNS=resolve
+> # OR
+> #this announces your setup to the the locla network. 
+> MulticastDNS=yes
+> 
+> LLMNR=no
+> 
+> #===
+> #  This file is part of systemd.
+> #
+> #  systemd is free software; you can redistribute it and/or modify it under the
+> #  terms of the GNU Lesser General Public License as published by the Free
+> #  Software Foundation; either version 2.1 of the License, or (at your option)
+> #  any later version.
+> #
+> # Entries in this file show the compile time defaults. Local configuration
+> # should be created by either modifying this file (or a copy of it placed in
+> # /etc/ if the original file is shipped in /usr/), or by creating "drop-ins" in
+> # the /etc/systemd/resolved.conf.d/ directory. The latter is generally
+> # recommended. Defaults can be restored by simply deleting the main
+> # configuration file and all drop-ins located in /etc/.
+> #
+> # Use 'systemd-analyze cat-config systemd/resolved.conf' to display the full config.
+> #
+> # See resolved.conf(5) for details.
+> 
+> [Resolve]
+> # Some examples of DNS servers which may be used for DNS= and FallbackDNS=:
+> # Cloudflare: 1.1.1.1#cloudflare-dns.com 1.0.0.1#cloudflare-dns.com 2606:4700:4700::1111#cloudflare-dns.com 2606:4700:4700::1001#cloudflare-dns.com
+> # Google:     8.8.8.8#dns.google 8.8.4.4#dns.google 2001:4860:4860::8888#dns.google 2001:4860:4860::8844#dns.google
+> # Quad9:      9.9.9.9#dns.quad9.net 149.112.112.112#dns.quad9.net 2620:fe::fe#dns.quad9.net 2620:fe::9#dns.quad9.net
+> #
+> # Using DNS= configures global DNS servers and does not suppress link-specific
+> # configuration. Parallel requests will be sent to per-link DNS servers
+> # configured automatically by systemd-networkd.service(8), NetworkManager(8), or
+> # similar management services, or configured manually via resolvectl(1). See
+> # resolved.conf(5) and systemd-resolved(8) for more details.
+> #DNS=
+> #FallbackDNS=9.9.9.9#dns.quad9.net 2620:fe::9#dns.quad9.net 1.1.1.1#cloudflare-dns.com 2606:4700:4700::1111#cloudflare-dns.com 8.8.8.8#dns.google 2001:4860:4860::8888#dns.google
+> #Domains=
+> #DNSSEC=no
+> #DNSOverTLS=no
+> #MulticastDNS=yes
+> #LLMNR=yes
+> #Cache=yes
+> #CacheFromLocalhost=no
+> #DNSStubListener=yes
+> #DNSStubListenerExtra=
+> #ReadEtcHosts=yes
+> #ResolveUnicastSingleLabel=no
+> #StaleRetentionSec=0
+> #RefuseRecordTypes=
+> ```
+
+```bash
+resolvectl status
+```

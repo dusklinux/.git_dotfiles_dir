@@ -27,6 +27,9 @@ export TERMINAL='kitty'
 # Set the default web browser.
 #export BROWSER='firefox'
 
+# Set the default editor (Critical for TTY/SSH/Yazi)
+export EDITOR='nvim'
+export VISUAL='nvim'
 
 # --- Compilation Optimization ---
 # 1. Parallelism: Use ALL available processing units.
