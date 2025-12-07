@@ -68,9 +68,4 @@ msg_info "Installing Tools (Neovim, Git, Curl)..."
 # --needed skips if already there (saves time)
 pacman -Sy --needed --noconfirm neovim git curl
 
-# 6. Environment Variables (Yazi/Editor)
-msg_info "Setting EDITOR/VISUAL to Neovim (Live & Chroot)..."
-export EDITOR='nvim'
-export VISUAL='nvim'
-
 msg_ok "Environment Ready."
