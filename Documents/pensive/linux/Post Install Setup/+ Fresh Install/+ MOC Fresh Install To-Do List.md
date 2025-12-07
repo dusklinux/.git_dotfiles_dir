@@ -64,6 +64,17 @@ echo 60 | sudo tee /sys/class/power_supply/BAT1/charge_control_end_threshold
 - You can then copy paste commands from Obsidian on the same PC, no SSHing required
 
 ---
+
+- [ ] **DNS configuration**
+symbolic link so systemd resolved gets used instead of the isp. 
+
+```bash
+sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+```
+
+
+
+---
 *Script*
 - [ ] **Set up GNOME Keyring:** Configure GNOME Keyring with PAM for password management. [[Gnome Keyring PAM]]
 
