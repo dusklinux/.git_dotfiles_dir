@@ -40,8 +40,8 @@ PLAYBACK_SPEED="2.2"
 # 4. Kokoros Model and Data Paths
 #    Ensure these paths point to your kokoros model and data files.
 #    The script will expand the tilde (~) to your home directory.
-KOKOROS_MODEL_PATH="~/contained_apps/uv/kokoros_rust_onnx/Kokoros/checkpoints/kokoro-v1.0.onnx"
-KOKOROS_DATA_PATH="~/contained_apps/uv/kokoros_rust_onnx/Kokoros/data/voices-v1.0.bin"
+KOKOROS_MODEL_PATH="~/contained_apps/uv/kokoros_cpu/Kokoros/checkpoints/kokoro-v1.0.onnx"
+KOKOROS_DATA_PATH="~/contained_apps/uv/kokoros_cpu/Kokoros/data/voices-v1.0.bin"
 
 # --- END OF CONFIGURATION ---
 

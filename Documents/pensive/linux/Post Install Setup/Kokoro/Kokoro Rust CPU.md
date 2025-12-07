@@ -50,6 +50,14 @@ git clone https://github.com/lucasjinreal/Kokoros.git
 
 ### Step 4: Install Python Dependencies
 
+**The Fix (Run this FIRST)** We explicitly tell `uv` to ignore the default index and use PyTorch's CPU-only wheelhouse for the `torch` package.
+_Result:_ This downloads the lightweight (~200MB) CPU version of PyTorch instead of the ~2.5GB GPU version.
+_Why this works:_ When `uv` processes `requirements.txt`, it sees that `torch>=2.0.0` is required. It checks the environment, sees that `torch` is **already installed** (the CPU version from step 2), and marks that requirement as "Satisfied." It skips downloading the massive GPU version entirely.
+
+```bash
+uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+```
+
 Move into the cloned `Kokoros` directory and install the required Python packages using `uv`.
 
 ```bash
@@ -77,10 +85,10 @@ sudo pacman -S --needed cargo
 ### Step 2: Compile the Executable
 
 Ensure you are still in the `~/contained_apps/uv/kokoros_cpu/Kokoros/` directory, where the `Cargo.toml` file is located. Run the build command with the `--release` flag to create a highly optimized executable.
-the next command will fail to build the project if espeak-ng is instlaled, uninstlall it . 
+the next command will fail to build the project if espeak-ng and wordbook are instlaled, uninstlall it . 
 
 ```bash
-sudo pacman -Rns espeak-ng
+sudo pacman -Rns wordbook espeak-ng
 ```
 
 ```bash

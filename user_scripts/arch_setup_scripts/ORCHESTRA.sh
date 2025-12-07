@@ -72,6 +72,7 @@ INSTALL_SEQUENCE=(
     "S | 059_preload_config.sh"
     "S | 060_dns_systemd_resolve.sh"
     "U | 061_faster_whisper_cpu.sh"
+    "U | 062_kokoro_cpu.sh"
 )
 
 # ==============================================================================

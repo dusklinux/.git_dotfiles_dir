@@ -1,5 +1,5 @@
 ```bash
-sudo pacman -S --needed mpv ffmpeg wl-clipboard mbuffer
+sudo pacman -S --needed --noconfirm mpv ffmpeg wl-clipboard mbuffer
 ```
 
 ```bash
