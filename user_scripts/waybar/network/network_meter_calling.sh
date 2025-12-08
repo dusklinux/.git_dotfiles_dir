@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 # waybar-net: prints tiny JSON for Waybar
 
-
-# this script accept three flags
-# down
-# up 
-# unit
-
 # 1. Define paths
 STATE_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/waybar-net"
 STATE_FILE="$STATE_DIR/state"
@@ -19,7 +13,6 @@ mkdir -p "$STATE_DIR"
 # Update heartbeat timestamp
 touch "$HEARTBEAT_FILE"
 # Send signal to wake daemon from its long sleep IMMEDIATELY
-# We suppress errors in case the service isn't running yet
 pkill -USR1 -f "network_meter_daemon.sh" || true
 
 set -euo pipefail
@@ -37,6 +30,13 @@ fi
 
 # 6. Define output based on argument
 case "${1:-}" in
+  vertical)
+    # OPTIMIZED: No Icon. Just 3 lines.
+    # Structure: Up \n Unit \n Down
+    TEXT="$UP\n$UNIT\n$DOWN"
+    TOOLTIP="Interface: $CLASS\nUpload: $UP $UNIT/s\nDownload: $DOWN $UNIT/s"
+    ;;
+    
   unit)
     TEXT="$UNIT"
     TOOLTIP="Unit: $UNIT/s"
