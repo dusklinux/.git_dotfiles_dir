@@ -76,8 +76,17 @@ else
     echo -e "${C_GREEN}>> RESCUE MODE: Mounting existing system without formatting. <<${C_RESET}"
 fi
 
-read -r -p ":: Proceed? [y/N] " confirm
-[[ "${confirm,,}" != "y" ]] && exit 1
+# --- LOGIC UPDATE START ---
+if [ "$DO_FORMAT" = true ]; then
+    # Strict safety check for Formatting: Defaults to NO
+    read -r -p ":: Proceed with FORMATTING? [y/N] " confirm
+    [[ "${confirm,,}" != "y" ]] && exit 1
+else
+    # Convenience check for Mounting: Defaults to YES
+    read -r -p ":: Proceed with MOUNTING? [Y/n] " confirm
+    [[ "${confirm,,}" =~ ^(n|no)$ ]] && exit 1
+fi
+# --- LOGIC UPDATE END ---
 
 # 3. EXECUTION
 if [ "$DO_FORMAT" = true ]; then
@@ -103,7 +112,7 @@ else
         exit 1
     fi
 
-    # Subvolume Validation (ChatGPT Fix)
+    # Subvolume Validation
     echo ">> Verifying subvolume structure..."
     mount -t btrfs "$ROOT_PART" /mnt
     if [[ ! -d "/mnt/@" ]] || [[ ! -d "/mnt/@home" ]]; then
