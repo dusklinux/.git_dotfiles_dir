@@ -2,6 +2,12 @@
     "$schema": "/etc/xdg/swaync/configSchema.json",
     "positionX": "left",
     "positionY": "bottom",
+
+    "timeout": 5,
+    "timeout-low": 3,
+    "timeout-critical": 10,
+
+
     "control-center-margin-top": 0,
     "control-center-margin-bottom": 5,
     "control-center-margin-right": 0,
@@ -22,7 +28,6 @@
         "buttons-grid",
         "volume",
         "backlight",
-        "mpris",
         "notifications"
     ],
     "widget-config": {
