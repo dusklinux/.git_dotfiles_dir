@@ -134,7 +134,8 @@ current_pct=$(get_brightness_percent)
 yad_args=(
     --scale
     --title="$TITLE"
-    --text="                      󰃠"
+    --text="󰃠"
+    --text-align=center
     --class="$APP_NAME"
     --window-icon="video-display"
     --min-value=1

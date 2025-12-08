@@ -194,7 +194,8 @@ main() {
         --title="$TITLE_HINT"
         --class="$TITLE_HINT"
         --scale
-        --text="                      󰡬"
+        --text="󰡬"
+        --text-align=center
         --min-value="$MIN_TEMP"
         --max-value="$MAX_TEMP"
         --value="$current_temp"

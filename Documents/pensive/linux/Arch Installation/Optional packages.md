@@ -176,9 +176,10 @@ sudo pacman -Syyu --needed libreoffice-fresh
 packages to add to existing que. 
 pacman
 ```bash
-
+iperf3
 ```
 
 paru 
 ```bash
+speedtest++
 ```
