@@ -173,11 +173,11 @@ tooltip label {
 #custom-network {
     /* Safe fix for tight vertical stacking without line-height crash */
     font-size: 9px; 
-    color: @on_primary_container;
+    color: @accent;
 }
 
 #custom-network.network-mb {
-    color: @surface_tint;
+    color: @error;
 }
 
 /*
