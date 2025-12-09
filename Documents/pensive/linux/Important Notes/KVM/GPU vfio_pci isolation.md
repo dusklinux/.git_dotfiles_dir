@@ -1,0 +1,60 @@
+get the ids. 
+```bash
+lspci -nn | grep -E "NVIDIA"
+```
+
+kernal parambers with systemd boot or do grub. 
+```bash
+sudo nvim /boot/loader/entries/arch.conf
+```
+
+add these in teh same line as zswap.enabled=0
+```ini
+intel_iommu=on iommu=pt vfio-pci.ids=10de:25a0,10de:2291 module_blacklist=nvidia,nvidia_modeset,nvidia_uvm,nvidia_drm,nouveau
+```
+
+```bash
+sudo nvim /etc/mkinitcpio.conf
+```
+if you have any more moduels other than btrfs, keep them there. dont remove. 
+```ini
+MODULES=(btrfs vfio_pci vfio vfio_iommu_type1)
+```
+
+eg, modconf and kms are what matter
+```ini
+HOOKS=(systemd autodetect microcode modconf kms keyboard sd-vconsole block filesystems)
+```
+
+blacklisting nvidia, also add your ids. 
+```bash
+sudo nvim /etc/modprobe.d/vfio.conf
+```
+
+```ini
+options vfio-pci ids=10de:25a0,10de:2291
+softdep nvidia pre: vfio-pci
+blacklist nouveau
+blacklist nvidia
+blacklist nvidia_drm
+blacklist nvidia_modeset
+```
+
+regerneage initramfs
+```bash
+sudo mkinitcpio -P 
+```
+
+check if vfio drivers are in use for nvidia. 
+
+```bash
+lspci -nnk -d 10de:25a0
+```
+
+```bash
+lspci -k | grep -E "vfio-pci|NVIDIA"
+```
+
+```bash
+sudo dmesg | grep -i vfio
+```
