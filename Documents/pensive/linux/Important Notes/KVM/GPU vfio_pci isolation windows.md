@@ -58,3 +58,44 @@ lspci -k | grep -E "vfio-pci|NVIDIA"
 ```bash
 sudo dmesg | grep -i vfio
 ```
+
+
+
+===
+
+---
+---
+
+```bash
+sudo pacman --needed -S qemu-full libvirt virt-install virt-manager virt-viewer dnsmasq bridge-utils openbsd-netcat edk2-ovmf swtpm iptables-nft libosinfo
+```
+yes, remove and replace your iptables with iptables-nft if prompted. 
+
+```bash
+sudo systemctl enable --now libvirtd
+```
+
+```bash
+sudo nvim /etc/libvirt/libvirtd.conf
+```
+
+```ini
+unix_sock_group = "libvirt"
+unix_sock_rw_perms = "0770"
+```
+
+```bash
+sudo usermod -aG libvirt,kvm,input,disk "$(id -un)"
+```
+
+
+
+
+---
+---
+
+open virt manager. 
+
+You should definitely install it using the **System (Root) Connection** (`qemu:///system`), NOT the User session (`qemu:///session`).
+"QEMU/KVM User session". This will cause major headaches for GPU passthrough.
+

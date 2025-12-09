@@ -39,9 +39,18 @@ paru -S virtio-win
 windows specific
 
 ```bash
-sudo pacman -S --needed swtpm
+sudo pacman --needed -S qemu-full libvirt virt-install virt-manager virt-viewer dnsmasq bridge-utils openbsd-netcat edk2-ovmf swtpm iptables-nft libosinfo
 ```
 
+```bash
+sudo systemctl enable --now libvirtd
+```
+
+```bash
+sudo usermod -aG libvirt,kvm,input,disk dusk
+```
+
+logout and relogin. 
 macos specific
 
 ```bash
