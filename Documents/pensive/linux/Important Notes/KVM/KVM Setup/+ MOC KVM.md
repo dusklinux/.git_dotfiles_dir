@@ -22,7 +22,7 @@ turn on vt-x and vt-d in bios. and check if iommu is loaded
 
 - [ ] [[activating Network and setting it to autostart]]
 
-- [ ] [[Optional KVM Network Bridge for webhosting]]
+- [ ] [[KVM Network Bridge for webhosting]]
 
 - [ ] [[Give the User System-Wide Permission]]
 

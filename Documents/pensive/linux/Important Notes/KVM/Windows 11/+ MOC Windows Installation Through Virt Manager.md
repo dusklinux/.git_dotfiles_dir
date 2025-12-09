@@ -31,16 +31,16 @@ This initial phase involves setting up the foundational hardware for your virtua
 *   **1.8. [[Remove the USB Tablet Device]]**
     > A simple tweak to improve performance by removing the default virtual tablet, which can reduce idle CPU usage.
 
-*   **1.9. [[Add QEMU Guest Agent Channel]]**
+*   **1.9. [[Add QEMU Guest Agent Channel]]** **OPTIONAL**
     > Establish a communication channel between the host and guest. This enables features like graceful shutdowns and retrieving guest information from the host.
 
-*   **1.10. [[Enable Trusted Platform Module (TPM)]]**
+*   **1.10. [[Enable Trusted Platform Module (TPM)]]** **not required for custom win isos**
     > Activate the emulated TPM 2.0 module, a mandatory security requirement for installing and running Windows 11.
 
 ### 2. [[Install a Windows 11 Virtual Machine on KVM]]
 With the hardware configured, this step walks you through the actual OS installation. This includes loading the necessary `VirtIO` drivers for storage and networking and installing the guest tools package post-installation for a seamless experience.
 
-### 3. [[Optional Enable Hardware Security on Windows 11]]
+### 3. [[Optional Enable Hardware Security on Windows 11]] **NOT RECOMMENDED, HAS NEGATIVE IMPACT ON PERFORMANCE**
 For those seeking maximum security, this optional guide shows you how to enable Core Isolation (Memory Integrity). This provides an extra layer of protection against malware by modifying the VM's CPU configuration.
 
 ### 4. [[Optimize Windows 11 Performance]]

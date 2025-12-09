@@ -27,9 +27,6 @@ STEP 4: Enable storage for this virtual machine.
 choose `Select or create custom storage`
 and then `Manage`
 
-> [!tip] it doesn't let you pick a custom volume in a straight forward way so follow each steps to the T
-> we'll first create a volume that is 0 mb in size, this is just so it lets you see the target external directory's Location/path, otherwise it doesn't let you select the external drive with an empty directory.  **Sometimes the 0 mb .qcow2 is not created but it still lists the target location of the external drive, which is great** 
-
 > [!tip] important to know
 > `Pool` means the entire directory in which there are files. 
 > `Volume` means the file
