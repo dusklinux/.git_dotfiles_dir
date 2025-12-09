@@ -88,6 +88,10 @@ unix_sock_rw_perms = "0770"
 sudo usermod -aG libvirt,kvm,input,disk "$(id -un)"
 ```
 
+```bash
+sudo virsh net-start default
+sudo virsh net-autostart default
+```
 
 
 
@@ -99,3 +103,7 @@ open virt manager.
 You should definitely install it using the **System (Root) Connection** (`qemu:///system`), NOT the User session (`qemu:///session`).
 "QEMU/KVM User session". This will cause major headaches for GPU passthrough.
 
+always choose bridge device for networking for easier sshing later. 
+also always check,  Customize configuration before install
+
+chipset q35, uefi. 
