@@ -11,6 +11,7 @@ set -euo pipefail
 # 2. Environment & Constants
 # Using ${HOME} ensures UWSM/Systemd user context compatibility
 readonly PINS_DIR="${HOME}/.local/share/rofi-cliphist/pins"
+readonly ERRANDS_FILE="${HOME}/.local/share/errands/data.json"
 
 # 3. Output Formatting (Direct to Stdout for Orchestra Capture)
 # FIX: Use $'...' (ANSI-C quoting) so Bash interprets \033 as the actual Escape character
@@ -96,7 +97,13 @@ main() {
             exit 1
         fi
 
-        # 4. Restart service if we stopped it (Optional, but good manners)
+        # 4. Remove Errands Data (Added as requested)
+        if [[ -f "$ERRANDS_FILE" ]]; then
+            rm -f "$ERRANDS_FILE"
+            log_ok "Removed errands data file: ${ERRANDS_FILE}"
+        fi
+
+        # 5. Restart service if we stopped it (Optional, but good manners)
         # However, usually the orchestra script handles service enablement later.
         # We leave it stopped to be clean, or let UWSM handle the restart on next login.
     fi
