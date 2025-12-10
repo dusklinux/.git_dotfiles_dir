@@ -1,14 +1,37 @@
-Enable the Modular libvirt Daemon
+# Enabling Modular Libvirt Daemons
 
-There are two types of libvirt daemons: monolithic and modular. The type of daemon(s) you use affects how granularly you can configure individual virtualization drivers.
+In this step, we are configuring the "engine" that runs your virtual machines. We are switching from the old-school "Monolithic" mode to the modern "Modular" mode.
 
-The traditional monolithic libvirt daemon, libvirtd, manages a wide range of virtualization drivers via centralized hypervisor configuration. However, this may result in inefficient use of system resources.
+## Why are we doing this?
 
-In contrast, the newly introduced modular libvirt provides a specific daemon for each virtualization driver. As a result, modular libvirt daemons offer more flexibility in fine-tuning libvirt resource management.
+By default, many systems use a **Monolithic** daemon (`libvirtd`). This is like having one giant manager trying to do everyone's job at once—it handles storage, networks, and the VMs themselves. It works, but it can be heavy on system resources.
 
-While most Linux distributions have started to offer a modular option, at the time of writing, Ubuntu and Debian continue to offer only a monolithic daemon.
+We are switching to **Modular** daemons. This is like having a team of specialists. If you aren't touching the network, the network manager sleeps. This makes your system faster and more efficient.
 
-Arch Linux:
+> [!INFO] Service Breakdown: What are we enabling?
+> 
+> You asked to see the individual services. Here is exactly what each piece of the puzzle does:
+> 
+> - **`virtqemud`** (QEMU Daemon): The most important one. It manages the actual "compute" part of the Virtual Machine (CPU/RAM).
+>     
+> - **`virtinterfaced`** (Interface Daemon): Manages the physical network interfaces on your host computer so the VM can see them.
+>     
+> - **`virtnetworkd`** (Network Daemon): Creates virtual networks (like a virtual router) inside your computer so VMs can talk to each other or the internet.
+>     
+> - **`virtnodedevd`** (Node Device Daemon): Handles physical hardware passthrough (like passing a USB drive or GPU directly to a VM).
+>     
+> - **`virtnwfilterd`** (Network Filter Daemon): Acts like a firewall, controlling network traffic rules for the VMs.
+>     
+> - **`virtsecretd`** (Secret Daemon): Safely stores passwords and encryption keys needed by your VMs.
+>     
+> - **`virtstoraged`** (Storage Daemon): Manages the virtual hard drives and storage pools.
+>     
+
+## Step 1: Enable the Services
+
+We need to enable the service (`.service`) and the connection points (`.socket`) for every driver listed above.
+
+Instead of typing 25+ commands manually, copy and paste this entire code block into your terminal. It loops through the list of drivers and enables them all at once.
 
 ```bash
 for drv in qemu interface network nodedev nwfilter secret storage; do \
@@ -16,6 +39,7 @@ sudo systemctl enable virt${drv}d.service; \
 sudo systemctl enable virt${drv}d{,-ro,-admin}.socket; \
 done
 ```
+
 
 > [!NOTE]- This is what will output when you run it. 
 > ```ini
@@ -53,21 +77,29 @@ done
 > Created symlink '/etc/systemd/system/sockets.target.wants/virtstoraged-admin.socket' → '/usr/lib/systemd/system/virtstoraged-admin.socket'.
 > ```
 
-reboot
-```bash
+## Step 2: Apply Changes
+
+For these changes to fully take effect and for the new daemons to replace the old ones, you must reboot your computer.
+
+```
 systemctl reboot
 ```
 
+## Appendix: How to Undo (Disable)
 
-if you want to disable it later run these commands 
+> [!WARNING] Only run this if you messed up or want to stop using KVM.
+> 
+> If you need to revert these changes later, you can use the following commands to stop and disable the modular daemons.
 
+**1. Stop the running services:**
 
 ```bash
 for drv in qemu interface network nodedev nwfilter secret storage; do \
 sudo systemctl stop "virt${drv}d.service" "virt${drv}d"{,-ro,-admin}.socket; \
-sudo systemctl disable "virt${drv}d.service" "virt${drv}d"{,-ro,-admin}.socket; \
 done
 ```
+
+**2. Disable them from starting on boot:**
 
 ```bash
 for drv in qemu interface network nodedev nwfilter secret storage; do \

@@ -4,11 +4,11 @@ turn on vt-x and vt-d in bios. and check if iommu is loaded
 
 - [ ] [[Grub Kernal Parameters]]
 
-- [ ] [[Verify  VT x and kernal modules and IOMMU]]
+- [ ] [[linux/Important Notes/KVM/KVM Setup/Verify VT-x and Kernel Modules and IOMMU]]
 
 - [ ] [[KVM Packages]]
 
-- [ ] [[KVM Loading kernal Module]]
+- [ ] [[KVM Loading Kernel Module]]
 
 - [ ] [[check libvert modular daemon availability]]
 
@@ -20,9 +20,9 @@ turn on vt-x and vt-d in bios. and check if iommu is loaded
 
 - [ ] [[Optimize the Host with TuneD]]
 
-- [ ] [[activating Network and setting it to autostart]]
+- [ ] [[Activating Network and Setting it to Autostart]]
 
-- [ ] [[KVM Network Bridge for webhosting]]
+- [ ] [[KVM Network Bridge for Webhosting]]
 
 - [ ] [[Give the User System-Wide Permission]]
 
