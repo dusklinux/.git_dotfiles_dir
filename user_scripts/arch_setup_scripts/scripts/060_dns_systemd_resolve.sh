@@ -20,9 +20,9 @@ read -r -d '' RESOLVED_CONFIG <<'EOF' || true
 #custom configured
 DNS=9.9.9.9#dns.quad9.net 149.112.112.112#dns.quad9.net 1.1.1.1#cloudflare-dns.com 1.0.0.1#cloudflare-dns.com
 FallbackDNS=9.9.9.9#dns.quad9.net 1.1.1.1#cloudflare-dns.com
-Domains=~.
-DNSSEC=yes
-DNSOverTLS=yes
+#Domains=~.
+DNSSEC=allow-downgrade
+DNSOverTLS=opportunistic
 
 #comment if you want to see stuff on your local network like yoru printer. 
 #MulticastDNS=resolve
