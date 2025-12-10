@@ -30,10 +30,9 @@ But, before you install WinFsp, make sure your Windows 11 is up to date. either 
 After you have updated your drivers or whatever,  download and install the most recent stable version of the WinFsp MSI package.
 github link
 
-```url
-https://github.com/winfsp/winfsp/releases/
+```bash
+https://github.com/winfsp/winfsp/releases
 ```
-
 
 Once the WinFsp package is installed, reboot your Windows 11 guest virtual machine.
 Mount the Shared Directory on the Windows Guest Virtual Machine
