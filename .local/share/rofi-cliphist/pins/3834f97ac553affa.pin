@@ -1,0 +1,11 @@
+I have my KVM with virt manager configured, and i have the notes for it segmented into individual categories for each step, all written for obsidian in markdown format. I want to individually go over each note, one note at a time to polish it for Obsidian, i want it to be written well, clear and easy to understand. so anyone can follow along, not just me. these notes are written for the novice, someone who has no idea about how any of this works. so it's supposed to be a clear set of instructions to do this is a very specific way. Dont add any other method of doing it other than what i've explicitly deliniated, unless absolutely necessory or if my instructions are incoplete or wrong. think criticlaly.  
+make sure to make it look pretty with obsidian native tools like callouts and other stuff. 
+I'll be manually giving you each note one by one. 
+
+and then give me the note back in the canvas with markdown syntax and stuff. and codeblocks like 
+eg. 
+```bash
+sudo pacman -Syu
+```
+
+so here's one of many notes:

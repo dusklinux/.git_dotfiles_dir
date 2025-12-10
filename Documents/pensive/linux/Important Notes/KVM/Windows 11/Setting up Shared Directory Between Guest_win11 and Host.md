@@ -29,9 +29,11 @@ But, before you install WinFsp, make sure your Windows 11 is up to date. either 
 
 After you have updated your drivers or whatever,  download and install the most recent stable version of the WinFsp MSI package.
 github link
-
-```bash
-https://github.com/winfsp/winfsp/releases
+this is for file sharing,with host 
+ WinFsp · Windows File System Proxy
+WinFsp enables developers to write their own file systems (i.e. "Windows drives") as user mode programs and without any knowledge of Windows kernel programming. It is similar to FUSE (Filesystem in Userspace) for Linux and other UNIX-like computers.
+```http
+https://github.com/winfsp/winfsp
 ```
 
 Once the WinFsp package is installed, reboot your Windows 11 guest virtual machine.

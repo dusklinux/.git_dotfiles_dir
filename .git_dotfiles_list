@@ -33,6 +33,7 @@
 .config/starship.toml
 .config/mimeapps.list
 .local/share/errands/data.json
+.local/share/rofi-cliphist/pins/
 Documents/pensive/Adobe/
 Documents/pensive/ai_prompt/
 Documents/pensive/Drafts/

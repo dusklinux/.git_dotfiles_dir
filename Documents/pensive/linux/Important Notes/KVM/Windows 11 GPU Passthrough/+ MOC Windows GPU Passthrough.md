@@ -1,3 +1,5 @@
+> [!note] Steps for win11 and win10 are identical. with the exception of ram requirement, tpm and storage space
+
 1. Make sure to Enable the Bios Options for vt-d iommu and stuff. 
 2. [[Virt_Manager Packages for Windows]]
 3. [[KVM preperation and Optimization]]

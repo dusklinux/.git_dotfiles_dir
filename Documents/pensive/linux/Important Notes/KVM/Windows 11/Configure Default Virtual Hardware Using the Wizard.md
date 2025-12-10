@@ -39,14 +39,11 @@ Then `Target Path:` to where you want to create and save the virtual file image.
 and then click `Finish`
 
 now it'll take you back to the previous window, On the left hand side of the window, it'll show you the newly created file-system , click it and select the Volume 
-
-(notice it says 0 MBs, this will be deleted after the actual volume is created, **Sometimes this is not created at all, which is great cuz you don't have to delete it but make sure you're Location is listed as where you want to place the virtual machine image** )
-
 Then click the other `+` icon at the top, right next to `Volumes ` 
 
 ![[Pasted image 20250726180159.png]]
 
-select the format as `qcow` The disk image that is created will be of the type QCOW2, which is a copy-on-write format. The QCOW2's initial file size will be smaller, and it will only grow as more data is added. To install Windows 11, you need to have a disk space of 64 GiB or greater. 
+select the format as `qcow2` The disk image that is created will be of the type QCOW2, which is a copy-on-write format. The QCOW2's initial file size will be smaller, and it will only grow as more data is added. To install Windows 11, you need to have a disk space of 64 GiB or greater. 
 
 *Dont* check the `Allocate entire volume now` or all the storage will be allocated right now. 
 and then click `Finish`

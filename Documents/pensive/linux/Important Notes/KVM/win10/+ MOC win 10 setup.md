@@ -1,46 +1,19 @@
-```http
-https://github.com/VirtualDrivers/Virtual-Display-Driver
-```
+> [!note] Steps for win11 and win10 are identical. with the exception of ram requirement, tpm and storage space
 
- Microsoft Visual C++ Redistributable
-```http
-https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
-```
-
- WinFsp · Windows File System Proxy
-WinFsp enables developers to write their own file systems (i.e. "Windows drives") as user mode programs and without any knowledge of Windows kernel programming. It is similar to FUSE (Filesystem in Userspace) for Linux and other UNIX-like computers.
-```http
-https://github.com/winfsp/winfsp
-```
-
-Download the Windows Host Binary
-```http
-https://looking-glass.io/downloads
-```
-or download from github
-```http
-https://github.com/gnif/LookingGlass
-```
-
-```http
-https://www.oo-software.com/en/download/current/ooshutup10
-```
-
-```http
-https://www.nvidia.com/en-us/drivers/
-```
-
-```http
-https://www.7-zip.org/
-```
-
-```http
-https://www.majorgeeks.com/files/details/windows_update_minitool.html
-```
-
-
-VirtIO-FS Service will only show up when virtio iso is installed. 
-
-sometimes the cursor disappears when virtio is enabled, in which case uninstall, and then reinstall once viewing the vm from looking glass. 
-
-turn on remotecontrol 
+1. Make sure to Enable the Bios Options for vt-d iommu and stuff. 
+2. [[Virt_Manager Packages for Windows]]
+3. [[KVM preperation and Optimization]]
+4. [[Host PC  Preparation for GPU isolation]]
+5.  [[VirtIO win driver iso]]
+6. [[+ MOC Windows Installation Through Virt Manager]]
+7. [[Windows Configurations for Passthrough]]
+8. [[Looking Glass]]
+9. Verification
+> [!danger] VERY IMPORTANT TO CHECK THIS
+Run this command to check if everything is configured correctly:
+> 
+> ```bash
+> virt-host-validate
+> ```
+> 
+> You should see `PASS` for QEMU and KVM hardware virtualization. (Warnings for IOMMU are expected if you haven't enabled GPU passthrough parameters in your kernel bootloader).
