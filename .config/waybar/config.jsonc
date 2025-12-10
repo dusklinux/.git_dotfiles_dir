@@ -171,8 +171,10 @@
     "custom/network": {
         "return-type": "json",
         "tooltip": true,
+        "tooltip-format": "LMB: wifitui\nRMB: WiFi ON\nMMB: WiFi OFF",
         "on-click": "uwsm-app -- kitty --class wifitui -e wifitui",
         "on-click-right": "nmcli radio wifi on && notify-send 'Turned ON WiFi'",
+        "on-click-middle": "nmcli radio wifi off && notify-send 'Turned OFF WiFi'",
         "interval": 1,
         "exec": "$HOME/user_scripts/waybar/network/network_meter_calling.sh vertical"
     },
