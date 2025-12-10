@@ -6,7 +6,7 @@
 	- [[libvert Modular daemon enable]]
 	- **OR**
 	- [[KVM Services]] 
-5. [[Optimize the Host with TuneD]]
+5. [[Optimize the Host with TuneD]] **NOT RECOMMANDED** CONFLICTS WITH **TLP**
 6. [[activating Network and setting it to autostart]]
 7. **OPTIONAL** [[KVM Network Bridge for webhosting]]
 8. [[Give the User System-Wide Permission]]

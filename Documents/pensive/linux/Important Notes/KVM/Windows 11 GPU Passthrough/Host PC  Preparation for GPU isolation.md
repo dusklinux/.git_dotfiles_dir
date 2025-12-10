@@ -333,7 +333,7 @@ restart
 
 ## 7.0 Attach vfio-pci driver to nvidia
 
-if vfio-pci drivers where attached to the pcie devcies. you can add them with this command. 
+if vfio-pci drivers wherent  attached to the pcie devcies. you can add them with this command. 
 ```bash
 sudo modprobe vfio-pci
 ```

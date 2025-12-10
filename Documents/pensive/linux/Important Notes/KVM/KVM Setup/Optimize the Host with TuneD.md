@@ -1,7 +1,9 @@
 TuneD is a system tuning service for Linux. It provides a number of pre-configured tuning profiles, each optimized for unique workload characteristics, including CPU-intensive job needs, storage/network throughput responsiveness, or power consumption reduction.
 
 Enable and start the TuneD service.
-
+```bash
+sudo pacman -Syu --needed tuned
+```
 ```bash
 sudo systemctl enable --now tuned
 ```

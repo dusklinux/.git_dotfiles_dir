@@ -1,7 +1,7 @@
 
 # this is incomplete 
 
-Looking Glass -  [[linux/Important Notes/GPU/Looking Glass]]
+Looking Glass -  [[Looking Glass info]]
 
 OVMF - [[Open Virtual Machine Framework]] 
 

@@ -51,6 +51,13 @@ export _JAVA_AWT_WM_NONREPARENTING=1
 # For specific apps (gaming), use 'prime-run' or 'env LIBVA_DRIVER_NAME=nvidia'.
 export LIBVA_DRIVER_NAME=iHD
 
+
+# 6. KVM virtualization VIRT Manager 
+# libvirt client libraries/tools (e.g. virsh, virt-install, GUI frontends) which hypervisor URI to connect to by default.
+# qemu:///system means "connect to the system-wide libvirt daemon (system instance of libvirtd/virtqemud)" — requires 
+# the libvirt service and appropriate permissions (root or membership in the libvirt group).
+export LIBVIRT_DEFAULT_URI='qemu:///system'
+
 #-------------------------NVIDIA-------------------------------
 #COMMENT OUT ANY SET ENVIRONMENT VARIABLE IF YOU DONT HAVE NVIDIA
 #--------------------------------------------------------------

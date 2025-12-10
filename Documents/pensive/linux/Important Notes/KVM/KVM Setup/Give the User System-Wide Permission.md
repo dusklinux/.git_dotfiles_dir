@@ -48,7 +48,7 @@ Define the environment variable LIBVIRT_DEFAULT_URI in the local .zshrc file of 
 ---
 ---
 
-# SKIP THIS PART
+# SKIP THIS PART (IT'S ALREADY SET IN THE UWSM FILE IF YOU USE THE DUSK CONFIG FILES. )
 ```bash
 echo "export LIBVIRT_DEFAULT_URI='qemu:///system'" >> ~/.zshrc
 source ~/.zshrc
