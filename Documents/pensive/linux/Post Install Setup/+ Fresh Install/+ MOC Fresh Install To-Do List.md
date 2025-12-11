@@ -314,7 +314,11 @@ sudo mkdir /mnt/{browser,windows,wdslow,wdfast,media,fast,slow,enclosure}
 ```
 
 ---
+*Script*
+- [ ] Preload config. [[Preload Setup]]
 
+---
+*Script
 - [ ] Nvim's plugins download : 
 ```bash
 nvim --headless "+Lazy! sync" +qa
@@ -328,6 +332,7 @@ rm -rf ~/.config/nvim/lazy-lock.json ~/.local/share/nvim ~/.local/state/nvim ~/.
 
 
 ---
+*Script*
 **OPTIONAL**
 - [ ] **Update `fstab`:** Edit the fstab to reflect the new drives' UUIDs. **fstab requires unlocked UUIDs of block devices** [[fstab reference]] 
 - find out UUID's of your relevant disks. boot, home & root are already set. don't touch those in fstab. 
@@ -356,7 +361,7 @@ sudo systemctl daemon-reload
 ```
 
 ---
-
+*Script*
 **OPTIONAL**
 - [ ] **Update Drive Unlock Script:** Change the UUID in your LUKS/drive unlocking script. **Both, lock and unlock scripts require Locked UUIDs**
 
@@ -453,7 +458,7 @@ cp -r /mnt/media/Documents/do_not_delete_linux/wallpapers ~/Pictures/
 ```
 
 ---
-
+*Script*
 - [ ] Apply a wallpaper. (multiple ways) Option A recommanded. 
 
 - option a: Keybind **Super** + **apostrophe(')**
@@ -927,7 +932,12 @@ nvim .config/hypr/source/input.conf
 > left_handed = true
 >```
 
-
+---
+- [ ] Remove clipboard pins and errands, that are specifically for dusk's personal use. 
+```bash
+rm -f "${HOME}/.local/share/errands/data.json"
+rm -rf "${HOME}/.local/share/rofi-cliphist/pins"
+```
 ---
 *Script*
 - [ ] for changing default file manager from yazi to thunar. 
@@ -1004,7 +1014,6 @@ then reload systemd user dameon like above.
 ## Only for Asus tuf f15 
 
 - [ ] **Asus misconfiguration for asusd D-bus:** :- follow the note for it if you have an asus laptop. [[Asusd Dbus Misconfiguration]]
-
 
 ---
 
