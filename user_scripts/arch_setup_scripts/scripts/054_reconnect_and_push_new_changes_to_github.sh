@@ -3,7 +3,7 @@
 # ==============================================================================
 # ARCH LINUX DOTFILES SYNC (MANUAL SPEEDRUN REPLICA - FINAL FIX)
 # Context: Hyprland / UWSM / Bash 5+
-# Logic: Ask Intent -> Clone Bare -> Reset -> Sync via .git_dotfiles_list
+# Logic: Ask Intent -> Clone Bare -> Reset -> Sync via .git_dusky_list
 # Updates:
 #   1. Forces execution from $HOME to fix path errors.
 #   2. Filters missing files to prevent 'pathspec' crash.
@@ -16,9 +16,9 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # 2. CONSTANTS
-readonly DEFAULT_REPO_NAME=".git_dotfiles_dir"
-readonly DOTFILES_DIR="$HOME/.git_dotfiles_dir"
-readonly DOTFILES_LIST="$HOME/.git_dotfiles_list"
+readonly DEFAULT_REPO_NAME="dusky"
+readonly DOTFILES_DIR="$HOME/dusky"
+readonly DOTFILES_LIST="$HOME/.git_dusky_list"
 readonly SSH_KEY_PATH="$HOME/.ssh/id_ed25519"
 readonly SSH_DIR="$HOME/.ssh"
 readonly REQUIRED_CMDS=(git ssh ssh-keygen ssh-agent grep mktemp)
@@ -42,7 +42,7 @@ log_warn()    { printf "${YELLOW}[WARN]${NC} %s\n" "$*"; }
 log_error()   { printf "${RED}[ERR]${NC}  %s\n" "$*" >&2; }
 log_fatal()   { log_error "$*"; exit 1; }
 
-# The Git Wrapper (Simulates your git_dotfiles alias)
+# The Git Wrapper (Simulates your git_dusky alias)
 dotgit() {
     /usr/bin/git --git-dir="$DOTFILES_DIR" --work-tree="$HOME" "$@"
 }
@@ -234,7 +234,7 @@ dotgit status --short
 
 # 7. Add Files from List (With Error Protection)
 if [[ -f "$DOTFILES_LIST" ]]; then
-    log_info "Processing .git_dotfiles_list..."
+    log_info "Processing .git_dusky_list..."
     
     CLEAN_LIST=$(mktemp)
     
@@ -258,7 +258,7 @@ if [[ -f "$DOTFILES_LIST" ]]; then
         dotgit add -u
     fi
 else
-    log_warn ".git_dotfiles_list not found. Falling back to updating tracked files..."
+    log_warn ".git_dusky_list not found. Falling back to updating tracked files..."
     dotgit add -u
 fi
 
