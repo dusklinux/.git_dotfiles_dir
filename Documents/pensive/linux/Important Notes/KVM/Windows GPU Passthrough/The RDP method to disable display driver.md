@@ -3,6 +3,7 @@ The RDP method to disable display driver
 
 
 Pre requistis, 
+If you have a custom iso for whom remote desktop is ripped out, this rdp method wont work. go back and use the other method, (my custom win 10 iso has it ripped out , for win11 i somereason didnt rip it out. so win11 works. )
 ### Remote Desktop (RDP) Configuration
 
 > [!example]- OPTIONAL: Advanced Setup (Click to Expand)

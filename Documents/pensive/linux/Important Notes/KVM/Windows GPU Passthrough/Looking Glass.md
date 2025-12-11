@@ -119,14 +119,14 @@ XML changes regarding memory are not applied on a simple reboot. You must perfor
 
 ```bash
 # 1. Kill the VM
-sudo virsh destroy win11
+sudo virsh destroy win10
 
 # 2. Delete the old 0-byte/bad file.
 # If we don't do this, QEMU might fail to resize it or inherit bad permissions.
 sudo rm /dev/shm/looking-glass
 
 # 3. Start the VM
-sudo virsh start win11
+sudo virsh start win10
 ```
 
 ### 4. Verify the Hardware Link
