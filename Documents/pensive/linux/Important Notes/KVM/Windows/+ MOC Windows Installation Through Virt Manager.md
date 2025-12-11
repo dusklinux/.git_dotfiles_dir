@@ -26,7 +26,7 @@ This initial phase involves setting up the physical "bones" of your virtual mach
     
     - **Crucial for speed.** This allows the VM to see and use your actual CPU model and instruction sets rather than a generic, slower emulated CPU.
         
-- **1.5. [[Configure the Storage]]**
+- **1.5. [[Configure the Storage]]** (USE virtio + Option 2)
     
     - Switch the hard drive bus to `VirtIO`. This is a specialized driver that is much faster than standard SATA emulation.
         

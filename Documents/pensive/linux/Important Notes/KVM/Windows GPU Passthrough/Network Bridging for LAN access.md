@@ -26,7 +26,7 @@ For **all** network types listed below, it is highly recommended to change the D
     
 4. Set **Device model** to: `virtio`.
     
-
+---
 ## Option 1: Basic Internet (NAT)
 
 **Use Case:** You just want the VM to have internet, and you want to SSH into the VM from _this_ computer (the Host). You do _not_ need other computers on your LAN to see the VM.
@@ -41,6 +41,8 @@ For **all** network types listed below, it is highly recommended to change the D
 - _Easiest Method:_ Select `Virtual network 'default' : NAT`.
     
 
+---
+# RECOMMENDED! this is both simple and achieves the best outcome. 
 ## Option 2: Manual Bridge Method: For Host Access: Manually specify the bridge interface:
 
 1. Select **Bridge device**.
@@ -56,7 +58,7 @@ ip -br link show type bridge
     
 4. Click **Apply**.
     
-
+---
 ## Option 3: Local LAN Access (Layer 2 Bridging)
 
 **Use Case:** You want your VM to have its own IP address on your home network (e.g., `192.168.1.50`), just like your phone or laptop.

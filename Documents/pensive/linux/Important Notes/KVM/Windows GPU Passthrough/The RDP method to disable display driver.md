@@ -5,32 +5,17 @@ The RDP method to disable display driver
 Pre requistis, 
 If you have a custom iso for whom remote desktop is ripped out, this rdp method wont work. go back and use the other method, (my custom win 10 iso has it ripped out , for win11 i somereason didnt rip it out. so win11 works. )
 ### Remote Desktop (RDP) Configuration
+### 1. you must know your ip address for windows, 
 
-> [!example]- OPTIONAL: Advanced Setup (Click to Expand)
-> 
-> Recommended to skip. These steps are only required if you intend to access this VM via xfreerdp3 instead of Looking Glass.
-> 
-> Perform these steps inside the standard Virt-Manager (SPICE) console:
-> 
-> 1. Set a User Password:
->     
->     Windows Security Policy blocks RDP connections for accounts with empty passwords. Set a password for your user (e.g., User dusk).
->     
-> 2. Enable Remote Desktop:
->     
->     Go to Settings > System > Remote Desktop and toggle it ON.
->     
-> 3. Identify IP Address:
->     
->     Open PowerShell and run:
->     
->     ```
->     ipconfig
->     ```
->     
->     Note the IPv4 address (e.g., `192.168.122.29`).
->
-### 1. you must know your ip address for windows, check taskmanager, 
+check taskmanager, 
+*OR*
+Identify IP Address using Open PowerShell and run:
+
+```
+ipconfig
+```
+Note the IPv4 address (e.g., `192.168.122.29`).
+
 ### 2. you must have a password set for the user, and know both your user name and password for windows. (you can also do it without it if you have access t group policy , )
 
 > [!NOTE]
@@ -44,6 +29,7 @@ If you have a custom iso for whom remote desktop is ripped out, this rdp method 
 	In Windows, go to **Settings > System > Remote Desktop**.
 ### 4. you must have your network set to private instead of public. 
 
+### 5. You Must have set option 2 for this to work. [[Network Bridging for LAN access]] (virtio + Option 2 is the best ) 
 
 This is the most critical step. We must disable the Emulated GPU ("Microsoft Basic Display" or "Red Hat QXL") to force Windows to use the Passthrough NVIDIA GPU.
 
