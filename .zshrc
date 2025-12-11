@@ -179,13 +179,13 @@ alias fgrep='fgrep --color=auto'
 #alias cat='bat'
 
 # alias for diff colored side by side
-alias gitdelta='cd ~ && git_dotfiles_add_list && git_dotfiles diff HEAD'
+alias gitdelta='cd ~ && git_dusky_add_list && git_dusky diff HEAD'
 
 # alias for git dotfiles bear repo
-alias git_dotfiles='/usr/bin/git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=$HOME'
+alias git_dusky='/usr/bin/git --git-dir=$HOME/dusky/ --work-tree=$HOME'
 
 # alias for automatically adding the list of files to the staging area.
-alias git_dotfiles_add_list='git_dotfiles add --pathspec-from-file=.git_dotfiles_list'
+alias git_dusky_add_list='git_dusky add --pathspec-from-file=.git_dusky_list'
 
 # unlock block_devices
 alias unlock='$HOME/user_scripts/drives/drive_manager.sh unlock'

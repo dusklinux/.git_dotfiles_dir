@@ -1,5 +1,5 @@
 ```bash
-rm -rf $HOME/.git_dotfiles_dir
+rm -rf $HOME/dusky
 ```
 
 ```bash
@@ -21,7 +21,7 @@ cat ~/.ssh/id_ed25519.pub
 save to pgp key on github
 
 ```bash
-git clone --bare git@github.com:dusklinux/.git_dotfiles_dir.git $HOME/.git_dotfiles_dir
+git clone --bare git@github.com:dusklinux/dusky.git $HOME/dusky
 ```
 
 type yes
@@ -47,11 +47,11 @@ git_dotfiles_add_list && git_dotfiles commit -m "fresh install first commit to t
 ```
 
 ```bash
-git_dotfiles remote add origin git@github.com:dusklinux/.git_dotfiles_dir.git
+git_dotfiles remote add origin git@github.com:dusklinux/dusky.git
 ```
 
 ```bash
-git_dotfiles remote set-url origin git@github.com:dusklinux/.git_dotfiles_dir.git
+git_dotfiles remote set-url origin git@github.com:dusklinux/dusky.git
 ```
 
 ```bash

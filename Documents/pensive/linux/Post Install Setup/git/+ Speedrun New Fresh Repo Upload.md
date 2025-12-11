@@ -16,7 +16,7 @@ git config --global init.defaultBranch main
 ```
 - [ ] 4
 ```bash
-git init --bare $HOME/.git_dotfiles_dir
+git init --bare $HOME/dusky
 ```
 - [ ] 5
 ```bash
@@ -65,11 +65,11 @@ cat ~/.ssh/id_ed25519.pub
 - [ ] 14
 for the next command, you Might get an error saying `error: remote origin already exists.` and that's okay. continue on with the rest. 
 ```bash
-git_dotfiles remote add origin git@github.com:dusklinux/.git_dotfiles_dir.git
+git_dotfiles remote add origin git@github.com:dusklinux/dusky.git
 ```
 - [ ] 15
 ```bash
-git_dotfiles remote set-url origin git@github.com:dusklinux/.git_dotfiles_dir.git
+git_dotfiles remote set-url origin git@github.com:dusklinux/dusky.git
 ```
 - [ ] 16
 ```bash

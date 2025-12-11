@@ -37,7 +37,7 @@ pacman -Sy git
 ```
 
 ```bash
-git clone --depth 1 https://github.com/dusklinux/.git_dotfiles_dir.git dusk
+git clone --depth 1 https://github.com/dusklinux/dusky.git dusk
 ```
 
 dont forget the period at the end '.' after a space.  

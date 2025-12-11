@@ -12,10 +12,10 @@ nvim ~/.zshrc
 
 ```bash
 # Alias for managing dotfiles with a bare git repo
-alias git_dotfiles='/usr/bin/git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=$HOME'
+alias git_dotfiles='/usr/bin/git --git-dir=$HOME/dusky/ --work-tree=$HOME'
 ```
 
-*   `--git-dir=$HOME/.git_dotfiles_dir/`: Tells Git where to find its database (our bare repository).
+*   `--git-dir=$HOME/dusky/`: Tells Git where to find its database (our bare repository).
 *   `--work-tree=$HOME`: Tells Git that the working directory for this repository is your home directory.
 
 3.  **Apply the changes** to your current shell session.

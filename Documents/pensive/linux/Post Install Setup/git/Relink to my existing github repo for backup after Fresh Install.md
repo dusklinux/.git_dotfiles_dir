@@ -13,10 +13,10 @@
 
 First, ensure no old dotfiles repository exists. This command will remove the directory if it's present.
 
-> This command permanently deletes the `.git_dotfiles_dir` directory from your home folder. 
+> This command permanently deletes the `dusky` directory from your home folder. 
 
 ```bash
-rm -rf $HOME/.git_dotfiles_dir
+rm -rf $HOME/dusky
 ```
 
 ### 2. 🆔 Set Global Git Identity
@@ -36,7 +36,7 @@ To securely communicate with GitHub without passwords, you must set up SSH keys.
 Download your dotfiles' version history from GitHub into a hidden "bare" repository in your home directory.
 
 ```bash
-git clone --bare git@github.com:dusklinux/.git_dotfiles_dir.git $HOME/.git_dotfiles_dir
+git clone --bare git@github.com:dusklinux/dusky.git $HOME/dusky
 ```
 
 this usually works 
