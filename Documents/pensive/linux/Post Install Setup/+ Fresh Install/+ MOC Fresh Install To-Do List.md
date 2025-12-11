@@ -315,66 +315,17 @@ sudo mkdir /mnt/{browser,windows,wdslow,wdfast,media,fast,slow,enclosure}
 
 ---
 
-- [ ] fix nvim's errors `WARNING {TreeSitter} regex parser is not installed.` `noice.nvim` uses this to highlight regex in the command line nicely. It's a purely visual thing, but fixing it stops the warning.
+- [ ] Nvim's plugins download : 
+```bash
+nvim --headless "+Lazy! sync" +qa
+```
 
-**The Fix:** Open Neovim and run:
+if for some reason neovim's plugns were corrupted , you can reset nvim by deleting these drectorys and then running the downlaod command again. 
 
 ```bash
-:TSInstall regex
+rm -rf ~/.config/nvim/lazy-lock.json ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim
 ```
 
-and then intall Mason packages. 
-```bash
-:Mason
-```
-
-Search for the each of these words, and then just hit `i` to install it. 
-```ini
-clang-format
-
-isort
-
-prettier
-
-prettierd
-
-shfmt
-
-stylua
-
-black
-```
-
-sometimes you need to run this to reinstall the LSP inside neovim, run this command if you exit code 127 notification error in nvim. 
-```bash
-:MasonInstall lua-language-server --force
-```
-
-you can check if lsp is working by entering this command in each file and checking if ther's anything under the `Active Clients` section 
-```ini
-:LspInfo
-```
-
->[!tip]- These are all the installed ones it should show you after you're done. 
-> ```ini
->   Installed
->      ✓ clang-format (keywords: c, c#, c++, json, java, javascript)
-> 	 ✓ isort (keywords: python)
-> 	 ✓ prettierd (keywords: angular, css, flow, graphql, html, json, jsx, javascript, less, markdown, scss, typescript, vue, yaml)
->     ✓ prettier (keywords: angular, css, flow, graphql, html, json, jsx, javascript, less, markdown, scss, typescript, vue, yaml)
->     ✓ bash-language-server bashls (keywords: bash, csh, ksh, sh, zsh)
->     ✓ black (keywords: python)
->     ✓ clangd (keywords: c, c++)
->     ✓ css-lsp cssls (keywords: css, scss, less)
->     ✓ html-lsp html (keywords: html)
->     ✓ json-lsp jsonls (keywords: json)
->     ✓ lua-language-server lua_ls (keywords: lua)
->     ✓ marksman (keywords: markdown)
->     ✓ pyright (keywords: python)
->     ✓ shfmt (keywords: bash, mksh, shell)
->     ✓ stylua (keywords: lua, luau)
->     ✓ typescript-language-server ts_ls (keywords: typescript, javascript)
-> ```
 
 ---
 **OPTIONAL**
