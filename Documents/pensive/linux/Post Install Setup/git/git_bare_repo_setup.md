@@ -21,8 +21,8 @@ This manual is structured to serve as both an initial installation guide and a l
 2.  **[[Initialize the Bare Repository]]**
     *   Create a special, hidden Git repository in your home directory that will store your dotfiles' version history without a working tree.
 
-3.  **[[Create git_dotfiles Alias]]**
-    *   Set up a convenient shell alias (`git_dotfiles`) to make interacting with your new bare repository simple and intuitive.
+3.  **[[Create git_dusky Alias]]**
+    *   Set up a convenient shell alias (`git_dusky`) to make interacting with your new bare repository simple and intuitive.
 
 4.  **[[Configure Repository Status]]**
     *   Tweak the repository to hide untracked files by default. This prevents `git status` from listing every file in your home directory, keeping the output clean.

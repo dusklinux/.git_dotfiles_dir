@@ -27,31 +27,31 @@ git clone --bare git@github.com:dusklinux/dusky.git $HOME/dusky
 type yes
 
 ```bash
-git_dotfiles config --local status.showUntrackedFiles no
+git_dusky config --local status.showUntrackedFiles no
 ```
 
 ```bash
-git_dotfiles status
+git_dusky status
 ```
 
 ```bash
-git_dotfiles reset
+git_dusky reset
 ```
 
 ```bash
-git_dotfiles status
+git_dusky status
 ```
 
 ```bash
-git_dotfiles_add_list && git_dotfiles commit -m "fresh install first commit to the same old git repo"
+git_dusky_add_list && git_dusky commit -m "fresh install first commit to the same old git repo"
 ```
 
 ```bash
-git_dotfiles remote add origin git@github.com:dusklinux/dusky.git
+git_dusky remote add origin git@github.com:dusklinux/dusky.git
 ```
 
 ```bash
-git_dotfiles remote set-url origin git@github.com:dusklinux/dusky.git
+git_dusky remote set-url origin git@github.com:dusklinux/dusky.git
 ```
 
 ```bash
@@ -59,5 +59,5 @@ ssh -T git@github.com
 ```
 
 ```bash
-git_dotfiles push -u origin main
+git_dusky push -u origin main
 ```

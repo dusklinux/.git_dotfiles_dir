@@ -5,7 +5,7 @@
 2.  **Add the remote** to your local repository's configuration.
 
 ```bash
-git_dotfiles remote add origin git@github.com:dusklinux/dusky.git
+git_dusky remote add origin git@github.com:dusklinux/dusky.git
 ```
 
 Might get an error saying `error: remote origin already exists.` and that's okay. continue on with the rest. 
@@ -13,7 +13,7 @@ Might get an error saying `error: remote origin already exists.` and that's okay
 3.  **Set the URL.**
 
 ```bash
-git_dotfiles remote set-url origin git@github.com:dusklinux/dusky.git
+git_dusky remote set-url origin git@github.com:dusklinux/dusky.git
 ```
 
 4.  **Verify the connection.**
