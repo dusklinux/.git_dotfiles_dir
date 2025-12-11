@@ -44,7 +44,6 @@ DRIVES["fast"]="SIMPLE|/mnt/fast|70EED6A1EED65F42"
 # ------------------------------------------------------------------------------
 readonly MAX_UNLOCK_RETRIES=100
 readonly FILESYSTEM_TIMEOUT=15
-readonly LOCK_SETTLE_DELAY=0.5
 
 # ------------------------------------------------------------------------------
 #  LOGGING FUNCTIONS
@@ -273,61 +272,78 @@ do_unlock() {
 }
 
 # ------------------------------------------------------------------------------
-#  LOCK FUNCTION
+#  LOCK FUNCTION (OPTIMIZED)
 # ------------------------------------------------------------------------------
 do_lock() {
-    local outer_dev
+    local outer_dev inner_dev unmount_target
     
     log "Starting lock process for '$TARGET'..."
 
-    # Unmount if mounted
+    # Determine the block device being mounted (needed for udisksctl unmount)
+    if [[ "$TYPE" == "PROTECTED" ]]; then
+        outer_dev="/dev/disk/by-uuid/$OUTER_UUID"
+        inner_dev="/dev/disk/by-uuid/$INNER_UUID"
+        unmount_target="$inner_dev"
+    else
+        unmount_target="/dev/disk/by-uuid/$OUTER_UUID"
+    fi
+
+    # Unmount phase
     if mountpoint -q "$MOUNTPOINT" 2>/dev/null; then
         log "Unmounting $MOUNTPOINT..."
-        
-        # Sync filesystem before unmount
         sync
         
-        local umount_error
-        if ! umount_error=$(sudo umount "$MOUNTPOINT" 2>&1); then
-            err "Unmount failed: $umount_error"
-            err "Check for processes using the mount: lsof +f -- '$MOUNTPOINT'"
-            exit 1
+        # 1. Try udisksctl first (Polite request to Thunar/GVFS)
+        if ! udisksctl unmount -b "$unmount_target" 2>/dev/null; then
+            # 2. Fallback to force if udisks failed (e.g. not user mounted)
+            log "Udisks unmount failed, trying sudo umount..."
+            if ! sudo umount "$MOUNTPOINT"; then
+                err "Unmount completely failed. Check 'lsof +f $MOUNTPOINT'"
+                exit 1
+            fi
         fi
         log "Unmount successful"
     else
         log "$MOUNTPOINT was not mounted"
     fi
 
-    # Lock encrypted container (PROTECTED only)
+    # Lock phase (PROTECTED only)
     if [[ "$TYPE" == "PROTECTED" ]]; then
-        outer_dev="/dev/disk/by-uuid/$OUTER_UUID"
-        
-        # Check if device still exists
+        # Check if outer device still exists (didn't get yanked)
         if [[ ! -b "$outer_dev" ]]; then
-            log "Device no longer present (possibly ejected)"
-            success "Done"
+            success "Device removed physically. Done."
             return 0
         fi
+
+        # FORCE SETTLE: Give kernel/udev a moment to update the device tree after unmount
+        sleep 1
         
-        # Allow filesystem to fully release
-        sync
-        sleep "$LOCK_SETTLE_DELAY"
-        
-        log "Locking encrypted container..."
-        
-        local lock_error
-        if lock_error=$(udisksctl lock --block-device "$outer_dev" 2>&1); then
-            success "Encrypted container locked"
-        else
-            # Check if already locked by looking for mapper device
-            if lsblk -n -o NAME "$outer_dev" 2>/dev/null | grep -q "crypt\|luks"; then
-                err "Lock failed - device still has active mapper: $lock_error"
-                err "Check for remaining mounts: findmnt -S '$outer_dev'"
-                exit 1
-            else
-                success "Container was already locked"
+        # Check if actually locked (mapper shouldn't exist)
+        # We check this loop to handle the race condition where kernel is slow to release
+        local retries=0
+
+        # CRITICAL FIX: Check TYPE="crypt" not NAME. 
+        # Checking NAME fails if the mapper has a custom name or if lsblk output varies.
+        # Checking TYPE is the robust way to see if a partition is holding a LUKS container.
+        while lsblk -n -r -o TYPE "$outer_dev" 2>/dev/null | grep -q "crypt"; do
+            log "Locking container (Attempt $((retries+1))...)"
+            
+            if udisksctl lock --block-device "$outer_dev" 2>/dev/null; then
+                success "Encrypted container locked"
+                return 0
             fi
-        fi
+            
+            ((retries++))
+            if [[ $retries -ge 5 ]]; then
+                 err "Could not lock device after 5 attempts."
+                 err "Mapper is still active. Is something else using /dev/mapper/..?"
+                 # Debug info if it fails
+                 lsblk "$outer_dev"
+                 exit 1
+            fi
+            sleep 1
+        done
+        success "Container was already locked"
     else
         success "Simple drive '$TARGET' unmounted"
     fi
