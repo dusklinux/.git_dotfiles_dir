@@ -57,7 +57,7 @@ INSTALL_SEQUENCE=(
     "U | 044_spotify.sh"
     "U | 045_mouse_button_reverse.sh"
     "U | 046_neovim_clean.sh"
-    "S | 047_node_neovim_npm.sh"
+    "S | 047_dns_systemd_resolve.sh"
     "U | 048_dusk_clipboard_errands_delete.sh"
     "S | 049_tty_autologin.sh"
     "S | 050_system_services.sh"
@@ -70,9 +70,8 @@ INSTALL_SEQUENCE=(
     "S | 057_hosts_files_block.sh"
     "S | 058_gtk_root_symlink.sh"
     "S | 059_preload_config.sh"
-    "S | 060_dns_systemd_resolve.sh"
+    "U | 060_kokoro_cpu.sh"
     "U | 061_faster_whisper_cpu.sh"
-    "U | 062_kokoro_cpu.sh"
 )
 
 # ==============================================================================
