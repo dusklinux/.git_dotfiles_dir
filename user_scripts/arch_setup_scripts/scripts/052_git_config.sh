@@ -76,6 +76,11 @@ trap cleanup EXIT
 # -----------------------------------------------------------------------------
 
 main() {
+    # 0. Ensure Dependencies
+    # We install git-delta first to ensure the config below is valid.
+    log_info "Ensuring dependency 'git-delta' is installed via pacman..."
+    sudo pacman -S --needed --noconfirm git-delta
+
     local config_content
     config_content="$(define_config_content)"
 

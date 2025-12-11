@@ -42,12 +42,12 @@ Once you are logged into your new system, open your terminal. We are going to us
 
 1. Download the repository:
 ```bash
-git clone --bare --depth 1 https://github.com/dusklinux/.git_dotfiles_dir.git $HOME/.git_dotfiles_dir
+git clone --bare --depth 1 https://github.com/dusklinux/dusky.git $HOME/dusky
 ```
 
 2. Checkout (Deploy) the files:
 ```bash
-git --git-dir=$HOME/.git_dotfiles_dir/ --work-tree=$HOME checkout -f
+git --git-dir=$HOME/dusky/ --work-tree=$HOME checkout -f
 ```
 
 > Note: The  f flag stands for force. It will overwrite existing configuration files in your home directory with these dotfiles.
@@ -81,7 +81,7 @@ You can usually fix the specific issue and run that single script again manually
 
 If you've messed around with the configurations and just want to get back to the clean state of this repo (or if you want to remove the git tracking for these dotfiles), run:
 ```bash
-rm -rf ~/.git_dotfiles_dir
+rm -rf ~/dusky
 ```
 
 > Warning: This removes the local git history for the dotfiles. If you re run the clone command after this, it will revert any personal changes you've made to the config files.
