@@ -6,7 +6,6 @@ return {
     "hrsh7th/nvim-cmp",
     event = { "InsertEnter", "CmdlineEnter" },
     dependencies = {
-      "hrsh7th/cmp-nvim-lsp",
       "hrsh7th/cmp-buffer",
       "hrsh7th/cmp-path",       -- path completions (files/dirs)
       "hrsh7th/cmp-cmdline",    -- optional: completion in : and / cmdline
@@ -59,7 +58,6 @@ return {
 
         sources = cmp.config.sources({
           { name = "path", option = { trailing_slash = true } }, -- important: path source first
-          { name = "nvim_lsp" },
           { name = "buffer" },
           { name = "luasnip" },
         }),

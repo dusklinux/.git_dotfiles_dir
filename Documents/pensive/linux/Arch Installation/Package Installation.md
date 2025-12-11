@@ -99,7 +99,7 @@ pacman -S --needed networkmanager iwd nm-connection-editor inetutils wget curl o
 _Zsh, terminal emulator, and modern Rust-based CLI replacements._
 
 ```
-pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza fd tealdeer yazi zellij gum man-db ttyper tree fzf less ripgrep expac zsh-autosuggestions calcurse
+pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza fd tealdeer yazi zellij gum man-db ttyper tree fzf less ripgrep expac zsh-autosuggestions calcurse iperf3
 ```
 
 - [ ] Status
@@ -109,8 +109,9 @@ pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza 
 _Build tools, languages, and image previewers for Neovim/Yazi._
 
 ```
-pacman -S --needed neovim git git-delta meson cmake clang python-pipx uv rq jq bc luarocks viu chafa ueberzugpp ccache nodejs npm python-pynvim mold lua-language-server shellcheck
+pacman -S --needed neovim git git-delta meson cmake clang uv rq jq bc viu chafa ueberzugpp ccache mold shellcheck fd ripgrep fzf shfmt stylua prettier
 ```
+
 
 Installing using npm
 ```bash
@@ -149,7 +150,7 @@ pacman -S --needed btop htop nvtop inxi sysstat sysbench logrotate acpid tlp tlp
 _Specific Gnome apps for productivity and utilities._
 
 ```
-pacman -S --needed snapshot loupe gnome-text-editor blanket collision errands identity impression gnome-calculator gnome-clocks
+pacman -S --needed snapshot loupe gnome-text-editor blanket collision errands identity impression gnome-calculator gnome-clocks showmethekey
 ```
 
 - [ ] Status

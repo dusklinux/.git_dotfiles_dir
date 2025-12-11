@@ -62,20 +62,7 @@ return {
              cond = function() return vim.api.nvim_buf_get_name(0) ~= "" end,
              color = { fg = vim.g.base16_gui0B, gui = "bold" } -- Green
           },
-          {
-            -- LSP CLIENTS
-            function()
-              local clients = vim.lsp.get_clients({ bufnr = 0 })
-              if #clients == 0 then return "" end
-              local names = {}
-              for _, client in ipairs(clients) do
-                table.insert(names, client.name)
-              end
-              return " " .. table.concat(names, ", ")
-            end,
-            color = { fg = vim.g.base16_gui05, gui = "bold" },
-          },
-          -- Removed "encoding" here as requested
+          -- Removed LSP Client component
           "fileformat", 
           "filetype" 
         },
@@ -88,7 +75,6 @@ return {
         },
         lualine_z = { 
           -- COMPACT LOCATION
-          -- Merges "9:1" and "101L" into one tight string like "9:1/101"
           {
             function()
               local line = vim.fn.line(".")
@@ -96,7 +82,6 @@ return {
               local total = vim.api.nvim_buf_line_count(0)
               return string.format("%d:%d/%d", line, col, total)
             end,
-            -- Reduced padding to make it narrower
             padding = { left = 1, right = 1 }
           }
         },

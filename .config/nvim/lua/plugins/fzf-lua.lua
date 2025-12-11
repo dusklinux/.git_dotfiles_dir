@@ -37,34 +37,7 @@ return {
 			end,
 			desc = "FZF Help Tags",
 		},
-		{
-			"<leader>fx",
-			function()
-				require("fzf-lua").diagnostics_document()
-			end,
-			desc = "FZF Diagnostics Document",
-		},
-		{
-			"<leader>fX",
-			function()
-				require("fzf-lua").diagnostics_workspace()
-			end,
-			desc = "FZF Diagnostics Workspace",
-		},
-		{
-			"<leader>fs",
-			function()
-				require("fzf-lua").lsp_document_symbols()
-			end,
-			desc = "FZF Document Symbols",
-		},
-		{
-			"<leader>fS",
-			function()
-				require("fzf-lua").lsp_workspace_symbols()
-			end,
-			desc = "FZF Workspace Symbols",
-		},
+        -- Removed LSP-related keymaps (diagnostics, symbols)
 	},
 
 	opts = {},

@@ -62,12 +62,12 @@ pkgs_network=(
 
 # Group 8: Terminal & Shell
 pkgs_terminal=(
-"kitty" "zsh" "zsh-syntax-highlighting" "starship" "fastfetch" "bat" "eza" "fd" "tealdeer" "yazi" "zellij" "gum" "man-db" "ttyper" "tree" "fzf" "less" "ripgrep" "expac" "zsh-autosuggestions" "calcurse"
+"kitty" "zsh" "zsh-syntax-highlighting" "starship" "fastfetch" "bat" "eza" "fd" "tealdeer" "yazi" "zellij" "gum" "man-db" "ttyper" "tree" "fzf" "less" "ripgrep" "expac" "zsh-autosuggestions" "calcurse" "iperf3"
 )
 
 # Group 9: Development
 pkgs_dev=(
-"neovim" "git" "git-delta" "meson" "cmake" "clang" "python-pipx" "uv" "rq" "jq" "bc" "luarocks" "viu" "chafa" "ueberzugpp" "ccache" "nodejs" "npm" "python-pynvim" "mold" "shellcheck" "lua-language-serve"
+"neovim" "git" "git-delta" "meson" "cmake" "clang" "uv" "rq" "jq" "bc" "viu" "chafa" "ueberzugpp" "ccache" "mold" "shellcheck" "fd" "ripgrep" "fzf" "shfmt" "stylua" "prettier"
 )
 
 # Group 10: Multimedia
@@ -82,7 +82,7 @@ pkgs_sysadmin=(
 
 # Group 12: Gnome Utilities
 pkgs_gnome=(
-"snapshot" "loupe" "gnome-text-editor" "blanket" "collision" "errands" "identity" "impression" "gnome-calculator" "gnome-clocks"
+"snapshot" "loupe" "gnome-text-editor" "blanket" "collision" "errands" "identity" "impression" "gnome-calculator" "gnome-clocks" "showmethekey"
 )
 
 # Group 13: Productivity

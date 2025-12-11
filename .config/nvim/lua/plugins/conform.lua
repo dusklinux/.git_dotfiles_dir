@@ -1,43 +1,38 @@
--- ================================================================================================
--- TITLE : conform.nvim (The Discipline)
--- ABOUT : Manual formatting only. Auto-save formatting is DISABLED.
--- ================================================================================================
-
+-- lua/plugins/conform.lua
 return {
-	"stevearc/conform.nvim",
-	event = { "BufWritePre" },
-	cmd = { "ConformInfo" },
-	keys = {
-		{
-			"<leader>cf",
-			function()
-				require("conform").format({ async = true, lsp_fallback = true })
-			end,
-			mode = "",
-			desc = "Format buffer",
-		},
-	},
-	opts = {
-		-- Define your formatters
-		formatters_by_ft = {
-			lua = { "stylua" },
-			python = { "isort", "black" },
-			bash = { "shfmt" },
-			sh = { "shfmt" },
-			zsh = { "shfmt" },
-			javascript = { "prettierd", "prettier" },
-			typescript = { "prettierd", "prettier" },
-			html = { "prettierd", "prettier" },
-			css = { "prettierd", "prettier" },
-			json = { "prettierd", "prettier" },
-			jsonc = { "prettierd", "prettier" },
-			markdown = { "prettier" },
-			["markdown.mdx"] = { "prettier" },
-			c = { "clang-format" },
-			cpp = { "clang-format" },
-		},
-
-		-- format_on_save is intentionally REMOVED.
-		-- To format a file, you must press <leader>cf manually.
-	},
+  "stevearc/conform.nvim",
+  event = { "BufReadPost", "BufNewFile" },
+  cmd = { "ConformInfo" },
+  keys = {
+    {
+      -- The "Trigger" keybind
+      "<leader>cf",
+      function()
+        require("conform").format({ async = true, lsp_fallback = true })
+      end,
+      mode = { "n", "v" }, -- Works in Normal and Visual mode
+      desc = "Code Format",
+    },
+  },
+  opts = {
+    -- Define which tools to use for which filetype
+    formatters_by_ft = {
+      lua = { "stylua" },
+      bash = { "shfmt" },
+      sh = { "shfmt" },
+      zsh = { "shfmt" },
+      
+      -- Web / Config standards
+      javascript = { "prettier" },
+      typescript = { "prettier" },
+      css = { "prettier" },
+      html = { "prettier" },
+      json = { "prettier" },
+      yaml = { "prettier" },
+      markdown = { "prettier" },
+    },
+    
+    -- Explicitly disable auto-formatting
+    format_on_save = false,
+  },
 }

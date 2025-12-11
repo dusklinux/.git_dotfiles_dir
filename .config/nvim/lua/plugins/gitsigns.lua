@@ -24,7 +24,7 @@ return {
 		worktrees = {
 			{
 				toplevel = os.getenv("HOME"),
-				gitdir = os.getenv("HOME") .. "/.git_dotfiles_dir",
+				gitdir = os.getenv("HOME") .. "/dusky",
 			},
 		},
 	},
