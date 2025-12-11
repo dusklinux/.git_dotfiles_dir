@@ -28,4 +28,15 @@ return {
 			},
 		},
 	},
+	-- We use the config function to run the setup AND force the highlight overrides
+	config = function(_, opts)
+		require("gitsigns").setup(opts)
+
+		-- Force every GitSigns highlight group to link to "GitSignsAdd" (Green/Add color)
+		vim.api.nvim_set_hl(0, "GitSignsChange", { link = "GitSignsAdd" })
+		vim.api.nvim_set_hl(0, "GitSignsDelete", { link = "GitSignsAdd" })
+		vim.api.nvim_set_hl(0, "GitSignsTopDelete", { link = "GitSignsAdd" })
+		vim.api.nvim_set_hl(0, "GitSignsChangeDelete", { link = "GitSignsAdd" })
+		vim.api.nvim_set_hl(0, "GitSignsUntracked", { link = "GitSignsAdd" })
+	end,
 }

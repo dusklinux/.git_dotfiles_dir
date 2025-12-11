@@ -26,7 +26,7 @@ Note the IPv4 address (e.g., `192.168.122.29`).
 > - Double-click it and set it to **Disabled**.
 
 ### 3. You must have remote desktop enabled in settings.
-	In Windows, go to **Settings > System > Remote Desktop**.
+In Windows, go to **Settings > System > Remote Desktop**.
 ### 4. you must have your network set to private instead of public. 
 
 ### 5. You Must have set option 2 for this to work. [[Network Bridging for LAN access]] (virtio + Option 2 is the best ) 
