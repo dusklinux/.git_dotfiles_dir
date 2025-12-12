@@ -18,12 +18,13 @@ trap 'exit_code=$?; [[ $exit_code -ne 0 ]] && log_err "Script exited with error 
 # ------------------------------------------------------------------------------
 # 2. STYLING & LOGGING
 # ------------------------------------------------------------------------------
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly BLUE='\033[0;34m'
-readonly YELLOW='\033[1;33m'
-readonly BOLD='\033[1m'
-readonly NC='\033[0m' # No Color
+# UPDATED: Added $ for correct ANSI-C quoting
+readonly RED=$'\033[0;31m'
+readonly GREEN=$'\033[0;32m'
+readonly BLUE=$'\033[0;34m'
+readonly YELLOW=$'\033[1;33m'
+readonly BOLD=$'\033[1m'
+readonly NC=$'\033[0m' # No Color
 
 log_info() { printf "${BLUE}[INFO]${NC} %s\n" "$1"; }
 log_success() { printf "${GREEN}[SUCCESS]${NC} %s\n" "$1"; }
@@ -111,7 +112,9 @@ printf "     - Clipboard history is stored on your hard drive.\n"
 printf "     - Your history ${GREEN}stays available${NC} even after you reboot.\n"
 printf "     - Standard behavior for most users.\n\n"
 
-read -rp "Select option [1/2]: " choice
+# UPDATED: Prompt now indicates default and handles empty input
+read -rp "Select option [1/2] (default: 1): " choice
+choice="${choice:-1}"
 
 case "$choice" in
 1)
@@ -135,7 +138,7 @@ esac
 if command -v uwsm >/dev/null 2>&1; then
   printf "\n"
   log_info "Changes saved."
-  log_info "To apply changes immediately, log out and back in, or restart UWSM."
+  log_info "To apply changes immediately, log out and back in, or restart at a later time."
 else
   log_warn "uwsm command not found in PATH. Ensure you are in a UWSM session."
 fi
