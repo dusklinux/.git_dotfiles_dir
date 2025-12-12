@@ -16,6 +16,12 @@ readonly CONFIG_FILE="${HOME}/.config/hypr/hypridle.conf"
 readonly BACKUP_FILE="/tmp/hypridlle.bak"
 readonly SCRIPT_NAME="${0##*/}"
 
+# PRESET DEFAULTS
+readonly PRESET_DIM="150"      # 2.5 mins
+readonly PRESET_LOCK="300"     # 5 mins
+readonly PRESET_OFF="330"      # 5.5 mins
+readonly PRESET_SUSPEND="600"  # 10 mins
+
 # Listener block signatures (used for matching, not regex)
 readonly SIG_DIM="brightnessctl -s set"
 readonly SIG_LOCK="loginctl lock-session"
@@ -308,6 +314,7 @@ main() {
             "3. Screen Off     [${NEW_OFF}s]" \
             "4. System Suspend [${NEW_SUSPEND}s]" \
             "───────────────────────────" \
+            "↺ Reset to Defaults" \
             "▶ Apply Changes & Restart" \
             "✗ Exit Without Saving") || {
             # gum choose cancelled
@@ -328,8 +335,122 @@ main() {
             *"System Suspend"*)
                 NEW_SUSPEND=$(prompt_timeout "$NEW_SUSPEND" "Seconds until system suspends:")
                 ;;
+            *"Reset to Defaults"*)
+                # 1. Update working variables
+                NEW_DIM="$PRESET_DIM"
+                NEW_LOCK="$PRESET_LOCK"
+                NEW_OFF="$PRESET_OFF"
+                NEW_SUSPEND="$PRESET_SUSPEND"
+                
+                # 2. Write to config
+                echo
+                gum spin --spinner dot --title "Resetting & Saving configuration..." -- sleep 0.2
+                update_all_timeouts "$NEW_DIM" "$NEW_LOCK" "$NEW_OFF" "$NEW_SUSPEND"
+                
+                # 3. Restart service
+                echo
+                if systemctl --user is-active --quiet hypridle 2>/dev/null; then
+                    if gum spin --spinner monkey --title "Restarting hypridle service..." -- \
+                        systemctl --user restart hypridle; then
+                        success "Hypridle restarted successfully!"
+                    else
+                        gum style --foreground "$C_ERR" "✗ Failed to restart hypridle"
+                    fi
+                else
+                    if gum confirm "Start hypridle now?"; then
+                        if gum spin --spinner monkey --title "Starting hypridle service..." -- \
+                            systemctl --user start hypridle; then
+                            success "Hypridle started successfully!"
+                        else
+                            gum style --foreground "$C_ERR" "✗ Failed to start hypridle"
+                        fi
+                    fi
+                fi
+                
+                # 4. Update internal state
+                CUR_DIM="$NEW_DIM"
+                CUR_LOCK="$NEW_LOCK"
+                CUR_OFF="$NEW_OFF"
+                CUR_SUSPEND="$NEW_SUSPEND"
+                
+                echo
+                info "Defaults applied successfully."
+                sleep 1.5
+                ;;
             *"Apply"*)
-                break
+                # Validate logical order of timeouts
+                local warnings=""
+                if (( NEW_DIM >= NEW_LOCK )); then
+                    warnings+="  • Dim (${NEW_DIM}s) should be < Lock (${NEW_LOCK}s)\n"
+                fi
+                if (( NEW_LOCK >= NEW_OFF )); then
+                    warnings+="  • Lock (${NEW_LOCK}s) should be < Screen Off (${NEW_OFF}s)\n"
+                fi
+                if (( NEW_OFF >= NEW_SUSPEND )); then
+                    warnings+="  • Screen Off (${NEW_OFF}s) should be < Suspend (${NEW_SUSPEND}s)\n"
+                fi
+                
+                if [[ -n "$warnings" ]]; then
+                    echo
+                    gum style --border double --border-foreground "$C_WARN" --padding "1" --margin "0 1" \
+                        "$(gum style --foreground "$C_WARN" --bold "⚠ TIMELINE WARNING")" \
+                        "" \
+                        "Your timeout order may not make sense:" \
+                        "" \
+                        "$(printf '%b' "$warnings")" \
+                        "Expected order: Dim < Lock < Screen Off < Suspend"
+                    
+                    echo
+                    if ! gum confirm --affirmative="Apply Anyway" --negative="Go Back"; then
+                        continue
+                    fi
+                fi
+                
+                # Check if anything actually changed
+                if [[ "$NEW_DIM" == "$CUR_DIM" && \
+                      "$NEW_LOCK" == "$CUR_LOCK" && \
+                      "$NEW_OFF" == "$CUR_OFF" && \
+                      "$NEW_SUSPEND" == "$CUR_SUSPEND" ]]; then
+                    echo
+                    info "No values changed. Nothing to do."
+                    sleep 1
+                    continue
+                fi
+                
+                # Apply all changes in one atomic operation
+                echo
+                gum spin --spinner dot --title "Writing configuration..." -- sleep 0.2
+                update_all_timeouts "$NEW_DIM" "$NEW_LOCK" "$NEW_OFF" "$NEW_SUSPEND"
+                
+                # Handle service restart
+                echo
+                if systemctl --user is-active --quiet hypridle 2>/dev/null; then
+                    if gum spin --spinner monkey --title "Restarting hypridle service..." -- \
+                        systemctl --user restart hypridle; then
+                        success "Hypridle restarted successfully!"
+                    else
+                        gum style --foreground "$C_ERR" "✗ Failed to restart hypridle"
+                    fi
+                else
+                    if gum confirm "Start hypridle now?"; then
+                        if gum spin --spinner monkey --title "Starting hypridle service..." -- \
+                            systemctl --user start hypridle; then
+                            success "Hypridle started successfully!"
+                        else
+                            gum style --foreground "$C_ERR" "✗ Failed to start hypridle"
+                        fi
+                    fi
+                fi
+                
+                # Update current state to match new state
+                CUR_DIM="$NEW_DIM"
+                CUR_LOCK="$NEW_LOCK"
+                CUR_OFF="$NEW_OFF"
+                CUR_SUSPEND="$NEW_SUSPEND"
+                
+                echo
+                info "Settings applied. Returning to menu..."
+                sleep 2
                 ;;
             *"Exit"* | *"───"*)
                 info "No changes made."
@@ -337,83 +458,6 @@ main() {
                 ;;
         esac
     done
-    
-    # Validate logical order of timeouts
-    local warnings=""
-    
-    if (( NEW_DIM >= NEW_LOCK )); then
-        warnings+="  • Dim (${NEW_DIM}s) should be < Lock (${NEW_LOCK}s)\n"
-    fi
-    if (( NEW_LOCK >= NEW_OFF )); then
-        warnings+="  • Lock (${NEW_LOCK}s) should be < Screen Off (${NEW_OFF}s)\n"
-    fi
-    if (( NEW_OFF >= NEW_SUSPEND )); then
-        warnings+="  • Screen Off (${NEW_OFF}s) should be < Suspend (${NEW_SUSPEND}s)\n"
-    fi
-    
-    if [[ -n "$warnings" ]]; then
-        echo
-        gum style --border double --border-foreground "$C_WARN" --padding "1" --margin "0 1" \
-            "$(gum style --foreground "$C_WARN" --bold "⚠ TIMELINE WARNING")" \
-            "" \
-            "Your timeout order may not make sense:" \
-            "" \
-            "$(printf '%b' "$warnings")" \
-            "Expected order: Dim < Lock < Screen Off < Suspend"
-        
-        echo
-        if ! gum confirm --affirmative="Apply Anyway" --negative="Go Back"; then
-            exec "$0"  # Restart script to re-edit
-        fi
-    fi
-    
-    # Check if anything actually changed
-    if [[ "$NEW_DIM" == "$CUR_DIM" && \
-          "$NEW_LOCK" == "$CUR_LOCK" && \
-          "$NEW_OFF" == "$CUR_OFF" && \
-          "$NEW_SUSPEND" == "$CUR_SUSPEND" ]]; then
-        echo
-        info "No values changed. Nothing to do."
-        exit 0
-    fi
-    
-    # Show pending changes
-    echo
-    gum style --foreground "$C_ACCENT" --bold "Pending changes:"
-    [[ "$NEW_DIM" != "$CUR_DIM" ]] && echo "  Dim:        ${CUR_DIM}s → ${NEW_DIM}s"
-    [[ "$NEW_LOCK" != "$CUR_LOCK" ]] && echo "  Lock:       ${CUR_LOCK}s → ${NEW_LOCK}s"
-    [[ "$NEW_OFF" != "$CUR_OFF" ]] && echo "  Screen Off: ${CUR_OFF}s → ${NEW_OFF}s"
-    [[ "$NEW_SUSPEND" != "$CUR_SUSPEND" ]] && echo "  Suspend:    ${CUR_SUSPEND}s → ${NEW_SUSPEND}s"
-    echo
-    
-    # Apply all changes in one atomic operation
-    gum spin --spinner dot --title "Writing configuration..." -- sleep 0.2
-    update_all_timeouts "$NEW_DIM" "$NEW_LOCK" "$NEW_OFF" "$NEW_SUSPEND"
-    success "Configuration saved (backup: $BACKUP_FILE)"
-    
-    # Handle service restart
-    echo
-    if systemctl --user is-active --quiet hypridle 2>/dev/null; then
-        if gum spin --spinner monkey --title "Restarting hypridle service..." -- \
-            systemctl --user restart hypridle; then
-            success "Hypridle restarted successfully!"
-        else
-            die "Failed to restart hypridle (check: systemctl --user status hypridle)"
-        fi
-    else
-        warn "Hypridle service is not currently running."
-        if gum confirm "Start hypridle now?"; then
-            if gum spin --spinner monkey --title "Starting hypridle service..." -- \
-                systemctl --user start hypridle; then
-                success "Hypridle started successfully!"
-            else
-                die "Failed to start hypridle (check: systemctl --user status hypridle)"
-            fi
-        fi
-    fi
-    
-    echo
-    info "All done! Your new idle timeouts are now active."
 }
 
 # Run main function
