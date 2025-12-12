@@ -10,11 +10,11 @@
 set -euo pipefail
 
 # 2. Output Formatting (Visual Feedback)
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+GREEN=$'\033[0;32m'
+BLUE=$'\033[0;34m'
+RED=$'\033[0;31m'
+YELLOW=$'\033[1;33m'
+NC=$'\033[0m' # No Color
 
 log_info() { printf "${BLUE}[INFO]${NC} %s\n" "$1"; }
 log_success() { printf "${GREEN}[SUCCESS]${NC} %s\n" "$1"; }

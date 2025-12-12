@@ -13,11 +13,11 @@
 set -euo pipefail
 
 # 2. Visual Feedback (ANSI Colors)
-readonly C_RESET='\033[0m'
-readonly C_GREEN='\033[1;32m'
-readonly C_BLUE='\033[1;34m'
-readonly C_RED='\033[1;31m'
-readonly C_GRAY='\033[0;90m'
+readonly C_RESET=$'\033[0m'
+readonly C_GREEN=$'\033[1;32m'
+readonly C_BLUE=$'\033[1;34m'
+readonly C_RED=$'\033[1;31m'
+readonly C_GRAY=$'\033[0;90m'
 
 # 3. Utility Functions (Modern Bash)
 log_info() { printf "${C_BLUE}[INFO]${C_RESET} %s\n" "$1"; }

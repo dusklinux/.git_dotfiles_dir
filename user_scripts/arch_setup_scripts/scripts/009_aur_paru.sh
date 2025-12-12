@@ -15,10 +15,10 @@ readonly PARU_URL="https://aur.archlinux.org/paru.git"
 readonly BUILD_DEPS=("base-devel" "git" "rust")
 
 # --- Formatting ---
-readonly BLUE='\033[0;34m'
-readonly GREEN='\033[0;32m'
-readonly RED='\033[0;31m'
-readonly NC='\033[0m'
+readonly BLUE=$'\033[0;34m'
+readonly GREEN=$'\033[0;32m'
+readonly RED=$'\033[0;31m'
+readonly NC=$'\033[0m'
 
 log_info() { printf "${BLUE}[INFO]${NC} %s\n" "$1"; }
 log_success() { printf "${GREEN}[SUCCESS]${NC} %s\n" "$1"; }

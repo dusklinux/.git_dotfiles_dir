@@ -9,10 +9,10 @@
 set -euo pipefail
 
 # 2. Colors for Orchestra Consistency
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+RED=$'\033[0;31m'
+GREEN=$'\033[0;32m'
+BLUE=$'\033[0;34m'
+NC=$'\033[0m' # No Color
 
 log_info() { printf "${BLUE}[INFO]${NC} %s\n" "$1"; }
 log_success() { printf "${GREEN}[SUCCESS]${NC} %s\n" "$1"; }

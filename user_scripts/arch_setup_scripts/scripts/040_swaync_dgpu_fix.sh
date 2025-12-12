@@ -22,11 +22,11 @@ BACKUP_FILE="${CONFIG_DIR}/gpu-fix.conf.bak"
 SERVICE="swaync.service"
 
 # --- Styling ---
-BOLD="\e[1m"
-GREEN="\e[32m"
-BLUE="\e[34m"
-RED="\e[31m"
-RESET="\e[0m"
+BOLD=$'\e[1m'
+GREEN=$'\e[32m'
+BLUE=$'\e[34m'
+RED=$'\e[31m'
+RESET=$'\e[0m'
 
 # --- Helper Functions ---
 log_info()    { printf "${BLUE}[INFO]${RESET} %s\n" "$1"; }

@@ -11,11 +11,11 @@ set -euo pipefail
 
 # --- 2. Constants & Configuration ---
 # ANSI Color Codes for clean output
-readonly C_RESET='\033[0m'
-readonly C_GREEN='\033[1;32m'
-readonly C_BLUE='\033[1;34m'
-readonly C_RED='\033[1;31m'
-readonly C_BOLD='\033[1m'
+readonly C_RESET=$'\033[0m'
+readonly C_GREEN=$'\033[1;32m'
+readonly C_BLUE=$'\033[1;34m'
+readonly C_RED=$'\033[1;31m'
+readonly C_BOLD=$'\033[1m'
 
 # Target script configuration
 readonly TARGET_SCRIPT="$HOME/user_scripts/hypr/hypr_blur_opacity_shadow_toggle.sh"

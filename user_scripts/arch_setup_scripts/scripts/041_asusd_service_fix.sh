@@ -12,11 +12,11 @@ readonly TARGET_FILE="/usr/share/dbus-1/system.d/asusd.conf"
 readonly SERVICE_NAME="asusd.service"
 
 # ANSI Colors
-readonly C_RESET='\033[0m'
-readonly C_GREEN='\033[1;32m'
-readonly C_BLUE='\033[1;34m'
-readonly C_RED='\033[1;31m'
-readonly C_YELLOW='\033[1;33m'
+readonly C_RESET=$'\033[0m'
+readonly C_GREEN=$'\033[1;32m'
+readonly C_BLUE=$'\033[1;34m'
+readonly C_RED=$'\033[1;31m'
+readonly C_YELLOW=$'\033[1;33m'
 
 # --- Logging Helpers ---
 log_info() { printf "${C_BLUE}[INFO]${C_RESET} %s\n" "$1"; }

@@ -83,10 +83,10 @@ readonly RANDOM_THEME="${HOME}/user_scripts/theme_matugen/random_theme.sh"
 readonly SYMLINK_SCRIPT="${HOME}/user_scripts/theme_matugen/dark_light_directory_switch.sh"
 
 # Colors for logging
-readonly C_RESET='\033[0m'
-readonly C_GREEN='\033[1;32m'
-readonly C_BLUE='\033[1;34m'
-readonly C_RED='\033[1;31m'
+readonly C_RESET=$'\033[0m'
+readonly C_GREEN=$'\033[1;32m'
+readonly C_BLUE=$'\033[1;34m'
+readonly C_RED=$'\033[1;31m'
 
 # --- Defaults ---
 DEFAULT_MODE="dark"

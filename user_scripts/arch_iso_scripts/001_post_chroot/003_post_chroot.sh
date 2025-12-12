@@ -9,12 +9,12 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # --- 2. Visuals & Helpers ---
-BOLD="\e[1m"
-RESET="\e[0m"
-GREEN="\e[32m"
-BLUE="\e[34m"
-RED="\e[31m"
-YELLOW="\e[33m"
+BOLD=$'\e[1m'
+RESET=$'\e[0m'
+GREEN=$'\e[32m'
+BLUE=$'\e[34m'
+RED=$'\e[31m'
+YELLOW=$'\e[33m'
 
 log_info() { printf "${BLUE}[INFO]${RESET} %s\n" "$1"; }
 log_success() { printf "${GREEN}[SUCCESS]${RESET} %s\n" "$1"; }

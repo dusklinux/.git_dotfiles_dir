@@ -16,12 +16,12 @@ IFS=$'\n\t'
 # -----------------------------------------------------------------------------
 # Visuals
 # -----------------------------------------------------------------------------
-readonly C_RESET='\033[0m'
-readonly C_GREEN='\033[32m'
-readonly C_BLUE='\033[34m'
-readonly C_RED='\033[31m'
-readonly C_CYAN='\033[36m'
-readonly C_YELLOW='\033[33m'
+readonly C_RESET=$'\033[0m'
+readonly C_GREEN=$'\033[32m'
+readonly C_BLUE=$'\033[34m'
+readonly C_RED=$'\033[31m'
+readonly C_CYAN=$'\033[36m'
+readonly C_YELLOW=$'\033[33m'
 
 log_info() { printf "${C_BLUE}[INFO]${C_RESET} %s\n" "$*"; }
 log_success() { printf "${C_GREEN}[OK]${C_RESET}   %s\n" "$*"; }

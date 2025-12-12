@@ -20,13 +20,13 @@ fi
 # 2. Visual Configuration (Modern Bash)
 # -------------------------------------
 # ANSI Color Codes
-readonly C_RESET='\033[0m'
-readonly C_BOLD='\033[1m'
-readonly C_GREEN='\033[1;32m'
-readonly C_CYAN='\033[1;36m'
-readonly C_YELLOW='\033[1;33m'
-readonly C_RED='\033[1;31m'
-readonly C_WHITE='\033[1;37m'
+readonly C_RESET=$'\033[0m'
+readonly C_BOLD=$'\033[1m'
+readonly C_GREEN=$'\033[1;32m'
+readonly C_CYAN=$'\033[1;36m'
+readonly C_YELLOW=$'\033[1;33m'
+readonly C_RED=$'\033[1;31m'
+readonly C_WHITE=$'\033[1;37m'
 
 # 3. Helper Functions
 # -------------------

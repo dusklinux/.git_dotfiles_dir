@@ -17,11 +17,11 @@ readonly DOTFILES_DIR="${HOME}/dusky"
 readonly GIT_EXEC="/usr/bin/git"
 
 # ANSI Color Codes for modern, readable output
-readonly C_RESET='\033[0m'
-readonly C_INFO='\033[1;34m'    # Bold Blue
-readonly C_SUCCESS='\033[1;32m' # Bold Green
-readonly C_ERROR='\033[1;31m'   # Bold Red
-readonly C_WARN='\033[1;33m'    # Bold Yellow
+readonly C_RESET=$'\033[0m'
+readonly C_INFO=$'\033[1;34m'    # Bold Blue
+readonly C_SUCCESS=$'\033[1;32m' # Bold Green
+readonly C_ERROR=$'\033[1;31m'   # Bold Red
+readonly C_WARN=$'\033[1;33m'    # Bold Yellow
 
 # -----------------------------------------------------------------------------
 # Helpers

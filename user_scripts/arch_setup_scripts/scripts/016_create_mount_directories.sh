@@ -28,12 +28,12 @@ readonly DUSK_PRESETS=(
 )
 
 # --- Styling & Colors ---
-readonly C_RESET='\033[0m'
-readonly C_BOLD='\033[1m'
-readonly C_GREEN='\033[32m'
-readonly C_BLUE='\033[34m'
-readonly C_YELLOW='\033[33m'
-readonly C_RED='\033[31m'
+readonly C_RESET=$'\033[0m'
+readonly C_BOLD=$'\033[1m'
+readonly C_GREEN=$'\033[32m'
+readonly C_BLUE=$'\033[34m'
+readonly C_YELLOW=$'\033[33m'
+readonly C_RED=$'\033[31m'
 
 # --- Safety & Error Handling ---
 set -euo pipefail

@@ -11,10 +11,10 @@
 set -euo pipefail
 
 # --- Presentation Constants ---
-readonly C_RESET='\e[0m'
-readonly C_INFO='\e[34m'    # Blue
-readonly C_SUCCESS='\e[32m' # Green
-readonly C_ERR='\e[31m'     # Red
+readonly C_RESET=$'\e[0m'
+readonly C_INFO=$'\e[34m'    # Blue
+readonly C_SUCCESS=$'\e[32m' # Green
+readonly C_ERR=$'\e[31m'     # Red
 
 # --- Logging Functions ---
 log_info()    { printf "${C_INFO}[INFO]${C_RESET} %s\n" "$1"; }

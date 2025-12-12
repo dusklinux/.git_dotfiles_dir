@@ -15,12 +15,12 @@ IFS=$'\n\t'
 CONFIG_FILE="/etc/mkinitcpio.conf"
 
 # --- Styling (Using \033 for broad compatibility) ---
-BOLD="\033[1m"
-RESET="\033[0m"
-GREEN="\033[32m"
-RED="\033[31m"
-BLUE="\033[34m"
-YELLOW="\033[33m"
+BOLD=$'\033[1m'
+RESET=$'\033[0m'
+GREEN=$'\033[32m'
+RED=$'\033[31m'
+BLUE=$'\033[34m'
+YELLOW=$'\033[33m'
 
 # --- Helper Functions ---
 # We use %b here so it interprets color codes passed inside the message argument

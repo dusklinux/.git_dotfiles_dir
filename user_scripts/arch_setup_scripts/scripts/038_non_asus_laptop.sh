@@ -50,12 +50,12 @@ setup_rules() {
 # --- UTILITIES ----------------------------------------------------------------
 
 # Colors
-BOLD="\033[1m"
-GREEN="\033[32m"
-BLUE="\033[34m"
-YELLOW="\033[33m"
-RED="\033[31m"
-RESET="\033[0m"
+BOLD=$'\033[1m'
+GREEN=$'\033[32m'
+BLUE=$'\033[34m'
+YELLOW=$'\033[33m'
+RED=$'\033[31m'
+RESET=$'\033[0m'
 
 log_info()    { printf "${BLUE}[INFO]${RESET} %s\n" "$1"; }
 log_success() { printf "${GREEN}[OK]${RESET}   %s\n" "$1"; }

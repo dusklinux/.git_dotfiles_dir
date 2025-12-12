@@ -17,10 +17,10 @@ readonly CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/waypaper"
 readonly CONFIG_FILE="$CONFIG_DIR/config.ini"
 
 # ANSI Colors for feedback
-readonly C_GREEN='\033[1;32m'
-readonly C_BLUE='\033[1;34m'
-readonly C_RED='\033[1;31m'
-readonly C_RESET='\033[0m'
+readonly C_GREEN=$'\033[1;32m'
+readonly C_BLUE=$'\033[1;34m'
+readonly C_RED=$'\033[1;31m'
+readonly C_RESET=$'\033[0m'
 
 # 3. Utility Functions
 log_info() { printf "${C_BLUE}[INFO]${C_RESET} %s\n" "$1"; }

@@ -19,11 +19,11 @@ BACKUP_FILE="${TARGET_FILE}.bak.${TIMESTAMP}"
 PACKAGES=("gnome-keyring" "libsecret" "seahorse")
 
 # --- Formatting ---
-BOLD="\e[1m"
-GREEN="\e[32m"
-YELLOW="\e[33m"
-RED="\e[31m"
-RESET="\e[0m"
+BOLD=$'\e[1m'
+GREEN=$'\e[32m'
+YELLOW=$'\e[33m'
+RED=$'\e[31m'
+RESET=$'\e[0m'
 
 # --- Helper Functions ---
 

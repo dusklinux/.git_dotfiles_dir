@@ -9,12 +9,12 @@
 set -euo pipefail
 
 # --- Styles ---
-BOLD='\033[1m'
-GREEN='\033[32m'
-BLUE='\033[34m'
-YELLOW='\033[33m'
-RED='\033[31m'
-NC='\033[0m' # No Color
+BOLD=$'\033[1m'
+GREEN=$'\033[32m'
+BLUE=$'\033[34m'
+YELLOW=$'\033[33m'
+RED=$'\033[31m'
+NC=$'\033[0m' # No Color
 
 # --- 1. Root Privilege Escalation ---
 if [[ $EUID -ne 0 ]]; then

@@ -12,11 +12,11 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 # Visuals & Logging
 # -----------------------------------------------------------------------------
-readonly COLOR_RESET="\033[0m"
-readonly COLOR_INFO="\033[1;34m"   # Blue
-readonly COLOR_SUCCESS="\033[1;32m" # Green
-readonly COLOR_WARN="\033[1;33m"   # Yellow
-readonly COLOR_ERR="\033[1;31m"    # Red
+readonly COLOR_RESET=$'\033[0m'
+readonly COLOR_INFO=$'\033[1;34m'   # Blue
+readonly COLOR_SUCCESS=$'\033[1;32m' # Green
+readonly COLOR_WARN=$'\033[1;33m'   # Yellow
+readonly COLOR_ERR=$'\033[1;31m'    # Red
 
 log_info() { printf "${COLOR_INFO}[INFO]${COLOR_RESET} %s\n" "$1"; }
 log_success() { printf "${COLOR_SUCCESS}[OK]${COLOR_RESET} %s\n" "$1"; }

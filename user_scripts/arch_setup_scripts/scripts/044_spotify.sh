@@ -12,12 +12,12 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # --- Styling & Colors ---
-readonly C_RESET='\033[0m'
-readonly C_BOLD='\033[1m'
-readonly C_INFO='\033[34m'    # Blue
-readonly C_SUCCESS='\033[32m' # Green
-readonly C_ERR='\033[31m'     # Red
-readonly C_WARN='\033[33m'    # Yellow
+readonly C_RESET=$'\033[0m'
+readonly C_BOLD=$'\033[1m'
+readonly C_INFO=$'\033[34m'    # Blue
+readonly C_SUCCESS=$'\033[32m' # Green
+readonly C_ERR=$'\033[31m'     # Red
+readonly C_WARN=$'\033[33m'    # Yellow
 
 # --- Logging Helpers (Stdout only, no log files) ---
 log_info() { printf "${C_BOLD}${C_INFO}[INFO]${C_RESET} %s\n" "$1"; }

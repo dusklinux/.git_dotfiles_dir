@@ -12,10 +12,10 @@ readonly SOURCE_FILE="${HOME}/.config/hypr/source/animations/fluid.conf"
 readonly TARGET_LINK="${HOME}/.config/hypr/source/animations/active/active.conf"
 
 # --- Styling (StdOut only) ---
-readonly C_RESET='\033[0m'
-readonly C_GREEN='\033[1;32m'
-readonly C_BLUE='\033[1;34m'
-readonly C_GREY='\033[0;90m'
+readonly C_RESET=$'\033[0m'
+readonly C_GREEN=$'\033[1;32m'
+readonly C_BLUE=$'\033[1;34m'
+readonly C_GREY=$'\033[0;90m'
 
 # --- Main Logic ---
 main() {

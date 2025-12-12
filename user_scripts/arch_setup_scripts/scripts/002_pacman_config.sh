@@ -9,10 +9,10 @@
 set -euo pipefail
 
 # --- Presentation Constants ---
-readonly COLOR_INFO='\033[1;34m' # Bold Blue
-readonly COLOR_OK='\033[1;32m'   # Bold Green
-readonly COLOR_ERR='\033[1;31m'  # Bold Red
-readonly COLOR_NC='\033[0m'      # No Color
+readonly COLOR_INFO=$'\033[1;34m' # Bold Blue
+readonly COLOR_OK=$'\033[1;32m'   # Bold Green
+readonly COLOR_ERR=$'\033[1;31m'  # Bold Red
+readonly COLOR_NC=$'\033[0m'      # No Color
 
 # --- Helper Functions ---
 log_info() { printf "${COLOR_INFO}[INFO]${COLOR_NC} %s\n" "$1"; }

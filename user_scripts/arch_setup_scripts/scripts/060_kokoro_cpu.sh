@@ -12,11 +12,11 @@
 set -euo pipefail
 
 # --- Visuals & Logging ---
-R='\033[0;31m'
-G='\033[0;32m'
-Y='\033[1;33m'
-B='\033[0;34m'
-NC='\033[0m' # No Color
+R=$'\033[0;31m'
+G=$'\033[0;32m'
+Y=$'\033[1;33m'
+B=$'\033[0;34m'
+NC=$'\033[0m' # No Color
 
 log_info()    { printf "${B}[INFO]${NC} %s\n" "$1"; }
 log_success() { printf "${G}[OK]${NC}   %s\n" "$1"; }

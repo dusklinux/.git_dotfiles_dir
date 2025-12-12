@@ -17,11 +17,11 @@ if [[ "${EUID}" -ne 0 ]]; then
 fi
 
 # 3. Aesthetics (Re-declaring for standalone safety, though Orchestra likely provides them)
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly YELLOW='\033[1;33m'
-readonly BLUE='\033[0;34m'
-readonly NC='\033[0m' # No Color
+readonly RED=$'\033[0;31m'
+readonly GREEN=$'\033[0;32m'
+readonly YELLOW=$'\033[1;33m'
+readonly BLUE=$'\033[0;34m'
+readonly NC=$'\033[0m' # No Color
 
 # 4. Helper Functions
 

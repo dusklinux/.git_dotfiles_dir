@@ -15,11 +15,11 @@ IFS=$'\n\t'
 # ------------------------------------------------------------------------------
 # 2. Logging & Presentation
 # ------------------------------------------------------------------------------
-declare -r RESET="\033[0m"
-declare -r BOLD="\033[1m"
-declare -r GREEN="\033[32m"
-declare -r BLUE="\033[34m"
-declare -r RED="\033[31m"
+declare -r RESET=$'\033[0m'
+declare -r BOLD=$'\033[1m'
+declare -r GREEN=$'\033[32m'
+declare -r BLUE=$'\033[34m'
+declare -r RED=$'\033[31m'
 
 log_info() { printf "${BLUE}${BOLD}[INFO]${RESET} %s\n" "$1"; }
 log_success() { printf "${GREEN}${BOLD}[OK]${RESET} %s\n" "$1"; }
