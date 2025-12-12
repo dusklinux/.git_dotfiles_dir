@@ -89,7 +89,7 @@ pacman -S --needed btrfs-progs compsize zram-generator udisks2 udiskie dosfstool
 _Network managers, browsers, download tools, and SSH._
 
 ```
-pacman -S --needed networkmanager iwd network-manager-applet nm-connection-editor inetutils wget curl openssh firewalld vsftpd reflector bmon ethtool httrack filezilla qbittorrent wavemon firefox arch-wiki-lite arch-wiki-docs
+pacman -S --needed networkmanager iwd network-manager-applet nm-connection-editor inetutils wget curl openssh firewalld vsftpd reflector bmon ethtool httrack filezilla qbittorrent wavemon firefox arch-wiki-lite arch-wiki-docs aria2 uget
 ```
 
 - [ ] Status

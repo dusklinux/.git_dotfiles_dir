@@ -1091,6 +1091,11 @@ tldr --update
 - [ ] **`firefox`:** Apply your custom `userChrome.css` for the side-panel modifications., hardware acceleration and smoothscrooling and other stuff refer to [[+ MOC Firefox]]
 
 ---
+
+- [ ] **`uget + aria2`:**  uget is the front end gui which uses curl for downlaoding stuff by default, change it to uget engine. which is a superior engine for downloading. 
+**Edit>Settings> Plug-in> Plug-in matching order:aria2**
+
+---
 *Script*
 - [ ] **`spotify`:** without adds script [[Spotify]]
 
