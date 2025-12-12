@@ -260,6 +260,11 @@ mount /dev/esp_partition /mnt/boot
 reflector --protocol https --country India --latest 6 --sort rate --save /etc/pacman.d/mirrorlist
 ```
 
+### Critical to resync the packages after new mirrors
+```bash
+pacman -Syy
+```
+
 These are old Indian mirrors, Only paste this into the file if the above command *failed*.
 
 ```bash
