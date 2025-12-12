@@ -67,7 +67,7 @@ INSTALL_SEQUENCE=(
     "U | 053_new_github_repo_to_backup.sh"
     "U | 054_reconnect_and_push_new_changes_to_github.sh"
     "S | 055_grub_optimization.sh"
-    "U | 056_cache_purge.sh"
+    "S | 056_systemdboot_optimization.sh"
     "S | 057_hosts_files_block.sh"
     "S | 058_gtk_root_symlink.sh"
     "S | 059_preload_config.sh"
@@ -76,6 +76,7 @@ INSTALL_SEQUENCE=(
     "S | 062_dns_systemd_resolve.sh"
     "U | 063_reverting_sleep_timeout.sh"
     "U | 064_obsidian_pensive_vault_configure.sh"
+    "U | 065_cache_purge.sh"
 )
 
 # ==============================================================================
