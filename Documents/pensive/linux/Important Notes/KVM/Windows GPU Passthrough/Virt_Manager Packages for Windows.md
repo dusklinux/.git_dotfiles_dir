@@ -9,7 +9,7 @@ We need a specific suite of tools to handle the hypervisor (KVM), the emulator (
 Run the following command in your terminal:
 
 ```bash
-sudo pacman --needed -S qemu-full libvirt virt-install virt-manager virt-viewer dnsmasq bridge-utils openbsd-netcat edk2-ovmf swtpm iptables-nft libosinfo
+sudo pacman --needed -S qemu-full libvirt virt-install virt-manager virt-viewer dnsmasq iproute2 openbsd-netcat edk2-ovmf swtpm iptables-nft libosinfo
 ```
 
 > [!TIP] Firewall Selection

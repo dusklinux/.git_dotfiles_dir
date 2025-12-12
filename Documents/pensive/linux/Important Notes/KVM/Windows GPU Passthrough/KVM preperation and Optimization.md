@@ -67,7 +67,7 @@ Ensure your virtual machines can connect to the internet.
 > 
 > Follow this (OPTION 3 Within the note) only if you need your VM to appear as a separate physical device on your router (useful for web hosting or LAN gaming).
 
-- [ ] [[KVM Network Bridge for Webhosting]] (FOLLOW OPTION 3)
+- [ ] [[Network Bridging for LAN access]] (FOLLOW OPTION 3)
     
 
 ## 6. Permissions & Access

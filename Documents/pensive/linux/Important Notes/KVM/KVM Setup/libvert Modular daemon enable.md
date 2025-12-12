@@ -40,6 +40,13 @@ sudo systemctl enable virt${drv}d{,-ro,-admin}.socket; \
 done
 ```
 
+then start it. yes do these sperately, enabling and starting not with the --now flag. and this will says some modules dont exist, you can safely ignore those. 
+```bash
+for drv in qemu interface network nodedev nwfilter secret storage; do \
+sudo systemctl start virt${drv}d.service; \
+sudo systemctl start virt${drv}d{,-ro,-admin}.socket; \
+done
+```
 
 > [!NOTE]- This is what will output when you run it. 
 > ```ini
@@ -76,6 +83,15 @@ done
 > Created symlink '/etc/systemd/system/sockets.target.wants/virtstoraged-ro.socket' → '/usr/lib/systemd/system/virtstoraged-ro.socket'.
 > Created symlink '/etc/systemd/system/sockets.target.wants/virtstoraged-admin.socket' → '/usr/lib/systemd/system/virtstoraged-admin.socket'.
 > ```
+
+
+Make sure the monolotic daemon is dead and not enabled
+```bash
+# Ensure the "old style" monolithic daemon is stopped and masked
+sudo systemctl stop libvirtd
+sudo systemctl disable libvirtd
+sudo systemctl mask libvirtd
+```
 
 ## Step 2: Apply Changes
 

@@ -16,6 +16,7 @@ readonly DEFAULT_DIRS=(
   "wdfast"
   "fast"
   "slow"
+  "media"
   "enclosure"
 )
 

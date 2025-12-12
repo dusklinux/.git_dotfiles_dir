@@ -26,7 +26,7 @@ sudo virsh net-list --all
 | **Name** | **State**  | **Autostart** | **Persistent** |
 | -------- | ---------- | ------------- | -------------- |
 | default  | **active** | **yes**       | yes            |
-
+>[!error] If you dont see the result, make sure to follow the `Fixing errrors` step!
 ## 2. Start the Network
 
 If the state is **inactive** or Autostart is set to **no**, you need to turn it on. This creates a virtual network bridge (usually called `virbr0`) that acts as the gateway for your VMs.
@@ -41,9 +41,47 @@ sudo virsh net-start default
 sudo virsh net-autostart default
 ```
 
-> [!WARNING] No Internet?
-> 
-> If you skip this step, your Virtual Machines will have no internet connection.
+### Fixing errors. 
+
+```bash
+sudo firewall-cmd --reload
+```
+
+```bash
+sudo firewall-cmd --get-zones | grep libvirt
+```
+
+```bash
+sudo firewall-cmd --get-zones | grep libvirt
+```
+
+```bash
+# 1. Undefine any broken state first
+sudo virsh net-undefine default > /dev/null 2>&1
+
+# 2. Define the network directly (Injecting the XML)
+sudo virsh net-define /dev/stdin <<EOF
+<network>
+  <name>default</name>
+  <uuid>$(uuidgen)</uuid>
+  <forward mode='nat'/>
+  <bridge name='virbr0' stp='on' delay='0'/>
+  <mac address='52:54:00:11:22:33'/>
+  <ip address='192.168.122.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.122.2' end='192.168.122.254'/>
+    </dhcp>
+  </ip>
+</network>
+EOF
+
+# 3. Start the network (This creates virbr0)
+sudo virsh net-start default
+
+# 4. Enable autostart
+sudo virsh net-autostart default
+```
+
 
 ## 3. Advanced: Verifying IP Ranges
 
