@@ -13,13 +13,14 @@ IFS=$'\n\t'
 trap 'printf "\n\033[1;31m[!] Script interrupted or failed.\033[0m\n"; exit 1' ERR SIGINT SIGTERM
 
 # --- 2. Styling (UWSM/Hyprland aesthetic) ---
-readonly C_RESET='\033[0m'
-readonly C_BOLD='\033[1m'
-readonly C_GREEN='\033[1;32m'
-readonly C_BLUE='\033[1;34m'
-readonly C_YELLOW='\033[1;33m'
-readonly C_RED='\033[1;31m'
-readonly C_CYAN='\033[1;36m'
+# Updated to use ANSI-C quoting ($'...') per request
+readonly C_RESET=$'\033[0m'
+readonly C_BOLD=$'\033[1m'
+readonly C_GREEN=$'\033[1;32m'
+readonly C_BLUE=$'\033[1;34m'
+readonly C_YELLOW=$'\033[1;33m'
+readonly C_RED=$'\033[1;31m'
+readonly C_CYAN=$'\033[1;36m'
 
 log_info()    { printf "${C_BLUE}[INFO]${C_RESET} %s\n" "$1"; }
 log_success() { printf "${C_GREEN}[OK]${C_RESET}   %s\n" "$1"; }
