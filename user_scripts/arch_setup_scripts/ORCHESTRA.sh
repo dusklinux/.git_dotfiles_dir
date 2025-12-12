@@ -75,6 +75,7 @@ INSTALL_SEQUENCE=(
     "U | 061_faster_whisper_cpu.sh"
     "S | 062_dns_systemd_resolve.sh"
     "U | 063_reverting_sleep_timeout.sh"
+    "U | 064_obsidian_pensive_vault_configure.sh"
 )
 
 # ==============================================================================
