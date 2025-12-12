@@ -23,7 +23,7 @@ INSTALL_SEQUENCE=(
     "S | 009_aur_paru.sh"
     "S | 010_warp.sh"
     "S | 011_nvidia_open_source.sh"
-    "U | 012_hyprexpo_plugin.sh"
+    "U | 012_paru_packages_optional.sh"
     "U | 013_paru_packages.sh"
     "S | 014_aur_packages_sudo_services.sh"
     "U | 015_aur_packages_user_services.sh"
@@ -74,9 +74,10 @@ INSTALL_SEQUENCE=(
     "U | 060_kokoro_cpu.sh"
     "U | 061_faster_whisper_cpu.sh"
     "S | 062_dns_systemd_resolve.sh"
-    "U | 063_reverting_sleep_timeout.sh"
+    "U | 063_hyprexpo_plugin.sh"
     "U | 064_obsidian_pensive_vault_configure.sh"
     "U | 065_cache_purge.sh"
+    "U | 067_reverting_sleep_timeout.sh"
 )
 
 # ==============================================================================

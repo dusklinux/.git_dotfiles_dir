@@ -18,13 +18,13 @@ set -uo pipefail
 # 2. VISUALS & LOGGING
 # ------------------------------------------------------------------------------
 # ANSI Colors for clean output
-readonly C_RESET='\033[0m'
-readonly C_BOLD='\033[1m'
-readonly C_GREEN='\033[1;32m'
-readonly C_BLUE='\033[1;34m'
-readonly C_YELLOW='\033[1;33m'
-readonly C_RED='\033[1;31m'
-readonly C_CYAN='\033[1;36m'
+readonly C_RESET=$'\033[0m'
+readonly C_BOLD=$'\033[1m'
+readonly C_GREEN=$'\033[1;32m'
+readonly C_BLUE=$'\033[1;34m'
+readonly C_YELLOW=$'\033[1;33m'
+readonly C_RED=$'\033[1;31m'
+readonly C_CYAN=$'\033[1;36m'
 
 log_info() { printf "${C_BLUE}[INFO]${C_RESET} %s\n" "$1"; }
 log_success() { printf "${C_GREEN}[SUCCESS]${C_RESET} %s\n" "$1"; }
@@ -67,26 +67,18 @@ fi
 readonly PACKAGES=(
   "wlogout"
   "acpi_call"
-  "pscircle"
   "adwaita-qt6"
   "adwaita-qt5"
-  "pacseek"
   "otf-atkinson-hyperlegible-next"
   "fluent-icon-theme-git"
   "bibata-cursor-theme"
-  "keypunch-git"
   "python-pywalfox"
   "hyprshade"
   "waypaper"
   "peaclock"
   "tray-tui"
   "wifitui-bin"
-  "pinta"
-  "youtube-dl-gui-bin"
   "xdg-terminal-exec"
-  "sysmontask"
-  "preload"
-  "edex-ui-bin"
 )
 
 # Only wait this long if an error occurs and intervention is requested.
