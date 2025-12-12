@@ -32,21 +32,27 @@ fi
 
 # --- MAIN LOGIC ---
 update_mirrors() {
-    # Default variable for first run
-    local _input_country=""
-    
     while true; do
         echo -e "\n${B}:: Mirrorlist Configuration${NC}"
+        echo "   (Press Enter for default 'India', or type 'list' to see all countries)"
         
-        # Ask for country with default to India
-        # We put this inside the loop so you can change it if the first attempt fails
-        read -r -p ":: Enter country for Reflector (default 'India'): " _input_country
+        read -r -p ":: Enter country: " _input_country
+
+        # 1. Check if user wants to list countries
+        if [[ "${_input_country,,}" == "list" ]]; then
+            echo -e "${Y}:: Retrieving country list...${NC}"
+            # Using less would be ideal, but simple cat is safer for scripts if unsure of TTY state
+            reflector --list-countries
+            echo ""
+            continue
+        fi
+
+        # 2. Determine Country (Default to India if empty)
         local country="${_input_country:-India}"
 
         echo -e "${Y}:: Running Reflector for region: ${country}...${NC}"
         
-        # 1. Try to run Reflector
-        # Using the $country variable provided by user
+        # 3. Run Reflector
         if reflector --country "$country" --latest 10 --protocol https --sort rate --save "$TARGET_FILE"; then
             echo -e "${G}:: Reflector success! Mirrors updated.${NC}"
             
@@ -54,9 +60,9 @@ update_mirrors() {
             pacman -Syy
             break
         else
-            # 2. Reflector Failed - Error Handling Menu
+            # 4. Reflector Failed - Error Handling Menu
             echo -e "\n${R}!! Reflector failed to update mirrors for '$country'.${NC}"
-            echo "   1) Retry Reflector (Enter new country or try again)"
+            echo "   1) Retry (Enter new country)"
             echo "   2) Use Preselected Indian Mirrors (Fallback)"
             echo "   3) Do nothing (Leave as default)"
             
@@ -65,7 +71,6 @@ update_mirrors() {
             case "$choice" in
                 1)
                     echo ":: Retrying..."
-                    # Loop continues, prompting for country again
                     continue
                     ;;
                 2)
