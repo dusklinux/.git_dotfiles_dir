@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# Script: configure_preload.sh
+# Script: 059_preload_config.sh
 # Description: Configures /etc/preload.conf optimized for High-RAM systems (32GB+).
-#              Includes backup logic and service state management.
+#              Includes backup logic, auto-install, service state management,
+#              and "human-readable" pacing.
 # Author: Elite DevOps (Arch/Hyprland)
-# Dependencies: preload, systemd, bash 5+
+# Dependencies: preload, systemd, bash 5+, paru
 # -----------------------------------------------------------------------------
 
 # 1. Strict Safety & Error Handling
@@ -191,28 +192,45 @@ sortstrategy = 0
 EOF
 
 # 3. Aesthetics & Logging
-readonly C_RESET='\033[0m'
-readonly C_GREEN='\033[1;32m'
-readonly C_BLUE='\033[1;34m'
-readonly C_RED='\033[1;31m'
-readonly C_YELLOW='\033[1;33m'
+readonly C_RESET=$'\033[0m'
+readonly C_GREEN=$'\033[1;32m'
+readonly C_BLUE=$'\033[1;34m'
+readonly C_RED=$'\033[1;31m'
+readonly C_YELLOW=$'\033[1;33m'
 
 log_info() { printf "${C_BLUE}[INFO]${C_RESET} %s\n" "$1"; }
 log_success() { printf "${C_GREEN}[OK]${C_RESET} %s\n" "$1"; }
 log_warn() { printf "${C_YELLOW}[WARN]${C_RESET} %s\n" "$1"; }
 log_error() { printf "${C_RED}[ERROR]${C_RESET} %s\n" "$1" >&2; }
 
-# 4. Root Privilege Check (Auto-Elevation)
+# 4. Root Privilege Check
 if [[ $EUID -ne 0 ]]; then
     log_info "Root privileges required. Elevating..."
     exec sudo "$0" "$@"
 fi
 
-# 5. Environment Validation
-if ! command -v preload &>/dev/null; then
-    log_warn "Preload is not installed. Skipping configuration."
-    log_info "Install it via: sudo pacman -S preload"
-    exit 0
+# 5. Environment Validation & Auto-Install
+if command -v preload &>/dev/null; then
+    log_info "Preload is already installed."
+else
+    log_warn "Preload is not installed."
+    
+    # Detect the real user (Orchestra runs as root, so we need SUDO_USER)
+    real_user="${SUDO_USER:-$USER}"
+    
+    if [[ "$real_user" == "root" ]]; then
+        log_error "Cannot determine non-root user for AUR install. Install 'preload' manually."
+        exit 1
+    fi
+
+    log_info "Installing preload using paru as user: ${real_user}..."
+    if sudo -u "$real_user" paru -S --needed --noconfirm preload; then
+        log_success "Preload installed successfully."
+        sleep 0.5
+    else
+        log_error "Failed to install preload."
+        exit 1
+    fi
 fi
 
 # 6. Main Execution
@@ -228,9 +246,15 @@ main() {
     echo ""
     printf "  %bOptimization Note:%b This config is optimized for computers with 32GB of RAM and above.\n" "${C_GREEN}" "${C_RESET}"
     printf "  You could also apply it on 16GB systems, but it is not explicitly recommended.\n"
-    printf "  You can run this script now, and manually tweak the settings later using:\n"
+    printf "  %bPerformance Trade-off:%b This will cache shared libraries and binaries in RAM\n" "${C_RED}" "${C_RESET}"
+    printf "  to significantly speed up system responsiveness. This comes at the cost of\n"
+    printf "  increased RAM usage. If you want high RAM usage at the benefit of snappiness,\n"
+    printf "  please proceed.\n"
+    printf "  You can run this script now, and further tweak the settings later to your liking at:\n"
     printf "  %bsudo nvim /etc/preload.conf%b\n\n" "${C_BLUE}" "${C_RESET}"
 
+    # Note: If running Orchestra in "Autonomous Mode", this prompt might be skipped or handled differently by the caller,
+    # but since this script handles its own 'read', it will pause unless piped 'yes'.
     read -r -p "Do you want to proceed with applying this configuration? [y/N] " response
     if [[ ! "$response" =~ ^[yY]$ ]]; then
         log_info "Operation cancelled by user."
@@ -240,34 +264,27 @@ main() {
     # ---------------------------------------------------------
     # B. Backup Logic
     # ---------------------------------------------------------
-    # Detect the real user behind sudo to find the correct Home directory
     local real_user="${SUDO_USER:-$USER}"
     local real_home
-    # Use getent to strictly find the home dir (handles edge cases better than $HOME)
     real_home=$(getent passwd "$real_user" | cut -d: -f6)
     
     local backup_dir="${real_home}/Documents"
     local backup_file="${backup_dir}/preload_backup.conf"
     local file_existed=false
 
-    # Check if target exists before we touch it
     if [[ -f "$target_file" ]]; then
         file_existed=true
-        
-        # Ensure backup directory exists
         if [[ ! -d "$backup_dir" ]]; then
             log_info "Creating directory ${backup_dir}..."
             mkdir -p "$backup_dir"
             chown "$real_user:$(id -gn "$real_user")" "$backup_dir"
         fi
 
-        # Perform Backup
         log_info "Backing up current config to ${backup_file}..."
         cp "$target_file" "$backup_file"
-        
-        # Fix permissions so the regular user owns the backup, not root
         chown "$real_user:$(id -gn "$real_user")" "$backup_file"
         log_success "Backup verified."
+        sleep 0.5 
     fi
 
     # ---------------------------------------------------------
@@ -281,6 +298,7 @@ main() {
     
     if printf "%s" "${PRELOAD_CONFIG_CONTENT}" > "${target_file}"; then
         log_success "Configuration written successfully."
+        sleep 0.5
     else
         log_error "Failed to write to ${target_file}."
         exit 1
@@ -289,20 +307,26 @@ main() {
     # ---------------------------------------------------------
     # D. Reload Service
     # ---------------------------------------------------------
-    log_info "Reloading Preload systemd service..."
-    
-    # Preload usually requires a restart to pick up config changes fully,
-    # as it builds state in memory.
-    if systemctl restart preload; then
-        log_success "Preload restarted successfully."
+    log_info "Managing Preload systemd service..."
+
+    if systemctl is-enabled preload.service &>/dev/null; then
+        log_info "Preload service is already enabled."
     else
-        log_warn "Restart failed (service might be inactive). Attempting to enable and start..."
-        if systemctl enable --now preload; then
-             log_success "Preload enabled and started successfully."
+        log_info "Enabling Preload service..."
+        if systemctl enable --now preload.service; then
+            log_success "Preload service enabled and started."
+            sleep 0.5
         else
-             log_error "Failed to start Preload."
-             exit 1
+            log_error "Failed to enable Preload service."
+            exit 1
         fi
+    fi
+
+    # Restart to apply new config
+    if systemctl restart preload.service; then
+        log_success "Preload configuration applied (Service Restarted)."
+    else
+        log_warn "Service restart failed. Please check 'systemctl status preload'."
     fi
 }
 
