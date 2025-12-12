@@ -32,6 +32,7 @@
 > 
 > - [ ] Status
 
+this often fails on the first try for some reason, run it as many times as it takes to have it install sucessfully, if running it multiple times with failur results it with askign you to delte pacman keys, pick yes for deleting, it'll repopulate the keys. 
 ```bash
 pacman -Sy git
 ```
@@ -75,3 +76,19 @@ then run , and follow the on screen instructions. it's just yes or no questions.
 ./user_scripts/arch_setup_scripts/ORCHESTRA.sh
 ```
 
+after booting. 
+put in your password and user name
+and then. 
+```bash
+tray-tui
+```
+
+then. deploy git repo, open the terminal with super Q
+```bash
+./deploy_dotfiles.sh
+```
+
+then run the setup orchestra script
+```bash
+./user_scripts/arch_setup_scripts/ORCHESTRA.sh
+```

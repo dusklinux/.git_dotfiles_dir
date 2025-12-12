@@ -18,12 +18,12 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # 2. Variables & Constants
-# Colors for feedback
-readonly C_RESET='\033[0m'
-readonly C_INFO='\033[1;34m'    # Blue
-readonly C_SUCCESS='\033[1;32m' # Green
-readonly C_WARN='\033[1;33m'    # Yellow
-readonly C_ERR='\033[1;31m'     # Red
+# Colors for feedback (Using ANSI-C quoting for robustness)
+readonly C_RESET=$'\033[0m'
+readonly C_INFO=$'\033[1;34m'    # Blue
+readonly C_SUCCESS=$'\033[1;32m' # Green
+readonly C_WARN=$'\033[1;33m'    # Yellow
+readonly C_ERR=$'\033[1;31m'     # Red
 
 # Configuration Files
 readonly HYPR_CONF="$HOME/.config/hypr/hyprland.conf"
@@ -93,17 +93,27 @@ main() {
 
   # User Interaction
   printf "\n${C_INFO}HyprExpo Configuration Manager${C_RESET}\n"
-  printf "This plugin provides an overview/birdseye window viewer (ALT+TAB) It sometimes fails to install, you can later run this script individually from the scripts directory it should work .\n"
+  
+  # --- UPDATED PROMPT SECTION ---
+  printf "This plugin provides an overview/birdseye window viewer (ALT+TAB).\n"
+  printf "${C_WARN}RECOMMENDATION:${C_RESET} It is strongly recommended to ${C_WARN}DISABLE${C_RESET} this plugin for now, as it causes problems sometimes.\n"
+  printf "You can run this script individually later from the scripts directory to enable it safely.\n"
   
   # FIX: Write to /dev/tty to bypass Orchestra tee buffering so prompt is visible
-  printf "Do you want to ${C_SUCCESS}ENABLE${C_RESET} or ${C_ERR}DISABLE${C_RESET} HyprExpo? [e/d]: " >/dev/tty
+  # Changed to Yes/No, default No (disable)
+  printf "Do you want to enable HyprExpo? [y/N]: " >/dev/tty
   read -r choice
 
+  # Default to 'no' if choice is empty
+  if [[ -z "$choice" ]]; then
+    choice="no"
+  fi
+
   case "${choice,,}" in
-  e | enable | y | yes)
+  y | yes)
     ACTION="enable"
     ;;
-  d | disable | n | no)
+  n | no)
     ACTION="disable"
     ;;
   *)
@@ -111,6 +121,7 @@ main() {
     exit 1
     ;;
   esac
+  # -----------------------------
 
   # Logic: Disable
   if [[ "$ACTION" == "disable" ]]; then
