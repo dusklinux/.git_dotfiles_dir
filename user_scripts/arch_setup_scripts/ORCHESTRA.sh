@@ -11,6 +11,7 @@
 # --- USER CONFIGURATION AREA ---
 
 INSTALL_SEQUENCE=(
+    "U | 000_long_sleep_timeout.sh"
     "S | 001_battery_limiter.sh"
     "S | 002_pacman_config.sh"
     "S | 003_pacman_reflector.sh"
@@ -73,6 +74,7 @@ INSTALL_SEQUENCE=(
     "U | 060_kokoro_cpu.sh"
     "U | 061_faster_whisper_cpu.sh"
     "S | 062_dns_systemd_resolve.sh"
+    "U | 063_reverting_sleep_timeout.sh"
 )
 
 # ==============================================================================
