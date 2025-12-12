@@ -1,16 +1,23 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# Script: mount_setup.sh
-# Description: Interactive creation of mount points in /mnt
+# Script: 016_create_mount_directories.sh
+# Description: Pre-creates stable mount points in /mnt
+# Context: 
+#   By default, Linux automounts external drives to dynamic paths like 
+#   '/run/media/$USER/Label'. This changes every time you reconnect a drive.
+#
+#   This script creates PERMANENT directories in '/mnt/name'.
+#   This allows you to map your drives via UUID in '/etc/fstab' so they 
+#   always appear in the same place for scripts, torrents, and steam libraries.
+#
 # System: Arch Linux / Hyprland / UWSM
 # Author: Gemini (DevOps Architect)
 # -----------------------------------------------------------------------------
 
 # --- Configuration ---
-# Easily configure default directories here.
-# These will be created inside the BASE_DIR.
 readonly BASE_DIR="/mnt"
-readonly DEFAULT_DIRS=(
+# These are Dusk's specific mount points
+readonly DUSK_PRESETS=(
   "windows"
   "wdslow"
   "wdfast"
@@ -31,11 +38,10 @@ readonly C_RED='\033[31m'
 # --- Safety & Error Handling ---
 set -euo pipefail
 
-# Trap for clean exit on signals (SIGINT, SIGTERM)
+# Trap for clean exit on signals
 trap cleanup EXIT INT TERM
 
 cleanup() {
-  # Reset colors on exit
   printf "%b" "${C_RESET}"
 }
 
@@ -49,7 +55,6 @@ log_err() { printf "%b[ERR]%b   %b\n" "${C_RED}" "${C_RESET}" "$1" >&2; }
 check_privileges() {
   if [[ "${EUID}" -ne 0 ]]; then
     log_info "Root privileges required. Elevating..."
-    # Preserve environment to keep terminal settings, re-execute the script
     if exec sudo -E "$0" "$@"; then
       exit 0
     else
@@ -67,21 +72,24 @@ main() {
   local user_input
 
   clear
-  printf "%b=== Arch Mount Point Setup ===%b\n\n" "${C_BOLD}" "${C_RESET}"
-  log_info "Base directory: ${C_BOLD}${BASE_DIR}${C_RESET}"
-  log_info "Default targets: ${C_BOLD}${DEFAULT_DIRS[*]}${C_RESET}"
+  printf "%b=== Arch Mount Point Setup ===%b\n" "${C_BOLD}" "${C_RESET}"
+  printf "Standard auto-mount path: %b/run/media/%s/[DriveLabel]%b\n" "${C_YELLOW}" "${USER:-user}" "${C_RESET}"
+  printf "Target stable path:       %b%s/[Directory]%b\n\n" "${C_GREEN}" "${BASE_DIR}" "${C_RESET}"
+  
+  log_info "NOTE: After running this, you must configure UUIDs in /etc/fstab"
+  log_info "to mount your drives to these new folders automatically."
 
-  printf "\n%bHow would you like to proceed?%b\n" "${C_BOLD}" "${C_RESET}"
-  printf "  [Y] Use defaults (Create all)\n"
-  printf "  [C] Custom selection (Enter names)\n"
-  printf "  [N] Cancel\n"
+  printf "\n%bSelect an option:%b\n" "${C_BOLD}" "${C_RESET}"
+  printf "  [D] Create Dusk's Config (windows, wdslow, fast, enclosure, etc.)\n"
+  printf "  [C] Custom selection (Enter your own directory names)\n"
+  printf "  [E] Exit / Do Nothing (Default)\n"
 
   # Read single character, silent input
   read -r -p $'\n> ' user_choice
 
-  case "${user_choice,,}" in # ,, converts to lowercase
-  y | yes | '')
-    target_dirs=("${DEFAULT_DIRS[@]}")
+  case "${user_choice,,}" in
+  d | dusk)
+    target_dirs=("${DUSK_PRESETS[@]}")
     ;;
   c | custom)
     printf "\n%bEnter directory names separated by space:%b\n" "${C_BLUE}" "${C_RESET}"
@@ -93,12 +101,13 @@ main() {
     fi
     target_dirs=("${custom_input_array[@]}")
     ;;
-  n | no)
-    log_info "Operation cancelled by user."
+  e | exit | n | no | '')
+    # Default behavior is now to exit
+    log_info "No changes made. Exiting."
     exit 0
     ;;
   *)
-    log_err "Invalid selection."
+    log_err "Invalid selection. Exiting."
     exit 1
     ;;
   esac
@@ -119,8 +128,6 @@ main() {
     else
       if mkdir -p "$full_path"; then
         log_success "Created: ${full_path}"
-        # Optional: Set permissions if needed (currently root:root 755 default)
-        # chmod 755 "$full_path"
       else
         log_err "Failed to create: ${full_path}"
       fi
@@ -128,7 +135,8 @@ main() {
   done
 
   printf "\n"
-  log_success "Operation complete."
+  log_success "Directory creation complete."
+  printf "%bREMINDER: Edit %b/etc/fstab%b and map your drive UUIDs to these paths!%b\n" "${C_YELLOW}" "${C_BOLD}" "${C_YELLOW}" "${C_RESET}"
 }
 
 main "$@"
