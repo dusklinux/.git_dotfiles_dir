@@ -57,7 +57,9 @@ ip -br link show type bridge
 3. In the **Device name** box, type: `virbr0` or what ever you find to be listed in output for previous command..
     
 4. Click **Apply**.
-    
+
+>[!tip] If you there's no output to the command, run the fixing `errors steps` in [[Activating Network and Setting it to Autostart]]
+
 ---
 ## Option 3: Local LAN Access (Layer 2 Bridging)
 
