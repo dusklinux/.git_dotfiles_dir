@@ -99,7 +99,7 @@ pacman -S --needed networkmanager iwd network-manager-applet nm-connection-edito
 _Zsh, terminal emulator, and modern Rust-based CLI replacements._
 
 ```
-pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza fd tealdeer yazi zellij gum man-db ttyper tree fzf less ripgrep expac zsh-autosuggestions calcurse iperf3
+pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza fd tealdeer yazi zellij gum man-db ttyper tree fzf less ripgrep expac zsh-autosuggestions calcurse iperf3 pkgstats
 ```
 
 - [ ] Status

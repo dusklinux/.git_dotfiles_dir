@@ -42,7 +42,7 @@ pkgs_network=(
 
 # Group 8: Terminal & Shell
 pkgs_terminal=(
-"kitty" "zsh" "zsh-syntax-highlighting" "starship" "fastfetch" "bat" "eza" "fd" "tealdeer" "yazi" "zellij" "gum" "man-db" "ttyper" "tree" "fzf" "less" "ripgrep" "expac" "zsh-autosuggestions" "calcurse" "iperf3"
+"kitty" "zsh" "zsh-syntax-highlighting" "starship" "fastfetch" "bat" "eza" "fd" "tealdeer" "yazi" "zellij" "gum" "man-db" "ttyper" "tree" "fzf" "less" "ripgrep" "expac" "zsh-autosuggestions" "calcurse" "iperf3" "pkgstats"
 )
 
 # Group 9: Development
