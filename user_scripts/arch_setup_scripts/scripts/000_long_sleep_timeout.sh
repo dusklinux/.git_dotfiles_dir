@@ -15,8 +15,8 @@ set -o pipefail
 #===============================================================================
 
 readonly TIMEOUT_DIM=120        # Dim Screen
-readonly TIMEOUT_LOCK=480       # Lock Session
-readonly TIMEOUT_OFF=3600       # Screen Off (DPMS)
+readonly TIMEOUT_LOCK=2480       # Lock Session
+readonly TIMEOUT_OFF=4600       # Screen Off (DPMS)
 readonly TIMEOUT_SUSPEND=43200  # System Suspend
 
 #===============================================================================

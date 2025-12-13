@@ -14,10 +14,10 @@ set -o pipefail
 # Modify these values to set your desired timeouts (in seconds)
 #===============================================================================
 
-readonly TIMEOUT_DIM=180        # Dim Screen
-readonly TIMEOUT_LOCK=380       # Lock Session
-readonly TIMEOUT_OFF=400       # Screen Off (DPMS)
-readonly TIMEOUT_SUSPEND=1200     # System Suspend
+readonly TIMEOUT_DIM=150        # Dim Screen
+readonly TIMEOUT_LOCK=300       # Lock Session
+readonly TIMEOUT_OFF=330       # Screen Off (DPMS)
+readonly TIMEOUT_SUSPEND=600     # System Suspend
 
 #===============================================================================
 # SYSTEM CONSTANTS

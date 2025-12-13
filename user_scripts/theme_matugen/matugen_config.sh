@@ -294,8 +294,8 @@ log_info "Updating wallpaper directory symlinks..."
 if "$SYMLINK_SCRIPT" "--$TARGET_MODE"; then
     log_succ "Symlinks updated to $TARGET_MODE."
 else
-    log_err "Failed to update symlinks."
-    exit 1
+    log_err "Failed to update symlinks (Directory likely not found). Proceeding anyway..."
+    # Warning issued, exit code omitted to allow flow to continue.
 fi
 
 # C. Trigger Wallpaper Refresh
