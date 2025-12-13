@@ -2,6 +2,7 @@
 .config/btop/btop.conf
 .config/cava/config
 .config/fastfetch/
+.config/firefox_extention_export_data_backup/
 .config/fontconfig/
 .config/hypr/
 .config/kitty/

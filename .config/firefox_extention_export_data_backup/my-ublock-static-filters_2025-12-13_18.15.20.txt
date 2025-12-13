@@ -1,0 +1,426 @@
+! Jun 5, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.ui-improvements-phase-1.ng-tns-c938791695-2
+gemini.google.com##hallucination-disclaimer
+gemini.google.com##.boqOnegoogleliteOgbOneGoogleBar
+gemini.google.com##top-bar-actions.ia-redesign
+
+! Jun 5, 2025 https://grok.com
+grok.com##.hover\:scale-\[1\.01\].ease-in-out.duration-300.transition-all.dark.hidden.gap-4.sm\:flex.text-left.group.right-2.bottom-2.rounded-3xl.min-\[384px\]\:min-w-52.min-\[384px\]\:w-max.border-card.cursor-pointer.border.text-white.text-xs.bg-black.w-\[calc\(100\%-16px\)\].items-center.py-3.px-5.fixed
+
+! Jun 5, 2025 https://chatgpt.com
+chatgpt.com##.md\:px-\[60px\].text-xs.text-center.p-2.justify-center.items-center.w-full.min-h-8.flex.mt-auto.relative.text-token-text-secondary
+
+! Jun 5, 2025 https://gemini.google.com
+gemini.google.com##.desktop-ogb-buffer
+
+! Jun 6, 2025 https://gemini.google.com
+gemini.google.com##.ng-tns-c62441874-46.condensed-prompt-card-container
+
+! Jun 6, 2025 https://web.whatsapp.com
+web.whatsapp.com##.xzwifym.xyj1x25.x13fuv20.x178xt8z.x889kno.xyqm7xq.x1fqp7bg.x1ys307a.xcxhlts.xl56j7k.x6s0dn4.x78zum5.x9f619
+
+! Jun 6, 2025 https://outlook.live.com
+outlook.live.com##.Gd_12.GssDD
+
+! Jun 7, 2025 https://outlook.live.com
+outlook.live.com##.LBktY > .GssDD
+
+! Jun 7, 2025 https://truthsocial.com
+truthsocial.com##.transition-transform.dark\:shadow-inset.shadow-3xl.dark\:text-gray-100.dark\:bg-gray-900.text-gray-900.py-8.bg-white.z-50.bottom-0.inset-x-0.fixed
+
+! Jun 8, 2025 https://chatgpt.com
+chatgpt.com##.rtl\:translate-x-1\/2.ltr\:-translate-x-1\/2.start-1\/2.absolute
+
+! Jun 8, 2025 https://x.com
+x.com##.r-1udh08x.r-1jocfgc.r-1l8l4mf.r-aqfbo4.css-175oi2r > .r-1pi2tsx.css-175oi2r
+x.com##.r-1m4drjs.r-u8s1d.r-2utimh.r-1tjplnt.r-rs99b7.r-1phboty.r-1xc7w19.r-3s2u2q.r-lrvibr.r-285fr0.r-1777fci.r-10ptun7.r-1q142lx.r-6koalj.r-sdzlij.r-l5o3uw.r-1awozwy.r-16dba41.r-56xrmm.r-1gkfh8e.r-37j5jr.r-qvutc0.r-1ttztb7.css-146c3p1
+x.com##.r-ttdzmv.r-onrtq4.r-1wron08.r-18kxxzh.css-175oi2r > .r-13qz1uu.r-bztko3.r-1adg3ll.css-175oi2r > .r-13qz1uu.r-ipm5af.r-u8s1d.r-1d2f490.r-1pi2tsx.r-1p0dtai > .r-bztko3.r-176fswd.r-1v2oles.r-u8s1d.r-45ll9u.r-13qz1uu.r-1pi2tsx.r-1adg3ll.css-175oi2r > .r-13qz1uu.r-ipm5af.r-u8s1d.r-1d2f490.r-1pi2tsx.r-1p0dtai > .r-8jfcpp.r-u8s1d.r-5f1w11.r-1udh08x.r-sdzlij.css-175oi2r > .r-1loqt21.r-1ny4l3l.r-6416eg.r-o7ynqc.r-13qz1uu.r-1pi2tsx.css-175oi2r > div.r-176fswd.r-1v2oles.r-u8s1d.r-45ll9u.r-1udh08x.r-sdzlij.css-175oi2r > .r-1ny4l3l.r-6416eg.r-o7ynqc.r-13qz1uu.r-1pi2tsx.r-172uzmj.css-175oi2r
+x.com##.r-ttdzmv.r-onrtq4.r-1wron08.r-18kxxzh.css-175oi2r > .r-13qz1uu.r-bztko3.r-1adg3ll.css-175oi2r > .r-13qz1uu.r-ipm5af.r-u8s1d.r-1d2f490.r-1pi2tsx.r-1p0dtai
+x.com##.r-1ny4l3l.r-6416eg.r-o7ynqc.r-1loqt21.r-xyw6el.r-18u37iz.r-6koalj.r-sdzlij.r-1awozwy.css-175oi2r > .css-175oi2r > .r-bztko3.r-1adg3ll.css-175oi2r > .r-13qz1uu.r-ipm5af.r-u8s1d.r-1d2f490.r-1pi2tsx.r-1p0dtai > .r-bztko3.r-176fswd.r-1v2oles.r-u8s1d.r-45ll9u.r-13qz1uu.r-1pi2tsx.r-1adg3ll.css-175oi2r > .r-13qz1uu.r-ipm5af.r-u8s1d.r-1d2f490.r-1pi2tsx.r-1p0dtai > .r-8jfcpp.r-u8s1d.r-5f1w11.r-1udh08x.r-sdzlij.css-175oi2r > .r-1ny4l3l.r-13qz1uu.r-1pi2tsx.css-175oi2r > div.r-176fswd.r-1v2oles.r-u8s1d.r-45ll9u.r-1udh08x.r-sdzlij.css-175oi2r
+x.com##.r-1777fci.r-onrtq4.r-1wron08.r-18kxxzh.css-175oi2r > .r-13qz1uu.r-bztko3.r-1adg3ll.css-175oi2r > .r-13qz1uu.r-ipm5af.r-u8s1d.r-1d2f490.r-1pi2tsx.r-1p0dtai > .r-bztko3.r-176fswd.r-1v2oles.r-u8s1d.r-45ll9u.r-13qz1uu.r-1pi2tsx.r-1adg3ll.css-175oi2r > .r-13qz1uu.r-ipm5af.r-u8s1d.r-1d2f490.r-1pi2tsx.r-1p0dtai > .r-8jfcpp.r-u8s1d.r-5f1w11.r-1udh08x.r-sdzlij.css-175oi2r > .r-1loqt21.r-1ny4l3l.r-6416eg.r-o7ynqc.r-13qz1uu.r-1pi2tsx.css-175oi2r > div.r-176fswd.r-1v2oles.r-u8s1d.r-45ll9u.r-1udh08x.r-sdzlij.css-175oi2r
+x.com##.r-1ifxtd0.r-ttdzmv.r-3pj75a.css-175oi2r
+x.com##.r-1loqt21.r-1ny4l3l.r-6416eg.r-o7ynqc.css-175oi2r > .r-1udh08x.r-1adg3ll.css-175oi2r
+x.com##.r-1udh08x.r-1hycxz.r-1l8l4mf.r-aqfbo4.css-175oi2r
+x.com##.r-1ye8kvj.r-13qz1uu.r-f8sm7e.r-1lg4w6u.r-1abdc3e.r-184en5c.r-16y2uox.r-1phboty.r-th6na.r-1ua6aaf.r-1kqtdi0.r-kemksi.css-175oi2r > .css-175oi2r > .r-184en5c.r-kemksi.css-175oi2r
+x.com##.r-1ld3bg.r-615f2u.r-u8s1d.r-12rgx7y.r-lrvibr.r-1ozsyd3.r-1yadl64.r-sdzlij.r-l5o3uw.css-175oi2r
+
+! Jun 9, 2025 https://www.youtube.com
+www.youtube.com##.ytp-chrome-top
+www.youtube.com##.ytp-button.ytp-subtitles-button
+
+! Jun 9, 2025 https://grok.com
+grok.com##.-translate-y-full.pb-4.px-4.w-full.items-center.flex-col.flex.absolute
+
+! Jun 10, 2025 https://gemini.google.com
+gemini.google.com##zs-advanced-upsell.ng-star-inserted
+gemini.google.com##.ng-star-inserted.ui-improvements-phase-1.ng-tns-c118841081-91
+gemini.google.com##.ng-star-inserted.ui-improvements-phase-1.ng-tns-c118841081-2
+
+! Jun 11, 2025 https://gemini.google.com
+gemini.google.com##.ng-trigger-dialogCardVisibility.ng-trigger.ng-tns-c319959805-23
+
+! Jun 11, 2025 https://www.google.com
+www.google.com##.logo
+www.google.com##.qarstb.o3j99
+www.google.com##div.o3j99:nth-of-type(6)
+www.google.com##.LS8OJ.yr19Zb.LLD4me.o3j99
+www.google.com##.lJ9FBc.FPdoLc > center > .RNmpXc
+www.google.com##a.MV3Tnb:nth-of-type(1)
+www.google.com##a.MV3Tnb:nth-of-type(2)
+www.google.com##.dRYYxd.fM33ce
+www.google.com##.hvhmMe
+www.google.com##.OBMEnb > .ynRric
+www.google.com##.LRZwuc.VfL2Y
+
+! Jun 11, 2025 https://web.whatsapp.com
+web.whatsapp.com##.xsknx04.xt0e3qv.x84yb8i.x7sb2j6.x5yr21d.xh8yej3.xl56j7k.x6s0dn4.x1iyjqo2.x78zum5.x9f619.x1vjfegm.x10l6tqk
+||static.whatsapp.net/rsrc.php/v4/yl/r/gi_DckOUM5a.png$image
+web.whatsapp.com##.xpdmqnj.x1g0dm76.x8k23pi.x18b5jzi.x1lun4ml.x1acz5yr.x5yr21d.xbyj736.xl56j7k.x6s0dn4.x78zum5.x9f619.x1n2onr6.xa1v5g2
+web.whatsapp.com##.x18pi947.x14bqcqg.xryxfnj.x1plvlek.xa1v5g2.xdt5ytf.x78zum5.x1w8yi2h.x2ipvbc.x1i1dayz.x17dzmu4.x5yr21d.x1n2onr6.x9f619._aigw > header
+web.whatsapp.com##.xv54qhq.x1g0dm76.x1ykpatu.x1nn3v0j.x2lwn1j.xeuugli.xfex06f.x3pnbk8.x2lah0s.x1a02dak.x1q0g3np.x78zum5.x1ky8ojb
+
+! Jun 11, 2025 https://pypi.org
+pypi.org##.js-stick-to-top.stick-to-top
+
+! Jun 11, 2025 https://chatgpt.com
+chatgpt.com##div.no-draggable:nth-of-type(2)
+
+! Jun 13, 2025 https://chatgpt.com
+chatgpt.com##.z-20.bottom-full.end-0.start-0.absolute
+chatgpt.com##.md\:w-full.md\:bottom-6.md\:start-0.md\:absolute.\[display\:var\(--display-hidden-until-loaded\,block\)\]
+
+!to make the input box at teh bootom smaller.
+gemini.google.com##.input-container.ng-tns-c823624646-1:style(height: 75px !important;)
+
+! Jun 14, 2025 https://browser.geekbench.com
+browser.geekbench.com##.col-lg-3.clearfix.secondary
+
+! Jun 15, 2025 https://yazi-rs.github.io
+yazi-rs.github.io##.navbar--fixed-top.navbar.theme-layout-navbar
+yazi-rs.github.io##.announcementBar_Dugv.theme-announcement-bar
+
+! Jun 15, 2025 https://gemini.google.com
+gemini.google.com##.is-mobile.has-thoughts.ng-tns-c4086532758-183.response-container-content > .ng-star-inserted.ng-tns-c3383442360-197.contextual-discovery-response-promotion
+
+! Jun 16, 2025 https://chatgpt.com
+chatgpt.com##.\@\[84rem\]\/thread\:\[box-shadow\:var\(--sharp-edge-top-shadow\)\]\!.\@\[84rem\]\/thread\:bg-token-main-surface-primary.\[box-shadow\:var\(--sharp-edge-top-shadow\)\].\@\[84rem\]\/thread\:shadow-none\!.\@\[84rem\]\/thread\:end-0.\@\[84rem\]\/thread\:start-0.\@\[84rem\]\/thread\:absolute.max-md\:hidden.motion-safe\:transition.\*\:pointer-events-auto.\[view-transition-name\:var\(--vt-page-header\)\].select-none.pointer-events-none.bg-token-main-surface-primary.h-header-height.z-20.justify-between.items-center.flex.touch\:p-2\.5.p-2.top-0.sticky.no-draggable-children.draggable
+chatgpt.com##.flex-col.flex.md\:dark\:border-transparent.dark\:border-white\/20.md\:pt-0.md\:border-transparent.has-data-has-thread-error\:\[box-shadow\:var\(--sharp-edge-bottom-shadow\)\].has-data-has-thread-error\:pt-2.basis-auto.w-full.z-3.isolate
+chatgpt.com##.\[box-shadow\:var\(--sharp-edge-top-shadow\)\].md\:hidden.ps-0.border-transparent.justify-center.items-center.flex.z-10.top-0.sticky.bg-token-bg-primary.h-header-height.draggable
+chatgpt.com##.pb-25.text-sm.flex-col.flex.mt-1\.5.\@thread-xl\/thread\:pt-header-height > div
+
+! Jun 16, 2025 https://gemini.google.com
+gemini.google.com##.input-gradient.ng-star-inserted.ui-improvements-phase-1.ng-tns-c823624646-1
+
+! Jun 16, 2025 https://x.com
+x.com##.r-1yne1t6.r-1bylmt5.r-1dbacat.r-1777fci.r-1pi2tsx.css-175oi2r > .r-1ny4l3l.r-6416eg.r-o7ynqc.r-1loqt21.r-1qi8awa.r-2yi16.r-hv52eu.r-lrvibr.r-rs99b7.r-1phboty.r-sdzlij.css-175oi2r
+x.com##.r-1r767sx.r-1bylmt5.r-1dbacat.r-1777fci.r-1pi2tsx.css-175oi2r > .r-1ny4l3l.r-6416eg.r-o7ynqc.r-1loqt21.r-1qi8awa.r-2yi16.r-hv52eu.r-lrvibr.r-rs99b7.r-1phboty.r-sdzlij.css-175oi2r
+
+! Jun 16, 2025 https://www.boot.dev
+www.boot.dev##.bg-image-blue.static-bgimage > .bg-image-blue
+www.boot.dev##.overflow-auto.flex-col.flex-1.flex
+www.boot.dev##.md\:border-t-0.hover\:text-gray-500.p-2.bg-gray-850.border-gray-600.border.rounded-b.overflow-visible.items-center.flex.mr-4.top-\[-1px\].relative.z-60
+
+! Jun 16, 2025 https://zellij.dev
+zellij.dev##.bordered.menu-bar
+
+! Jun 16, 2025 https://www.boot.dev
+www.boot.dev##.lg\:flex.justify-center.items-center.flex-1.hidden
+www.boot.dev##.p-2.border-gray-600.border-b.w-full.box-border.whitespace-nowrap.flex-row.flex.bg-image-blue
+
+! Jun 17, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.ui-improvements-phase-1.input-gradient.ng-tns-c679271174-1
+gemini.google.com##.input-gradient.ng-star-inserted.ui-improvements-phase-1.ng-tns-c1621318045-1
+
+! Jun 18, 2025 https://x.com
+x.com##.r-13qz1uu.r-18jm5s1.r-axxi2z.r-dkhcqf.r-u8s1d.r-633pao.css-175oi2r
+
+! Jun 18, 2025 https://to-do.live.com
+to-do.live.com##.is-consumer.o365header
+to-do.live.com##.centerColumn-item.tasksToolbar
+
+! Jun 18, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.upgrade-container
+gemini.google.com##button.ng-star-inserted.bard-mode-list-button.mat-focus-indicator.mat-mdc-menu-item:nth-of-type(3)
+gemini.google.com##.simplified-ui.nested-mode-title-bar
+
+! Jun 18, 2025 https://colorhunt.co
+colorhunt.co##.flex.main.wrap > .right
+colorhunt.co##.flex.right
+
+! Jun 19, 2025 https://www.youtube.com
+www.youtube.com###page-header-banner
+
+! Jun 19, 2025 https://chat.deepseek.com
+chat.deepseek.com##._2be88ba
+chat.deepseek.com##._0fcaa63
+
+! Jun 19, 2025 https://chat.deepseek.com
+chat.deepseek.com##._41b9122
+chat.deepseek.com##.a1e75851
+chat.deepseek.com##.e066abb8
+chat.deepseek.com##._0e98de6
+
+! Jun 19, 2025 https://www.livechat.com
+www.livechat.com###chat-widget-container
+
+! Jun 20, 2025 https://www.reddit.com
+www.reddit.com##.block.xs\:pb-0.pb-xl.xs\:max-w-\[316px\].xs\:w-\[316px\].w-full.min-w-0.right-sidebar
+www.reddit.com##.theme-beta.z-\[4\].fixed.right-0.left-0.top-0.nd\:visible
+
+! Jun 20, 2025 https://www.theverge.com
+www.theverge.com###onetrust-consent-sdk
+www.theverge.com##.transform.zephr-zone-footer
+
+! Jun 20, 2025 https://chatgpt.com
+chatgpt.com##.max-w-\[480px\].overflow-hidden.focus\:outline-hidden.flex-col.flex.shadow-long.rounded-2xl.rtl\:translate-x-1\/2.ltr\:-translate-x-1\/2.text-start.w-full.h-full.row-start-2.row-auto.col-start-2.col-auto.start-1\/2.relative.bg-token-main-surface-primary.popover
+chatgpt.com##body > .inset-0.absolute
+
+! Jun 20, 2025 https://codecompanion.olimorris.dev
+codecompanion.olimorris.dev##.has-sidebar.VPLocalNav
+
+! Jun 20, 2025 https://aistudio.google.com
+aistudio.google.com##.ng-tns-c2807794720-0.layout-wrapper > .ng-star-inserted.ng-tns-c2807794720-0
+
+! Jun 21, 2025 https://www.youtube.com
+www.youtube.com##ytd-rich-section-renderer.ytd-rich-grid-renderer.style-scope
+
+! Jun 21, 2025 https://chatgpt.com
+chatgpt.com##.\[box-shadow\:var\(--sharp-edge-top-shadow\)\].\@\[84rem\]\/thread\:bg-transparent.\@\[84rem\]\/thread\:shadow-none\!.\@\[84rem\]\/thread\:end-0.\@\[84rem\]\/thread\:start-0.\@\[84rem\]\/thread\:absolute.max-md\:hidden.motion-safe\:transition.\*\:pointer-events-auto.\[view-transition-name\:var\(--vt-page-header\)\].select-none.pointer-events-none.bg-token-main-surface-primary.h-header-height.z-20.justify-between.items-center.flex.touch\:p-2\.5.p-2.top-0.sticky.no-draggable-children.draggable
+
+! Jun 21, 2025 https://discord.com
+discord.com##.colorPremium__6e2b9.colorPremiumTier2__6e2b9.notice__6e2b9
+
+! Jun 23, 2025 https://wiki.archlinux.org
+wiki.archlinux.org##.vector-button-flush-left.vector-page-titlebar-toc.vector-dropdown
+
+! Jun 23, 2025 https://gemini.google.com
+gemini.google.com##.input-gradient.ng-star-inserted.ui-improvements-phase-1.ng-tns-c1035162930-18
+gemini.google.com##toolbar.ng-tns-c1145761168-80
+
+! Jun 23, 2025 https://www.youtube.com
+www.youtube.com##ytd-reel-shelf-renderer.ytd-item-section-renderer.style-scope:nth-of-type(1)
+www.youtube.com##ytd-reel-shelf-renderer.ytd-item-section-renderer.style-scope:nth-of-type(2)
+
+! Jun 23, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.ui-improvements-phase-1.input-gradient.ng-tns-c1035162930-1
+
+! Jun 23, 2025 https://wiki.archlinux.org
+wiki.archlinux.org##.vector-button-flush-left.vector-page-titlebar-toc.vector-dropdown
+
+! Jun 24, 2025 https://gemini.google.com
+gemini.google.com##.ng-tns-c3514465585-65.condensed-prompt-card-container
+
+! Jun 25, 2025 https://gemini.google.com
+gemini.google.com##.input-gradient.ng-star-inserted.ui-improvements-phase-1.ng-tns-c3189957201-28
+
+! Jun 25, 2025 https://aistudio.google.com
+aistudio.google.com##.ng-tns-c1634182692-0.layout-wrapper > .ng-star-inserted.ng-tns-c1634182692-0
+aistudio.google.com##.ng-tns-c1634182692-0.router-outlet-wrapper > .ng-star-inserted > .ng-star-inserted > .ng-star-inserted.ng-tns-c2962419065-4
+aistudio.google.com##.ng-star-inserted.ng-tns-c1634182692-0.ng-tns-c1907700224-1
+aistudio.google.com##ms-toolbar
+aistudio.google.com##.ng-tns-c233927227-0.router-outlet-wrapper > .ng-star-inserted > .ng-star-inserted > .ng-star-inserted.ng-tns-c3539649717-4
+aistudio.google.com##.ng-star-inserted.ng-tns-c233927227-0.ng-tns-c879380736-1
+aistudio.google.com##.ng-tns-c233927227-0.layout-wrapper > .ng-star-inserted.ng-tns-c233927227-0
+aistudio.google.com##.ng-star-inserted.two-row-by-two-col-layout.ng-trigger-fadeInOut.ng-trigger.ng-tns-c2726074540-5.promo-gallery
+aistudio.google.com##.ng-tns-c2726074540-5.no-select.title-container
+
+! Jun 26, 2025 https://aistudio.google.com
+aistudio.google.com##.ng-star-inserted.ng-tns-c2156242455-0.ng-tns-c317526931-1
+aistudio.google.com##.ng-tns-c2156242455-0.layout-wrapper > .ng-star-inserted.ng-tns-c2156242455-0
+aistudio.google.com##.ng-tns-c2156242455-0.router-outlet-wrapper > .ng-star-inserted > .ng-star-inserted > .ng-star-inserted.ng-tns-c2491094134-4
+aistudio.google.com##.ng-star-inserted.two-row-by-two-col-layout.ng-trigger-fadeInOut.ng-trigger.ng-tns-c4263923730-5.promo-gallery
+aistudio.google.com##.ng-star-inserted.ng-tns-c2156242455-0.ng-tns-c3254402445-1
+aistudio.google.com##.ng-tns-c2156242455-0.router-outlet-wrapper > .ng-star-inserted > .ng-star-inserted > .ng-star-inserted.ng-tns-c902746232-4
+aistudio.google.com##.ng-star-inserted.ng-tns-c233927227-0.ng-tns-c4033387420-1
+aistudio.google.com##.ng-tns-c233927227-0.router-outlet-wrapper > .ng-star-inserted > .ng-star-inserted > .ng-star-inserted.ng-tns-c1951301815-4
+
+! Jun 28, 2025 https://aistudio.google.com
+aistudio.google.com##.ng-star-inserted.two-row-by-two-col-layout.ng-trigger-fadeInOut.ng-trigger.ng-tns-c1671229982-5.promo-gallery
+aistudio.google.com##div > .ng-star-inserted.ng-tns-c1236948043-18
+aistudio.google.com###turn-D804A40C-363C-45AE-B9C0-F6EA881426CA > .render.model.chat-turn-container > .actions-container
+aistudio.google.com##.ng-tns-c2156242455-0.router-outlet-wrapper > .ng-star-inserted > .ng-star-inserted > .ng-star-inserted.ng-tns-c902746232-22
+aistudio.google.com##div > .ng-star-inserted.ng-tns-c1236948043-27
+aistudio.google.com###turn-F0FD41C6-962E-468A-BEE5-482DE780877B > .render.model.chat-turn-container > .actions-container > .hover-or-edit.actions
+aistudio.google.com##.ng-star-inserted.ng-tns-c902746232-50.toggles-container
+
+! Jun 28, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.ui-improvements-phase-1.input-gradient.ng-tns-c314539101-1.ng-tns-c3457829626-2
+
+! Jun 28, 2025 https://www.gsmarena.com
+www.gsmarena.com##.left.col.sidebar
+
+! Jun 28, 2025 https://nanoreview.net
+nanoreview.net##.nav-container
+nanoreview.net##.flex.sticky-names
+
+! Jun 29, 2025 https://aistudio.google.com
+aistudio.google.com##.ng-tns-c2156242455-0.router-outlet-wrapper > .ng-star-inserted > .ng-star-inserted > .ng-star-inserted.ng-tns-c902746232-12
+
+! Jul 2, 2025 https://aistudio.google.com
+aistudio.google.com##.ng-tns-c162097749-0.layout-wrapper > .ng-star-inserted.ng-tns-c162097749-0
+aistudio.google.com##.ng-star-inserted.ng-tns-c162097749-0.ng-tns-c2597048371-1
+aistudio.google.com##.ng-star-inserted.ng-tns-c839980045-4.toggles-container
+aistudio.google.com##.ng-star-inserted.two-row-by-two-col-layout.ng-trigger-fadeInOut.ng-trigger.ng-tns-c1680354048-5.promo-gallery
+
+! Nov 11, 2025 https://gemini.google.com
+gemini.google.com##top-bar-actions.ng-star-inserted.ng-tns-c2727400529-0
+
+! Nov 12, 2025 https://chatgpt.com
+chatgpt.com##.thread-xl\:\[box-shadow\:var\(--sharp-edge-top-shadow\)\]\!.thread-xl\:bg-token-main-surface-primary.\[box-shadow\:var\(--sharp-edge-top-shadow\)\].thread-xl\:shadow-none\!.thread-xl\:end-0.thread-xl\:start-0.thread-xl\:absolute.max-md\:hidden.motion-safe\:transition.\*\:pointer-events-auto.\[view-transition-name\:var\(--vt-page-header\)\].select-none.pointer-events-none.bg-token-main-surface-primary.h-header-height.z-20.justify-between.items-center.flex.touch\:p-2\.5.p-2.top-0.sticky.no-draggable-children.draggable
+chatgpt.com##.\[box-shadow\:var\(--sharp-edge-top-shadow-placeholder\)\].bg-transparent.thread-xl\:bg-transparent.thread-xl\:shadow-none\!.thread-xl\:end-0.thread-xl\:start-0.thread-xl\:absolute.end-0.start-0.absolute.max-md\:hidden.motion-safe\:transition.\*\:pointer-events-auto.\[view-transition-name\:var\(--vt-page-header\)\].select-none.pointer-events-none.h-header-height.z-20.justify-between.items-center.flex.touch\:p-2\.5.p-2.top-0.no-draggable-children.draggable
+chatgpt.com##.\[box-shadow\:var\(--sharp-edge-top-shadow-placeholder\)\].thread-xl\:bg-transparent.thread-xl\:shadow-none\!.thread-xl\:end-0.thread-xl\:start-0.thread-xl\:absolute.max-md\:hidden.motion-safe\:transition.\*\:pointer-events-auto.\[view-transition-name\:var\(--vt-page-header\)\].select-none.pointer-events-none.bg-token-main-surface-primary.h-header-height.z-20.justify-between.items-center.flex.touch\:p-2\.5.p-2.top-0.sticky.no-draggable-children.draggable
+
+! Nov 12, 2025 https://gemini.google.com
+gemini.google.com##.top-bar-actions
+
+! Nov 12, 2025 https://claude.ai
+claude.ai##.max-w-2xl.max-md\:pt-4.gap-7.items-center.flex-col.w-full.flex.mx-auto
+claude.ai##.-mb-3.h-12.z-header.top-0.sticky.bg-bg-100.w-full.flex
+
+! Nov 13, 2025 https://chatgpt.com
+chatgpt.com##.\[box-shadow\:var\(--sharp-edge-top-shadow\)\].print\:hidden.md\:hidden.px-2.border-transparent.items-center.flex.z-10.top-0.sticky.bg-token-bg-primary.h-header-height.draggable
+
+! Nov 17, 2025 https://x.com
+x.com##.r-knv0ih.css-175oi2r > .r-16dba41.r-rjixqe.r-a023e6.r-37j5jr.r-qvutc0.r-1ttztb7.r-bcqeeo.css-146c3p1
+
+! Nov 18, 2025 https://aistudio.google.com
+aistudio.google.com##.ms-button-borderless.ng-tns-c3995511618-1.account-switcher-button
+||lh3.googleusercontent.com/a/ACg8ocI0M6R5eKxYI7Nz6ywob1AJrXrTbVWQaAeAHgEahNtU0G8MvpQt=s64-cc$image
+
+! Nov 20, 2025 https://gemini.google.com
+gemini.google.com##toolbar.ng-tns-c3900983022-11
+
+! Nov 20, 2025 https://web.whatsapp.com
+web.whatsapp.com##.x1a8lsjc.x889kno.xpdmqnj.x1g0dm76.x1h3rtpe.x5yr21d.xbyj736.xq3y45c.x6s0dn4.x78zum5.x9f619.x1n2onr6.x12xzxwr
+web.whatsapp.com##.x18pi947.xwfak60.xxljpkc.x18dvir5.x570efc.xryxfnj.x1plvlek.x12xzxwr.xdt5ytf.x78zum5.xjdofhw.x2ipvbc.x1i1dayz.x17dzmu4.x5yr21d.x1n2onr6.x9f619._as6h._aigw > header
+web.whatsapp.com##._ap1_._ap1-._ak7_._asiw.false._ak72
+web.whatsapp.com##._ak9t
+web.whatsapp.com##.x2lwn1j.xeuugli.xfex06f.x3pnbk8.x2lah0s.x1a02dak.x1q0g3np.x78zum5.x1280gxy.x2vl965.x106a9eq.x1ykpatu.x1nn3v0j
+
+! Nov 20, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.ui-improvements-phase-1.ng-tns-c1268773452-119.ng-tns-c1502553882-120.input-gradient
+gemini.google.com##.ng-star-inserted.ui-improvements-phase-1.ng-tns-c1268773452-1.ng-tns-c1502553882-2.input-gradient
+gemini.google.com##.ng-star-inserted.ui-improvements-phase-1.ng-tns-c1268773452-126.ng-tns-c1502553882-127.input-gradient
+
+! Nov 21, 2025 https://x.com
+x.com##.r-3o4zer.r-1mmae3n.r-18u37iz.r-6koalj.r-g2wdr4.r-k4xj1c.css-175oi2r
+
+! Nov 21, 2025 https://gemini.google.com
+gemini.google.com##div.ng-tns-c3546867683-253.text-wrapper:nth-of-type(2)
+gemini.google.com##.ng-tns-c3546867683-253.base-text.text-wrapper
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-316
+gemini.google.com##.with-pill-ui.side-nav-menu-button
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-541
+gemini.google.com##.ng-tns-c3546867683-583.user-greeting-text
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-3
+gemini.google.com##.ng-star-inserted.ng-tns-c2788849463-0.announcement-banner-container
+gemini.google.com##.ng-tns-c3546867683-4.minimized
+gemini.google.com##.ng-star-inserted.ng-tns-c3748288967-6.ng-tns-c815962013-10
+gemini.google.com##.ng-star-inserted.ng-tns-c815962013-9.intent-card-bar-container
+gemini.google.com##.ng-tns-c3546867683-58.minimized
+gemini.google.com##.ng-star-inserted.ng-tns-c815962013-59.intent-card-bar-container
+gemini.google.com##.ng-star-inserted.ng-tns-c438951414-0.announcement-banner-container
+gemini.google.com##.overflow-container
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2778766426-3 > .ng-star-inserted.ia-redesign
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2778766426-3
+gemini.google.com##.ng-star-inserted.ng-tns-c442502258-8.intent-card-bar-container
+gemini.google.com##.ng-tns-c2387989202-4.user-greeting-text
+gemini.google.com##div.ng-tns-c2387989202-5.text-wrapper:nth-of-type(2)
+gemini.google.com##.ng-tns-c2387989202-5.base-text.text-wrapper
+
+! Nov 21, 2025 https://chatgpt.com
+chatgpt.com##.print\:hidden.max-md\:hidden.border-e.overflow-hidden.shrink-0.h-full.z-21.relative.border-token-border-light
+chatgpt.com##.sm\:min-h-\[42svh\].max-sm\:justify-center.max-sm\:grow.justify-end.flex.shrink.flex-col.basis-auto.relative > .justify-center.flex
+
+! Nov 22, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-141 > .ng-star-inserted.ia-redesign
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-141
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2778766426-71 > .ng-star-inserted.ia-redesign
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2778766426-71
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2778766426-98 > .ng-star-inserted.ia-redesign
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2778766426-98
+
+! Nov 23, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-157
+
+! Nov 24, 2025 https://gemini.google.com
+gemini.google.com##.content-loaded.ng-star-inserted.collapsed.disable-onload-animations.sidenav-with-history-container
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-108 > .ng-star-inserted.ia-redesign
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-108
+
+! Nov 24, 2025 https://myaccount.google.com
+myaccount.google.com##.grz8ne.WxnH6c > .BSFzSd.jwZ28 > .TauySe
+
+! Nov 24, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-18
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-337
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-343
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-355
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-361
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-367
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-373
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-379
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-385
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2427488643-391
+gemini.google.com##toolbar.ng-tns-c3900983022-132
+gemini.google.com##.active.ng-star-inserted.response-tts-container
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c2778766426-4 > .ng-star-inserted.ia-redesign
+
+! Nov 25, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.ng-tns-c496729027-0.announcement-banner-container
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c608876038-18
+gemini.google.com##.ng-tns-c4245889105-4.user-greeting-text
+
+! Nov 25, 2025 https://lmarena.ai
+lmarena.ai##.justify-center.w-full.flex.-bottom-5.absolute
+
+! Nov 26, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.ng-tns-c3053907462-0.announcement-banner-container
+gemini.google.com##.ng-tns-c4180813300-4.user-greeting-text
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c1994411336-65
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c1994411336-80
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c1994411336-112
+
+! Nov 26, 2025 https://lmarena.ai
+lmarena.ai##.md\:block.hidden.peer.group.text-sidebar-foreground
+lmarena.ai##.justify-center.w-full.flex.-bottom-5.absolute
+
+! Nov 26, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.ng-tns-c3299329106-0.announcement-banner-container
+
+! Nov 28, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c1984648181-699
+
+! Nov 28, 2025 https://web.whatsapp.com
+web.whatsapp.com##.x1vb5itz.x1t7ytsu.xpilrb4.x1oy9qf3.x10wlt62.x6ikm8r.xwfak60.xxljpkc.x18dvir5.x570efc.xdt5ytf.x78zum5.xjdofhw.x2ipvbc.x1i1dayz.x17dzmu4.x5yr21d.x1n2onr6.x9f619.xevlxbw.false._as6h._aigw
+
+! Nov 29, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c1984648181-313 > .ng-star-inserted.ia-redesign
+gemini.google.com##.ng-star-inserted.disable-onload-animations.ng-trigger-widthTransition.ng-trigger.ng-tns-c1984648181-313
+
+! Dec 3, 2025 https://lmarena.ai
+lmarena.ai##.lg\:gap-4.gap-3.justify-start.items-center.min-w-0.flex.flex-2 > .border-none.max-w-max.w-\[280px\].\[\&\>span\]\:truncate.\[\&\>span\]\:block.disabled\:opacity-50.disabled\:cursor-not-allowed.focus\:ring-offset-2.focus\:ring-2.focus\:outline-none.transition-colors.font-medium.text-sm.py-2.px-3.border.rounded-md.whitespace-nowrap.justify-between.items-center.h-9.flex.group.focus\:ring-ring.placeholder\:text-muted-foreground.ring-offset-background.data-\[state\=open\]\:text-text-tertiary.hover\:text-header-primary.text-header-secondary.border-border
+
+! Dec 3, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.ng-tns-c1206418941-0.announcement-banner-container
+
+! Dec 5, 2025 https://gemini.google.com
+gemini.google.com##.zero-state-block-container > .ng-star-inserted
+gemini.google.com##.ng-star-inserted.ng-tns-c1718670305-0.experiment-driven-banner
+
+! Dec 6, 2025 https://gemini.google.com
+gemini.google.com##.ng-star-inserted.disable-onload-animations.mystuff-side-nav-update.ng-trigger-widthTransition.ng-trigger.ng-tns-c2270224850-121
+gemini.google.com##.ng-star-inserted.disable-onload-animations.mystuff-side-nav-update.ng-trigger-widthTransition.ng-trigger.ng-tns-c2270224850-130
+gemini.google.com##.ng-star-inserted.disable-onload-animations.mystuff-side-nav-update.ng-trigger-widthTransition.ng-trigger.ng-tns-c2270224850-139
+gemini.google.com##.ng-star-inserted.disable-onload-animations.mystuff-side-nav-update.ng-trigger-widthTransition.ng-trigger.ng-tns-c2270224850-205
+gemini.google.com##.content-loaded.ng-star-inserted.side-nav-mystuff-update.disable-onload-animations.expanded.sidenav-with-history-container
+gemini.google.com##.ng-star-inserted.disable-onload-animations.mystuff-side-nav-update.ng-trigger-widthTransition.ng-trigger.ng-tns-c2270224850-213 > .ng-star-inserted.ia-redesign
+gemini.google.com##.ng-star-inserted.disable-onload-animations.mystuff-side-nav-update.ng-trigger-widthTransition.ng-trigger.ng-tns-c2270224850-213
+gemini.google.com##.ng-star-inserted.disable-onload-animations.mystuff-side-nav-update.ng-trigger-widthTransition.ng-trigger.ng-tns-c2270224850-206
+
+! Dec 8, 2025 https://chatgpt.com
+chatgpt.com##.\@w-xl\/main\:\[box-shadow\:var\(--sharp-edge-top-shadow\)\]\!.\@w-xl\/main\:bg-token-main-surface-primary.\[box-shadow\:var\(--sharp-edge-top-shadow\)\].\@w-xl\/main\:shadow-none\!.\@w-xl\/main\:end-0.\@w-xl\/main\:start-0.\@w-xl\/main\:absolute.max-md\:hidden.motion-safe\:transition.\*\:pointer-events-auto.\[view-transition-name\:var\(--vt-page-header\)\].select-none.pointer-events-none.bg-token-main-surface-primary.h-header-height.z-20.justify-between.items-center.flex.touch\:p-2\.5.p-2.top-0.sticky.no-draggable-children.draggable
+
+! Dec 10, 2025 https://chatgpt.com
+chatgpt.com##.\[box-shadow\:var\(--sharp-edge-top-shadow-placeholder\)\].\@w-xl\/main\:bg-transparent.\@w-xl\/main\:shadow-none\!.\@w-xl\/main\:end-0.\@w-xl\/main\:start-0.\@w-xl\/main\:absolute.motion-safe\:transition.\*\:pointer-events-auto.\[view-transition-name\:var\(--vt-page-header\)\].select-none.pointer-events-none.bg-token-main-surface-primary.h-header-height.z-20.justify-between.items-center.flex.touch\:p-2\.5.p-2.top-0.sticky.no-draggable-children.draggable
+chatgpt.com##.\[box-shadow\:var\(--sharp-edge-top-shadow\)\].\@w-xl\/main\:bg-transparent.\@w-xl\/main\:shadow-none\!.\@w-xl\/main\:end-0.\@w-xl\/main\:start-0.\@w-xl\/main\:absolute.motion-safe\:transition.\*\:pointer-events-auto.\[view-transition-name\:var\(--vt-page-header\)\].select-none.pointer-events-none.bg-token-main-surface-primary.h-header-height.z-20.justify-between.items-center.flex.touch\:p-2\.5.p-2.top-0.sticky.no-draggable-children.draggable
