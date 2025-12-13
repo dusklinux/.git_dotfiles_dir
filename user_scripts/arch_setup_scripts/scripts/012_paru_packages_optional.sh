@@ -14,7 +14,6 @@ set -uo pipefail
 # ------------------------------------------------------------------------------
 # 2. VISUALS & LOGGING
 # ------------------------------------------------------------------------------
-# FIX APPLIED: Using $'' ANSI-C quoting for proper escape sequence interpretation.
 readonly C_RESET=$'\033[0m'
 readonly C_BOLD=$'\033[1m'
 readonly C_GREEN=$'\033[1;32m'
@@ -24,7 +23,6 @@ readonly C_RED=$'\033[1;31m'
 readonly C_CYAN=$'\033[1;36m'
 readonly C_MAGENTA=$'\033[1;35m'
 
-# Logging functions write to stderr by default to keep stdout clean for piping if needed
 log_info()    { printf "${C_BLUE}[INFO]${C_RESET} %s\n" "$1" >&2; }
 log_success() { printf "${C_GREEN}[SUCCESS]${C_RESET} %s\n" "$1" >&2; }
 log_warn()    { printf "${C_YELLOW}[WARN]${C_RESET} %s\n" "$1" >&2; }
@@ -57,8 +55,6 @@ fi
 # ------------------------------------------------------------------------------
 # 5. CONFIGURATION
 # ------------------------------------------------------------------------------
-# NOTE: To add a category, use the prefix "## ".
-# The script detects lines starting with "## " as headers, not packages.
 readonly AVAILABLE_PACKAGES=(
 
 "## Misc Tools"
@@ -100,29 +96,49 @@ select_packages() {
   local selected_list=()
   local user_in
   local confirm_choice
-  local current_cat="General" # Default category if none specified
+  local current_cat="General"
+  local clean_pkg_list=()
 
-  # Count actual packages (excluding headers starting with ##) for display
+  # 1. Prepare Data for Grid & Count
   local pkg_count=0
   for item in "${AVAILABLE_PACKAGES[@]}"; do
-    [[ "$item" != "## "* ]] && ((pkg_count++))
+    if [[ "$item" != "## "* ]]; then
+      ((pkg_count++))
+      clean_pkg_list+=("$item")
+    fi
   done
 
-  # 1. Ask for "Install All" shortcut
-  log_task "Selection Mode"
-  printf "${C_YELLOW}Do you want to install ALL %s optional packages? [y/N] ${C_RESET}" "$pkg_count" >&2
-  read -r install_all_choice
+  # 2. Display Grid (MODIFIED)
+  log_task "Available Optional Packages"
+  # Using 'column' to automatically fit packages into grid rows/columns based on screen width
+  printf "%s\n" "${clean_pkg_list[@]}" | column >&2
+  printf "\n" >&2
 
-  if [[ "$install_all_choice" == "y" || "$install_all_choice" == "Y" ]]; then
-    log_info "All packages selected for installation."
-    # Output DATA to stdout (Filtering out headers)
-    for item in "${AVAILABLE_PACKAGES[@]}"; do
-      [[ "$item" != "## "* ]] && printf "%s\n" "$item"
-    done
-    return
-  fi
+  # 3. Ask for Mode Selection
+  printf "${C_YELLOW}Select mode for %s packages: [a]ll / [s]elect / [ENTER] skip (Default): ${C_RESET}" "$pkg_count" >&2
+  read -r mode_choice
 
-  # 2. Manual Selection Loop
+  case "$mode_choice" in
+    a|A)
+        # Install All
+        log_info "All packages selected for installation."
+        for item in "${AVAILABLE_PACKAGES[@]}"; do
+          [[ "$item" != "## "* ]] && printf "%s\n" "$item"
+        done
+        return
+        ;;
+    s|S)
+        # Proceed to Manual Selection Loop
+        log_info "Entering manual selection mode..."
+        ;;
+    *)
+        # Default (Enter/Empty) -> Install Nothing
+        log_info "Skipping optional packages."
+        return 0
+        ;;
+  esac
+
+  # 4. Manual Selection Loop
   while [[ $selection_complete -eq 0 ]]; do
     selected_list=() 
     current_cat="General"
@@ -131,9 +147,8 @@ select_packages() {
     printf "Instruction: Press 'y' to install, 'Enter' to skip (Default: No).\n\n" >&2
 
     for pkg in "${AVAILABLE_PACKAGES[@]}"; do
-      # CHECK: Is this a Category Header?
       if [[ "$pkg" == "## "* ]]; then
-        current_cat="${pkg:3}" # Strip the "## " prefix
+        current_cat="${pkg:3}"
         printf "\n${C_BOLD}${C_MAGENTA}:: Group: %s${C_RESET}\n" "$current_cat" >&2
         continue
       fi
@@ -149,7 +164,7 @@ select_packages() {
       fi
     done
 
-    # 3. Summary and Confirmation
+    # Summary
     printf "\n${C_BOLD}--- Selection Summary ---${C_RESET}\n" >&2
     if [[ ${#selected_list[@]} -eq 0 ]]; then
       log_warn "No packages selected."
@@ -180,10 +195,9 @@ select_packages() {
 # ------------------------------------------------------------------------------
 main() {
   # --- Phase 1: Package Selection ---
-  # capture stdout of select_packages into array
   mapfile -t TARGET_PACKAGES < <(select_packages)
 
-  # Check if array is empty
+  # Check if array is empty (Default Skip)
   if [[ ${#TARGET_PACKAGES[@]} -eq 0 ]]; then
     log_success "No packages selected. Exiting script gracefully."
     exit 0
@@ -197,7 +211,6 @@ main() {
   local fail_count=0
   local failed_pkgs=()
 
-  # Update Repos
   log_task "Synchronizing Repositories (paru -Sy)..."
   if ! paru -Sy; then
     log_err "Failed to synchronize repositories. Aborting."
@@ -205,23 +218,20 @@ main() {
   fi
 
   for pkg in "${TARGET_PACKAGES[@]}"; do
-    [[ -z "$pkg" ]] && continue # Skip empty lines
+    [[ -z "$pkg" ]] && continue
 
     log_task "Processing: ${pkg}"
 
-    # Check installed
     if paru -Qi "$pkg" &>/dev/null; then
       log_success "${pkg} is already installed. Skipping."
       continue
     fi
 
-    # Auto Install
     log_info "Auto-installing ${pkg}..."
     if paru -S --needed --noconfirm "$pkg"; then
       log_success "Installed ${pkg} (Auto)."
       ((success_count++))
     else
-      # Failure / Intervention
       printf "\n" >&2
       log_warn "Automatic install failed for ${pkg}."
       printf "${C_YELLOW}  -> Conflict/Error detected. Retry manually? [y/N] (Waiting %ss)... ${C_RESET}" "$TIMEOUT_SEC" >&2
@@ -244,7 +254,6 @@ main() {
         fi
       fi
       
-      # Timeout or No
       printf "\n" >&2
       log_err "Skipping ${pkg}."
       ((fail_count++))

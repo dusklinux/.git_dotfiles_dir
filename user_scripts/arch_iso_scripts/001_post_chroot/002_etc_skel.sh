@@ -52,7 +52,7 @@ declare -a COPY_TASKS=(
     "dusk/.zshrc :: /etc/skel/.zshrc"
 
     # 3. Network Manager Script (New Addition)
-    "dusk/user_scripts/network_manager/nmcli_wifi.sh :: /etc/skel/nmcli_wifi_no_gum.sh"
+    "dusk/user_scripts/network_manager/nmcli_wifi_no_gum.sh :: /etc/skel/nmcli_wifi_no_gum.sh"
 )
 
 # Files matching these patterns will be forced to be executable (755)
