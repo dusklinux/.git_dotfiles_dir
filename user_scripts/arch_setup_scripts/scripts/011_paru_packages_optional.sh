@@ -76,15 +76,15 @@ readonly AVAILABLE_PACKAGES=(
 "pokete"
 "brogue-ce"
 
-"## Asus Hardware"
-"asusctl"
-
 "## unlock encrypted drives"
 "wdpass"
 "dislocker"
 
 "## Legacy Drivers"
 "b43-firmware"
+
+"## Asus Hardware"
+"asusctl"
 )
 
 readonly TIMEOUT_SEC=10
