@@ -14,7 +14,7 @@ INSTALL_SEQUENCE=(
   "007_pacstrap.sh"
 # "007_pacstrap_old_works.sh"
   "008_script_directories_population_in_chroot.sh"
-  "007_fstab.sh"
+  "009_fstab.sh"
 )
 
 # --- 2. SETUP & SAFETY ---
