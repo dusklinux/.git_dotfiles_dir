@@ -157,6 +157,27 @@ update_all_timeouts() {
 #===============================================================================
 
 main() {
+    # 0. User Acknowledgment (New Addition)
+    clear
+    printf "${C_YELLOW}${C_BOLD}>>> SETUP POWER CONFIGURATION NOTICE <<<${C_RESET}\n"
+    echo "------------------------------------------------------------------------"
+    printf "To ensure the installation/setup process completes without interruption:\n\n"
+    
+    printf "  1. ${C_GREEN}Screen Protection:${C_RESET} The screen WILL dim and turn off to save battery.\n"
+    printf "     (This prevents battery drain if running on an unplugged laptop).\n"
+    printf "     If you are on a desktop PC, this is fine and harmless.\n\n"
+    
+    printf "  2. ${C_RED}No System Sleep:${C_RESET} The system WILL NOT suspend (sleep).\n"
+    printf "     This ensures long-running compilations are not killed by idle timers.\n\n"
+    
+    printf "${C_BLUE}NOTE:${C_RESET} These are temporary settings for the setup phase.\n"
+    printf "This will later automatically revert to the defaults or you can customize these timeouts later by running:\n"
+    printf "${C_BOLD}~/user_scripts/hypridle/timeout.sh${C_RESET}\n"
+    echo "------------------------------------------------------------------------"
+    printf "${C_BOLD}Press [Enter] to acknowledge and proceed...${C_RESET}"
+    read -r
+    echo
+
     # 1. Validation
     [[ -f "$CONFIG_FILE" ]] || die "Config file not found: $CONFIG_FILE"
     [[ -w "$CONFIG_FILE" ]] || die "Config file not writable: $CONFIG_FILE"
