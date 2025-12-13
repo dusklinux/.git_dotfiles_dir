@@ -361,6 +361,16 @@ main() {
         echo -e "${BOLD}${SCRIPT_DIR}/${RESET}"
         echo -e "${YELLOW}================================================================${RESET}\n"
     fi
+
+    # --- COMPLETION & REBOOT NOTICE ---
+    echo -e "\n${GREEN}================================================================${RESET}"
+    echo -e "${BOLD}FINAL INSTRUCTIONS:${RESET}"
+    echo -e "1. Please ${BOLD}REBOOT YOUR SYSTEM${RESET} for all changes to take effect."
+    echo -e "2. This script is designed to be run multiple times."
+    echo -e "   If you think something wasn't done right, you can run this script again."
+    echo -e "   It will ${BOLD}NOT${RESET} re-download the whole thing again, but instead"
+    echo -e "   only download/configure what might have failed the first time."
+    echo -e "${GREEN}================================================================${RESET}\n"
 }
 
 main "$@"

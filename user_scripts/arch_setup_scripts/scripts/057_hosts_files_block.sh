@@ -37,6 +37,7 @@ NC=$'\033[0m' # No Color
 # ==============================================================================
 
 # 1. Root Privilege Check
+# We exit with 1 here so the Orchestrator knows it FAILED and prompts you to Retry with sudo.
 if [[ $EUID -ne 0 ]]; then
    echo -e "${RED}Error: This script must be run as root (sudo).${NC}" 
    exit 1
@@ -59,7 +60,8 @@ EOM
 # 4. User Interaction
 echo -e "1) Block ${RED}ALL${NC} distracting websites listed"
 echo -e "2) Select manually which sites to block"
-read -p "Select an option [1-2]: " option
+echo -e "3) Exit / Leave as is (Default)"
+read -p "Select an option [1-3]: " option
 
 NEW_ENTRIES=""
 
@@ -82,7 +84,16 @@ case $option in
             fi
         done
         ;;
+    ""|[yY]*|3) # Handles Enter (empty), Y/y, or 3
+        # ORCHESTRA COMPATIBILITY: 
+        # We exit with 0 (Success) so the Orchestrator marks this step as "Done" 
+        # and moves to the next script without asking to Retry.
+        echo -e "${GREEN}No changes made to hosts file. Exiting.${NC}"
+        exit 0
+        ;;
     *)
+        # We exit with 1 (Error) here so the Orchestrator catches the typo
+        # and asks you if you want to Retry.
         echo "Invalid option. Exiting."
         exit 1
         ;;
@@ -91,6 +102,7 @@ esac
 # 5. Execution
 if [[ -z "$NEW_ENTRIES" ]]; then
     echo -e "${YELLOW}No sites selected. Exiting.${NC}"
+    # Exit 0 -> Orchestrator continues
     exit 0
 fi
 
@@ -102,3 +114,5 @@ ${NEW_ENTRIES}"
 echo "$FINAL_OUTPUT" > "$HOSTS_FILE"
 
 echo -e "${GREEN}Done. /etc/hosts updated.${NC}"
+# Exit 0 -> Orchestrator continues
+exit 0
