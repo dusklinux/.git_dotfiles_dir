@@ -110,6 +110,7 @@
     "memory": {
         "format": "\n{percentage}",
         "interval": 2,
+        "on-click": "uwsm-app -- kitty --class io_monitor.sh -e $HOME/user_scripts/drives/io_monitor.sh",
         "states": {
             "critical": 80
         },
