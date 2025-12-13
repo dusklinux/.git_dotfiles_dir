@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Script: 012_hyprexpo_plugin.sh
+# Script: 063_hyprexpo_plugin.sh
 # Description: Toggles Hyprland HyprExpo plugin and manages hyprpm dependencies.
 # Environment: Arch Linux / Hyprland / UWSM
 # Author: Elite DevOps (AI)
@@ -99,10 +99,16 @@ main() {
   printf "${C_WARN}RECOMMENDATION:${C_RESET} It is strongly recommended to ${C_WARN}DISABLE${C_RESET} this plugin for now, as it causes problems sometimes.\n"
   printf "You can run this script individually later from the scripts directory to enable it safely.\n"
   
+  # FIX: Add a small delay.
+  # Since 'printf' above goes through the Orchestra pipe (buffered), and the prompt below 
+  # goes directly to TTY (instant), we need to wait for the pipe to catch up (flush)
+  # so the text appears in the correct order.
+  sleep 0.5
+  
   # FIX: Write to /dev/tty to bypass Orchestra tee buffering so prompt is visible
-  # Changed to Yes/No, default No (disable)
+  # FIX: Force read from /dev/tty to bypass empty stdin pipe
   printf "Do you want to enable HyprExpo? [y/N]: " >/dev/tty
-  read -r choice
+  read -r choice < /dev/tty
 
   # Default to 'no' if choice is empty
   if [[ -z "$choice" ]]; then
