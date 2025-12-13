@@ -38,12 +38,12 @@ pacman -Sy git
 ```
 
 ```bash
-git clone --depth 1 https://github.com/dusklinux/dusky.git dusk
+git clone --depth 1 https://github.com/dusklinux/dusky.git
 ```
 
 dont forget the period at the end '.' after a space.  
 ```bash
-cp dusk/user_scripts/arch_iso_scripts/000_pre_chroot/* .
+cp dusky/user_scripts/arch_iso_scripts/000_pre_chroot/* .
 ```
 
 You only need to run the 000_ISO_ORCHESTRA.SH script. dont run anything else, this script auto runs eveyrthing. 
@@ -80,7 +80,7 @@ after booting.
 put in your password and user name
 and then. 
 ```bash
-tray-tui
+./wifi_connect.sh
 ```
 
 then. deploy git repo, open the terminal with super Q
