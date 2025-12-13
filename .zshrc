@@ -181,6 +181,9 @@ alias fgrep='fgrep --color=auto'
 #alias for using gdu instead of ncdu
 alias ncdu='gdu'
 
+#alias for disk io realtime. 
+alias io_drives='~/user_scripts/drives/io_monitor.sh'
+
 # alias for diff colored side by side
 alias gitdelta='cd ~ && git_dusky_add_list && git_dusky diff HEAD'
 

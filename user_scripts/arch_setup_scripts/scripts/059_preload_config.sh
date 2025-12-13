@@ -224,10 +224,11 @@ else
     fi
 
     # Determine AUR helper (Paru > Yay)
+    # FIX: We use 'bash -c' because 'command' is a shell builtin, and sudo cannot execute builtins directly.
     aur_helper=""
-    if sudo -u "$real_user" command -v paru &>/dev/null; then
+    if sudo -u "$real_user" bash -c "command -v paru" &>/dev/null; then
         aur_helper="paru"
-    elif sudo -u "$real_user" command -v yay &>/dev/null; then
+    elif sudo -u "$real_user" bash -c "command -v yay" &>/dev/null; then
         aur_helper="yay"
     else
         log_error "Neither 'paru' nor 'yay' found. Please install 'preload' manually."
