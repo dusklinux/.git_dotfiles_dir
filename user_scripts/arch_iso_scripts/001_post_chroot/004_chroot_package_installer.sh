@@ -77,7 +77,7 @@ pkgs_multimedia=(
 
 # Group 11: Sys Admin
 pkgs_sysadmin=(
-"btop" "htop" "nvtop" "inxi" "sysstat" "sysbench" "logrotate" "acpid" "tlp" "tlp-rdw" "thermald" "powertop" "ncdu" "gdu" "iotop" "iftop" "lshw" "wev" "pacman-contrib" "gnome-keyring" "libsecret" "seahorse" "yad" "dysk" "fwupd" "caligula"
+"btop" "htop" "nvtop" "inxi" "sysstat" "sysbench" "logrotate" "acpid" "tlp" "tlp-rdw" "thermald" "powertop" "gdu" "iotop" "iftop" "lshw" "wev" "pacman-contrib" "gnome-keyring" "libsecret" "seahorse" "yad" "dysk" "fwupd" "caligula"
 )
 
 # Group 12: Gnome Utilities

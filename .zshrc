@@ -178,6 +178,9 @@ alias fgrep='fgrep --color=auto'
 
 #alias cat='bat'
 
+#alias for using gdu instead of ncdu
+alias ncdu='gdu'
+
 # alias for diff colored side by side
 alias gitdelta='cd ~ && git_dusky_add_list && git_dusky diff HEAD'
 
