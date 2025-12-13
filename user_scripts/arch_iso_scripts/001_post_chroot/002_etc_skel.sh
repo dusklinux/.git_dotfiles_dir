@@ -42,14 +42,17 @@ die()         { log_error "$*"; exit 1; }
 #       The script uses 'cp -T' so it will NOT auto-nest directories.
 
 declare -a COPY_TASKS=(
+    # 0. User Scripts Directory (Directory contents)
+    # "dusk/user_scripts/ :: /etc/skel/Documents/user_scripts"
+
     # 1. Deployment Script (Script -> Executable)
     "deploy_dotfiles.sh :: /etc/skel/deploy_dotfiles.sh"
 
     # 2. Zsh Config (Config -> Not Executable)
     "dusk/.zshrc :: /etc/skel/.zshrc"
 
-    # 3. User Scripts Directory (Directory contents)
-    # "dusk/user_scripts/ :: /etc/skel/Documents/user_scripts"
+    # 3. Network Manager Script (New Addition)
+    "dusk/user_scripts/network_manager/nmcli_wifi.sh :: /etc/skel/nmcli_wifi_no_gum.sh"
 )
 
 # Files matching these patterns will be forced to be executable (755)
