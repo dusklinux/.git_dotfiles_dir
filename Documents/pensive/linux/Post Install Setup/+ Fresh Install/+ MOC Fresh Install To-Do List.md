@@ -412,6 +412,25 @@ and then enable the service
 systemctl --user enable --now battery_notify
 ```
 
+---
+*Script*
+-[ ] **bibata-modern-classic** theme for cursor
+```bash
+# 1. Create directory
+mkdir -p ~/.local/share/icons
+
+# 2. Download & Extract (Pipe)
+curl -L https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Classic.tar.xz | tar -xJ -C ~/.local/share/icons/
+
+# 3. Apply to Hyprland
+hyprctl setcursor Bibata-Modern-Classic 18
+```
+
+```bash
+# 4. (Optional) Fix Legacy Apps
+mkdir -p ~/.local/share/icons/default
+echo -e "[Icon Theme]\nName=Default\nInherits=Bibata-Modern-Classic" > ~/.local/share/icons/default/index.theme
+```
 
 ---
 

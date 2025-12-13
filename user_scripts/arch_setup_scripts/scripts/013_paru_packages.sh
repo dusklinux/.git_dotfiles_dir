@@ -75,7 +75,10 @@ readonly PACKAGES=(
   "adwaita-qt5"
   "otf-atkinson-hyperlegible-next"
   "fluent-icon-theme-git"
-  "bibata-cursor-theme-bin"
+
+  # installing manually with script because this is a massive package that includes every cursor theme
+  # "bibata-cursor-theme-bin"
+
   "python-pywalfox"
   "hyprshade"
   "waypaper"

@@ -78,8 +78,9 @@ INSTALL_SEQUENCE=(
     "U | 064_obsidian_pensive_vault_configure.sh"
     "U | 065_cache_purge.sh"
     "S | 066_arch_install_scripts_cleanup.sh"
-    "U | 067_reverting_sleep_timeout.sh"
+    "U | 067_cursor_theme_bibata_classic_modern.sh"
     "S | 068_nvidia_open_source.sh"
+    "U | 070_reverting_sleep_timeout.sh"
 )
 
 # ==============================================================================
