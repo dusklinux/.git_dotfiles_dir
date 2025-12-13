@@ -29,7 +29,7 @@ _Core GPU drivers, hardware acceleration, microcode, and firmware._
 
 
 ```
-pacman -S --needed intel-media-driver mesa vulkan-intel mesa-utils intel-gpu-tools libva libva-utils vulkan-icd-loader vulkan-tools sof-firmware linux-firmware
+pacman -S --needed intel-media-driver mesa vulkan-intel mesa-utils intel-gpu-tools libva libva-utils vulkan-icd-loader vulkan-tools sof-firmware linux-firmware acpi_call
 ```
 
 - [ ] Status
@@ -130,7 +130,7 @@ _Video players, recording (OBS), image editing, and screenshot tools._
 
 
 ```
-pacman -S --needed ffmpeg mpv mpv-mpris swappy swayimg imagemagick libheif obs-studio audacity handbrake guvcview ffmpegthumbnailer krita grim slurp wl-clipboard cliphist tesseract-data-eng
+pacman -S --needed ffmpeg mpv mpv-mpris swappy swayimg resvg imagemagick libheif obs-studio audacity handbrake guvcview ffmpegthumbnailer krita grim slurp wl-clipboard cliphist tesseract-data-eng
 ```
 
 - [ ] Status

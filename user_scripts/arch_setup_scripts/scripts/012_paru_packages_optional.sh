@@ -58,16 +58,17 @@ fi
 readonly AVAILABLE_PACKAGES=(
 
 "## Misc Tools"
-"pacseek"
+"pacseek-bin"
 "keypunch-git"
 "pinta"
 "youtube-dl-gui-bin"
 "sysmontask"
 "preload"
 "edex-ui-bin"
+"lazydocker"
 
 "## Games & Fun"
-"pipes.sh"
+"pipes-rs-bin"
 "2048.c"
 "clidle-bin"
 "maze-tui"
@@ -76,11 +77,11 @@ readonly AVAILABLE_PACKAGES=(
 "brogue-ce"
 
 "## Asus Hardware"
-"wdpass"
-"resvg"
-"dislocker"
-"lazydocker"
 "asusctl"
+
+"## unlock encrypted drives"
+"wdpass"
+"dislocker"
 
 "## Legacy Drivers"
 "b43-firmware"

@@ -7,7 +7,7 @@
 
 # Group 1: Graphics & Drivers (Intel 12th Gen)
 pkgs_graphics=(
-  "intel-media-driver" "mesa" "vulkan-intel" "mesa-utils" "intel-gpu-tools" "libva" "libva-utils" "vulkan-icd-loader" "vulkan-tools" "sof-firmware" "linux-firmware"
+  "intel-media-driver" "mesa" "vulkan-intel" "mesa-utils" "intel-gpu-tools" "libva" "libva-utils" "vulkan-icd-loader" "vulkan-tools" "sof-firmware" "linux-firmware" "acpi_call"
 )
 
 # Group 2: Hyprland Core
@@ -52,7 +52,7 @@ pkgs_dev=(
 
 # Group 10: Multimedia
 pkgs_multimedia=(
-"ffmpeg" "mpv" "mpv-mpris" "swappy" "swayimg" "imagemagick" "libheif" "obs-studio" "audacity" "handbrake" "guvcview" "ffmpegthumbnailer" "krita" "grim" "slurp" "wl-clipboard" "cliphist" "tesseract-data-eng"
+"ffmpeg" "mpv" "mpv-mpris" "swappy" "swayimg" "resvg" "imagemagick" "libheif" "obs-studio" "audacity" "handbrake" "guvcview" "ffmpegthumbnailer" "krita" "grim" "slurp" "wl-clipboard" "cliphist" "tesseract-data-eng"
 )
 
 # Group 11: Sys Admin

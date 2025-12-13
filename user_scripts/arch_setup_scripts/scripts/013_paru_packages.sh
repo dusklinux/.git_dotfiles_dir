@@ -66,12 +66,11 @@ fi
 # User Package Manifest - Edit this array to add/remove packages.
 readonly PACKAGES=(
   "wlogout"
-  "acpi_call"
   "adwaita-qt6"
   "adwaita-qt5"
   "otf-atkinson-hyperlegible-next"
   "fluent-icon-theme-git"
-  "bibata-cursor-theme"
+  "bibata-cursor-theme-bin"
   "python-pywalfox"
   "hyprshade"
   "waypaper"
