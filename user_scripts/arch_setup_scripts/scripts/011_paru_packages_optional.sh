@@ -43,14 +43,21 @@ trap cleanup EXIT INT TERM
 # ------------------------------------------------------------------------------
 if [[ $EUID -eq 0 ]]; then
   log_err "This script must NOT be run as root."
-  log_err "AUR helpers like 'paru' handle sudo privileges internally."
+  log_err "AUR helpers handle sudo privileges internally."
   exit 1
 fi
 
-if ! command -v paru &>/dev/null; then
-  log_err "Critical dependency 'paru' is missing."
+# Determine AUR Helper (Paru > Yay)
+if command -v paru &>/dev/null; then
+  readonly AUR_HELPER="paru"
+elif command -v yay &>/dev/null; then
+  readonly AUR_HELPER="yay"
+else
+  log_err "Critical dependency missing: Neither 'paru' nor 'yay' was found."
   exit 1
 fi
+
+log_info "Using AUR helper: ${AUR_HELPER}"
 
 # ------------------------------------------------------------------------------
 # 5. CONFIGURATION
@@ -212,8 +219,8 @@ main() {
   local fail_count=0
   local failed_pkgs=()
 
-  log_task "Synchronizing Repositories (paru -Sy)..."
-  if ! paru -Sy; then
+  log_task "Synchronizing Repositories (${AUR_HELPER} -Sy)..."
+  if ! "$AUR_HELPER" -Sy; then
     log_err "Failed to synchronize repositories. Aborting."
     exit 1
   fi
@@ -223,13 +230,13 @@ main() {
 
     log_task "Processing: ${pkg}"
 
-    if paru -Qi "$pkg" &>/dev/null; then
+    if "$AUR_HELPER" -Qi "$pkg" &>/dev/null; then
       log_success "${pkg} is already installed. Skipping."
       continue
     fi
 
     log_info "Auto-installing ${pkg}..."
-    if paru -S --needed --noconfirm "$pkg"; then
+    if "$AUR_HELPER" -S --needed --noconfirm "$pkg"; then
       log_success "Installed ${pkg} (Auto)."
       ((success_count++))
     else
@@ -243,7 +250,7 @@ main() {
           printf "\n" >&2
           log_info "Switching to Manual Mode for ${pkg}..."
           
-          if paru -S "$pkg"; then
+          if "$AUR_HELPER" -S "$pkg"; then
             log_success "Installed ${pkg} (Manual Recovery)."
             ((success_count++))
           else

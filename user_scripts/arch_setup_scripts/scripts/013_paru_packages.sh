@@ -46,17 +46,22 @@ trap cleanup EXIT INT TERM
 # ------------------------------------------------------------------------------
 # 4. PRE-FLIGHT CHECKS
 # ------------------------------------------------------------------------------
-# Constraint: Paru should NOT be run as root.
+# Constraint: AUR helpers should NOT be run as root.
 if [[ $EUID -eq 0 ]]; then
   log_err "This script must NOT be run as root."
-  log_err "AUR helpers like 'paru' handle sudo privileges internally."
+  log_err "AUR helpers like 'paru' or 'yay' handle sudo privileges internally."
   log_err "Please run as your normal user."
   exit 1
 fi
 
-# Check if paru exists
-if ! command -v paru &>/dev/null; then
-  log_err "Critical dependency 'paru' is missing."
+# Smart Detection: Check for paru, fallback to yay
+AUR_HELPER=""
+if command -v paru &>/dev/null; then
+  AUR_HELPER="paru"
+elif command -v yay &>/dev/null; then
+  AUR_HELPER="yay"
+else
+  log_err "Critical dependency missing. Neither 'paru' nor 'yay' found."
   exit 1
 fi
 
@@ -89,6 +94,7 @@ readonly TIMEOUT_SEC=10
 main() {
   log_task "Starting Autonomous Package Installation Sequence"
   log_info "Target Packages: ${#PACKAGES[@]}"
+  log_info "Using AUR Helper: ${C_BOLD}${AUR_HELPER}${C_RESET}"
   log_info "Mode: Fully Automatic. Intervention only on Error (${TIMEOUT_SEC}s timeout)."
 
   local success_count=0
@@ -96,8 +102,8 @@ main() {
   local failed_pkgs=()
 
   # Perform a system update first (Standard Arch Practice)
-  log_task "Synchronizing Repositories (paru -Sy)..."
-  if ! paru -Sy; then
+  log_task "Synchronizing Repositories (${AUR_HELPER} -Sy)..."
+  if ! "$AUR_HELPER" -Sy; then
     log_err "Failed to synchronize repositories. Aborting to prevent partial states."
     exit 1
   fi
@@ -106,7 +112,7 @@ main() {
     log_task "Processing: ${pkg}"
 
     # 1. Check if already installed
-    if paru -Qi "$pkg" &>/dev/null; then
+    if "$AUR_HELPER" -Qi "$pkg" &>/dev/null; then
       log_success "${pkg} is already installed. Skipping."
       continue
     fi
@@ -116,7 +122,7 @@ main() {
     
     # We use --noconfirm to automate "Yes" prompts.
     # We DO NOT hide output (no &>/dev/null) so you see download progress.
-    if paru -S --needed --noconfirm "$pkg"; then
+    if "$AUR_HELPER" -S --needed --noconfirm "$pkg"; then
       log_success "Installed ${pkg} (Auto)."
       ((success_count++))
     else
@@ -135,7 +141,7 @@ main() {
           log_info "Switching to Manual Mode for ${pkg}..."
           
           # Run without --noconfirm to allow user to handle conflicts/keys
-          if paru -S "$pkg"; then
+          if "$AUR_HELPER" -S "$pkg"; then
             log_success "Installed ${pkg} (Manual Recovery)."
             ((success_count++))
           else
