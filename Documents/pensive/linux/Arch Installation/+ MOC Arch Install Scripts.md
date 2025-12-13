@@ -32,7 +32,10 @@
 > 
 > - [ ] Status
 
-this often fails on the first try for some reason, run it as many times as it takes to have it install sucessfully, if running it multiple times with failur results it with askign you to delte pacman keys, pick yes for deleting, it'll repopulate the keys. 
+```bash
+pacman-key --init
+```
+
 ```bash
 pacman -Sy git
 ```
@@ -46,10 +49,12 @@ dont forget the period at the end '.' after a space.
 cp dusky/user_scripts/arch_iso_scripts/000_pre_chroot/* .
 ```
 
+
+
 You only need to run the 000_ISO_ORCHESTRA.SH script. dont run anything else, this script auto runs eveyrthing. 
 
 ```bash
-./000_ISO_ORCHESTRA.sh
+./001_ISO_ORCHESTRA.sh
 ```
 
 

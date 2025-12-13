@@ -6,12 +6,14 @@
 
 # --- 1. CONFIGURATION ---
 INSTALL_SEQUENCE=(
-  "001_environment_prep.sh"
-  "002_disk_mount.sh"
-  "003_mirrorlist.sh"
-  "004_console_fix.sh"
-  "005_pacstrap.sh"
-  "006_script_directories_population_in_chroot.sh"
+  "002_environment_prep.sh"
+  "003_formatting.sh"
+  "004_disk_mount.sh"
+  "005_mirrorlist.sh"
+  "006_console_fix.sh"
+  "007_pacstrap.sh"
+# "007_pacstrap_old_works.sh"
+  "008_script_directories_population_in_chroot.sh"
   "007_fstab.sh"
 )
 
