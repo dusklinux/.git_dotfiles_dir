@@ -238,6 +238,8 @@ main() {
     fi
 
     log "INFO" "Processing ${#INSTALL_SEQUENCE[@]} scripts..."
+    
+    local SKIPPED_OR_FAILED=()
 
     for entry in "${INSTALL_SEQUENCE[@]}"; do
         local mode="${entry%%|*}"
@@ -257,6 +259,7 @@ main() {
             case "${_choice,,}" in
                 s|skip)
                     log "WARN" "Skipping $filename (User Selection)"
+                    SKIPPED_OR_FAILED+=("$filename")
                     continue 2 # Jumps to the next iteration of the 'for' loop
                     ;;
                 r|retry)
@@ -283,6 +286,7 @@ main() {
             case "${_user_confirm,,}" in
                 s|skip)
                     log "WARN" "Skipping $filename (User Selection)"
+                    SKIPPED_OR_FAILED+=("$filename")
                     continue
                     ;;
                 q|quit)
@@ -328,6 +332,7 @@ main() {
                 case "${_fail_choice,,}" in
                     s|skip)
                         log "WARN" "Skipping $filename (User Selection). NOT marking as complete."
+                        SKIPPED_OR_FAILED+=("$filename")
                         break # Break retry loop, move to next script
                         ;;
                     r|retry)
@@ -343,6 +348,18 @@ main() {
             fi
         done
     done
+    
+    # --- SUMMARY OF FAILED / SKIPPED SCRIPTS ---
+    if [[ ${#SKIPPED_OR_FAILED[@]} -gt 0 ]]; then
+        echo -e "\n${YELLOW}================================================================${RESET}"
+        echo -e "${YELLOW}NOTE: Some scripts were skipped or failed:${RESET}"
+        for f in "${SKIPPED_OR_FAILED[@]}"; do
+            echo " - $f"
+        done
+        echo -e "\nIf there were scripts that failed, you can run them individually from:"
+        echo -e "${BOLD}${SCRIPT_DIR}/${RESET}"
+        echo -e "${YELLOW}================================================================${RESET}\n"
+    fi
 }
 
 main "$@"
