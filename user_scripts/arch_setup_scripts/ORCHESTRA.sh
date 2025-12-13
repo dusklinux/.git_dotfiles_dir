@@ -77,6 +77,7 @@ INSTALL_SEQUENCE=(
     "U | 063_hyprexpo_plugin.sh"
     "U | 064_obsidian_pensive_vault_configure.sh"
     "U | 065_cache_purge.sh"
+    "S | 066_arch_install_scripts_cleanup.sh"
     "U | 067_reverting_sleep_timeout.sh"
 )
 
