@@ -241,13 +241,39 @@ mkcd() {
   mkdir -p "$1" && cd "$1"
 }
 
-# Find the 20 largest files/directories in the current directory.
-sort_size() {
-  du -h -x -s -- * | sort -r -h | head -20
+
+# -----------------------------------------------------------------------------
+#  Pacman / Expac Metrics
+# -----------------------------------------------------------------------------
+
+# 1. STORAGE HOGS (ALL)
+# Lists largest packages (deps included) using raw bytes for perfect sorting
+# Usage: pkg_hogs_all [n]
+pkg_hogs_all() {
+    expac '%m\t%n' | sort -rn | head -n "${1:-20}" | numfmt --to=iec-i --suffix=B --field=1
 }
 
-# List installed Arch packages, sorted by installation date.
-list_installed() { expac --timefmt='%Y-%m-%d %T' '%l\t%n' | sort }
+# 2. STORAGE HOGS (EXPLICIT ONLY)
+# Pipes explicit list into expac (The correct way to filter)
+# Usage: pkg_hogs [n]
+pkg_hogs() {
+    # pacman -Qeq lists explicit names -> expac reads from stdin (-)
+    pacman -Qeq | expac '%m\t%n' - | sort -rn | head -n "${1:-20}" | numfmt --to=iec-i --suffix=B --field=1
+}
+
+# 3. RECENTLY INSTALLED
+# Lists packages by install date (Newest top)
+# Usage: pkg_new [n]
+pkg_new() {
+    expac --timefmt='%Y-%m-%d %T' '%l\t%n' | sort -r | head -n "${1:-20}"
+}
+
+# 4. ANCIENT PACKAGES
+# Lists packages by install date (Oldest top)
+# Usage: pkg_old [n]
+pkg_old() {
+    expac --timefmt='%Y-%m-%d %T' '%l\t%n' | sort | head -n "${1:-20}"
+}
 
 # -----------------------------------------------------------------------------
 # [6] PLUGINS & PROMPT INITIALIZATION
