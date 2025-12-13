@@ -40,6 +40,7 @@ pacman-key --init
 pacman -Sy git
 ```
 
+if you enter the wrong name, it'll assume it's a private repo and ask you for passowrd so make sure you enter the correct link. 
 ```bash
 git clone --depth 1 https://github.com/dusklinux/dusky.git
 ```
@@ -51,7 +52,7 @@ cp dusky/user_scripts/arch_iso_scripts/000_pre_chroot/* .
 
 
 
-You only need to run the 000_ISO_ORCHESTRA.SH script. dont run anything else, this script auto runs eveyrthing. 
+You only need to run the 001_ISO_ORCHESTRA.SH script. dont run anything else, this script auto runs eveyrthing. 
 
 ```bash
 ./001_ISO_ORCHESTRA.sh

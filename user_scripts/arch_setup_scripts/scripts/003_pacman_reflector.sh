@@ -1,80 +1,118 @@
 #!/usr/bin/env bash
-# -----------------------------------------------------------------------------
-# Description: Automates Reflector configuration for Arch Linux.
-# Environment: Arch Linux / Hyprland / UWSM
-# Author:      Elite DevOps & System Architect
-# -----------------------------------------------------------------------------
+# ==============================================================================
+#  003_pacman_reflector.sh
+#  Context: Arch Linux OS (Post-Install)
+#  Description: Updates mirrorlist using Reflector with manual fallback.
+#               Designed for manual use OR Orchestrator automation.
+# ==============================================================================
 
-# --- Strict Safety & Bash 5+ Settings ---
-set -euo pipefail
-shopt -s inherit_errexit 2>/dev/null || true
+# --- CONFIGURATION ---
+TARGET_FILE="/etc/pacman.d/mirrorlist"
+DEFAULT_COUNTRY="India"
 
-# --- Constants & Configuration ---
-readonly CONFIG_PATH="/etc/xdg/reflector/reflector.conf"
-readonly CONFIG_DIR="${CONFIG_PATH%/*}"
+# Preselected Indian Mirrors (Fallback)
+FALLBACK_MIRRORS=(
+    'Server = https://in.arch.niranjan.co/$repo/os/$arch'
+    'Server = https://mirrors.saswata.cc/archlinux/$repo/os/$arch'
+    'Server = https://in.mirrors.cicku.me/archlinux/$repo/os/$arch'
+    'Server = https://archlinux.kushwanthreddy.com/$repo/os/$arch'
+    'Server = https://mirror.del2.albony.in/archlinux/$repo/os/$arch'
+    'Server = https://mirror.sahil.world/archlinux/$repo/os/$arch'
+    'Server = https://mirror.maa.albony.in/archlinux/$repo/os/$arch'
+    'Server = https://in-mirror.garudalinux.org/archlinux/$repo/os/$arch'
+    'Server = https://mirrors.nxtgen.com/archlinux-mirror/$repo/os/$arch'
+    'Server = https://mirrors.abhy.me/archlinux/$repo/os/$arch'
+)
 
-# --- Logging Helpers ---
-log_info()    { printf "\033[1;34m[INFO]\033[0m %s\n" "$*"; }
-log_success() { printf "\033[1;32m[OK]\033[0m   %s\n" "$*"; }
-log_error()   { printf "\033[1;31m[ERR]\033[0m  %s\n" "$*" >&2; }
-
-# --- Privilege Check (Auto-Elevation) ---
-if [[ $EUID -ne 0 ]]; then
-    log_info "Root privileges required. Elevating..."
-    exec sudo -- "$0" "$@"
+# --- UTILS ---
+if [[ -t 1 ]]; then
+    G=$'\e[32m'; R=$'\e[31m'; Y=$'\e[33m'; B=$'\e[34m'; NC=$'\e[0m'
+else
+    G=""; R=""; Y=""; B=""; NC=""
 fi
 
-# --- Cleanup Trap ---
-cleanup() {
-    local exit_code=$?
-    if [[ $exit_code -ne 0 ]]; then
-        log_error "Script failed with exit code $exit_code."
-    fi
-}
-trap cleanup EXIT
+# --- PRE-FLIGHT CHECKS ---
+# 1. Ensure script is run as root (Required to write to /etc/pacman.d/)
+if [[ $EUID -ne 0 ]]; then
+   echo -e "${R}!! This script must be run as root (use sudo).${NC}" 
+   exit 1
+fi
 
-# --- Main Logic ---
-main() {
-    log_info "Configuring Reflector at: $CONFIG_PATH"
+# 2. Ensure Reflector is installed
+if ! command -v reflector &> /dev/null; then
+    echo -e "${Y}:: Reflector not found. Installing...${NC}"
+    # Using --needed to skip if already up to date, --noconfirm for automation
+    sudo pacman -S --needed --noconfirm reflector
+fi
 
-    if [[ ! -d "$CONFIG_DIR" ]]; then
-        mkdir -p "$CONFIG_DIR"
-    fi
-
-    # Write Configuration
-    cat <<'EOF' > "$CONFIG_PATH"
---save /etc/pacman.d/mirrorlist
-
-# Select the transfer protocol (--protocol).
---protocol https
-
-# Select the country (--country).
-# Consult the list of available countries with "reflector --list-countries" and
-# select the countries nearest to you or the ones that you trust. For example:
---country India
-
-# Use only the most recently synchronized mirrors (--latest).
---latest 6
-
-# Sort the mirrors by synchronization time (--sort).
---sort rate
-EOF
-
-    # 3. Verification
-    if [[ -f "$CONFIG_PATH" ]]; then
-        log_success "Reflector configuration updated successfully."
+# --- MAIN LOGIC ---
+update_mirrors() {
+    while true; do
+        echo -e "\n${B}:: Mirrorlist Configuration${NC}"
+        echo -e "   --------------------------------------------------------"
+        echo -e "   ${Y}NOTE TO GLOBAL USERS:${NC}"
+        echo -e "   Type ${B}'list'${NC} to view all available countries."
+        echo -e "   Press ${B}[Enter]${NC} to use the default (${DEFAULT_COUNTRY})."
+        echo -e "   --------------------------------------------------------"
         
-        # FIX: Use '--' to signal end of flags, preventing grep from parsing '--sort' as an option.
-        if grep -Fq -- "--sort rate" "$CONFIG_PATH"; then
-             log_success "Verification passed: Configuration content validated."
-        else
-             log_error "Verification warning: Content might not have written correctly."
-             exit 1
+        # No timeout, waits indefinitely for user input
+        read -r -p ":: Enter country: " _input_country
+
+        # 1. Check if user wants to list countries
+        if [[ "${_input_country,,}" == "list" ]]; then
+            echo -e "${Y}:: Retrieving country list...${NC}"
+            reflector --list-countries
+            echo ""
+            continue
         fi
-    else
-        log_error "Failed to write configuration file."
-        exit 1
-    fi
+
+        # 2. Determine Country
+        local country="${_input_country:-$DEFAULT_COUNTRY}"
+
+        echo -e "${Y}:: Running Reflector for region: ${country}...${NC}"
+        
+        # 3. Run Reflector
+        # --download-timeout 5 prevents hanging on bad mirrors
+        if reflector --country "$country" --latest 10 --protocol https --sort rate --download-timeout 5 --save "$TARGET_FILE"; then
+            echo -e "${G}:: Reflector success! Mirrors updated.${NC}"
+            
+            echo ":: Syncing package database..."
+            pacman -Syy
+            break
+        else
+            # 4. Reflector Failed - Error Handling Menu
+            echo -e "\n${R}!! Reflector failed to update mirrors for '$country'.${NC}"
+            echo "   1) Retry (Enter new country)"
+            echo "   2) Use Preselected Indian Mirrors (Fallback)"
+            echo "   3) Do nothing (Abort changes)"
+            
+            read -r -p ":: Select an option [1-3]: " choice
+
+            case "$choice" in
+                1)
+                    echo ":: Retrying..."
+                    continue
+                    ;;
+                2)
+                    echo -e "${Y}:: Applying fallback mirror list...${NC}"
+                    printf "%s\n" "${FALLBACK_MIRRORS[@]}" > "$TARGET_FILE"
+                    
+                    echo -e "${G}:: Fallback mirrors applied.${NC}"
+                    echo ":: Syncing package database..."
+                    pacman -Syy
+                    break
+                    ;;
+                3)
+                    echo -e "${Y}:: Skipping mirror update.${NC}"
+                    break
+                    ;;
+                *)
+                    echo "!! Invalid selection."
+                    ;;
+            esac
+        fi
+    done
 }
 
-main "$@"
+# Execute
+update_mirrors
