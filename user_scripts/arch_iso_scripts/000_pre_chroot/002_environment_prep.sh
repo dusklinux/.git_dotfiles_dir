@@ -58,14 +58,28 @@ fi
 msg_info "Configuring Time (NTP)..."
 timedatectl set-ntp true
 
-# 5. Pacman Init & Tools
-msg_info "Initializing Pacman Keyring..."
+# 5. Pacman Init, Keyring Refresh & Tools
+#    Modified sequence to ensure robustness in the ISO environment.
+#    Sleeps added to allow GPG agent/locks to clear between steps.
+msg_info "Initializing and Refreshing Pacman Keys..."
+
+msg_info "1/4: pacman-key --init"
 pacman-key --init
+sleep 2
+
+msg_info "2/4: pacman-key --populate archlinux"
 pacman-key --populate archlinux
+sleep 2
+
+msg_info "3/4: Installing latest archlinux-keyring..."
+pacman -Sy --noconfirm archlinux-keyring
+sleep 2
+
+msg_info "4/4: Performing forced refresh (pacman -Syy)..."
+pacman -Syy --noconfirm
 
 msg_info "Installing Tools (Neovim, Git, Curl)..."
-# Updates database and installs tools. 
-# --needed skips if already there (saves time)
-pacman -Sy --needed --noconfirm neovim git curl
+# Database is already updated from step 4, so we just install.
+pacman -S --needed --noconfirm neovim git curl
 
 msg_ok "Environment Ready."

@@ -104,15 +104,18 @@ pacman-key --init
 pacman-key --populate archlinux
 ```
 
+```bash
+pacman -Sy archlinux-keyring
+```
+
+```bash
+pacman -Syy
+```
+
 give arch iso more space for the update
 
 ```bash
 mount -o remount,size=4G /run/archiso/cowspace
-```
-
-update the iso
-```bash
-pacman -Syyu
 ```
 
 After entering this next command, type "y" for all prompts. 
