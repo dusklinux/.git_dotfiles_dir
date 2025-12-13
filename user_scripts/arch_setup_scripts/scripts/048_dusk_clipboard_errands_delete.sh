@@ -14,7 +14,6 @@ readonly PINS_DIR="${HOME}/.local/share/rofi-cliphist/pins"
 readonly ERRANDS_FILE="${HOME}/.local/share/errands/data.json"
 
 # 3. Output Formatting (Direct to Stdout for Orchestra Capture)
-# FIX: Use $'...' (ANSI-C quoting) so Bash interprets \033 as the actual Escape character
 readonly RED=$'\033[0;31m'
 readonly GREEN=$'\033[0;32m'
 readonly YELLOW=$'\033[1;33m'
@@ -28,7 +27,6 @@ log_warn() { printf "%s[WARN]%s  %s\n" "${YELLOW}" "${RESET}" "$1"; }
 
 # 4. Cleanup Trap (Standard Practice)
 cleanup() {
-    # No temporary files to remove, but we ensure a clean exit code
     local exit_code=$?
     if [[ $exit_code -ne 0 ]]; then
         printf "%s[ERR]%s   Script failed with exit code %d\n" "${RED}" "${RESET}" "$exit_code"
@@ -41,7 +39,7 @@ trap cleanup EXIT
 # ==============================================================================
 
 main() {
-    log_info "Checking clipboard persistence configuration..."
+    log_info "Checking for pre-existing clipboard/errands artifacts..."
 
     # Check if directory exists; if not, there is nothing to clean.
     if [[ ! -d "$PINS_DIR" ]]; then
@@ -59,12 +57,13 @@ main() {
         exit 0
     fi
 
-    log_warn "Found ${BOLD}${file_count}${RESET} pinned clipboard items."
+    # --- Clarified User Interaction ---
+    log_warn "Detected ${BOLD}${file_count}${RESET} clipboard pins and/or Errands data from the repository author."
+    printf "        %sThis data belongs to Dusk (the dotfiles creator).%s\n" "${YELLOW}" "${RESET}"
+    printf "        %sMost users should remove these for a clean installation.%s\n" "${YELLOW}" "${RESET}"
     
-    # --- Interactive Prompt ---
-    # We explicitly ask for confirmation to identify the user.
-    # Added explicit flush of stdout/buffers just in case, though usually not strictly needed in bash
-    printf "\n%s[?]%s Is this %sDusk's%s personal computer? (y/N) " "${YELLOW}" "${RESET}" "${BOLD}" "${RESET}"
+    # Explicitly asking if they are YOU. The default 'N' (capitalized) encourages deletion.
+    printf "\n%s[?]%s Are you the author (Dusk) restoring your own backup? (y/N) " "${YELLOW}" "${RESET}" 
     read -r response
 
     # Convert to lowercase for comparison
@@ -72,21 +71,19 @@ main() {
 
     if [[ "$choice" == "y" || "$choice" == "yes" ]]; then
         # IDENTITY CONFIRMED: DUSK
-        log_ok "Identity confirmed. Preserving existing clipboard pins."
+        log_ok "Identity confirmed. Preserving existing clipboard pins and errands."
         return 0
     else
         # IDENTITY UNCONFIRMED: CLEANUP REQUIRED
-        log_warn "New environment detected. Purging previous user's clipboard pins..."
+        log_info "Standard installation detected. Purging author's personal artifacts..."
 
         # 1. Stop cliphist services momentarily if running (Hyprland/UWSM safety)
-        # We ignore errors here in case the service isn't running yet.
         if systemctl --user is-active --quiet cliphist.service; then
             log_info "Pausing cliphist service for safe deletion..."
             systemctl --user stop cliphist.service || true
         fi
 
         # 2. Perform Clean Deletion
-        # Using find -delete is atomic and handles large file counts better than rm *
         find "${PINS_DIR:?}" -type f -delete
 
         # 3. Verify
@@ -97,15 +94,13 @@ main() {
             exit 1
         fi
 
-        # 4. Remove Errands Data (Added as requested)
+        # 4. Remove Errands Data
         if [[ -f "$ERRANDS_FILE" ]]; then
             rm -f "$ERRANDS_FILE"
             log_ok "Removed errands data file: ${ERRANDS_FILE}"
         fi
 
-        # 5. Restart service if we stopped it (Optional, but good manners)
-        # However, usually the orchestra script handles service enablement later.
-        # We leave it stopped to be clean, or let UWSM handle the restart on next login.
+        # 5. Service restart handled by UWSM/Orchestra later
     fi
 }
 

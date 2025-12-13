@@ -76,7 +76,6 @@ info() {
 #===============================================================================
 
 # Update all timeout values in a single atomic pass
-# (Original logic preserved exactly as requested)
 update_all_timeouts() {
     local dim_val="$1"
     local lock_val="$2"
@@ -148,7 +147,7 @@ update_all_timeouts() {
         die "Failed to update config file"
     fi
     
-    # Recreate temp file
+    # Recreate temp file variable handle for cleanup
     TEMP_FILE=$(mktemp) || true
 }
 
@@ -157,7 +156,23 @@ update_all_timeouts() {
 #===============================================================================
 
 main() {
-    # 0. User Acknowledgment (New Addition)
+    # 1. Validation (Fail fast before showing UI)
+    [[ -f "$CONFIG_FILE" ]] || die "Config file not found: $CONFIG_FILE"
+    [[ -w "$CONFIG_FILE" ]] || die "Config file not writable: $CONFIG_FILE"
+    
+    # Create temp file early to ensure write access
+    TEMP_FILE=$(mktemp) || die "Failed to create temporary file"
+
+    # 2. Logic Sanity Check (Pre-flight)
+    if (( TIMEOUT_DIM >= TIMEOUT_LOCK )) || \
+       (( TIMEOUT_LOCK >= TIMEOUT_OFF )) || \
+       (( TIMEOUT_OFF >= TIMEOUT_SUSPEND )); then
+        warn "Timeline logic check failed!" 
+        warn "Expected: Dim < Lock < Off < Suspend"
+        # We allow continuation, but warn prominently
+    fi
+
+    # 3. User Interface
     clear
     printf "${C_YELLOW}${C_BOLD}>>> SETUP POWER CONFIGURATION NOTICE <<<${C_RESET}\n"
     echo "------------------------------------------------------------------------"
@@ -171,60 +186,40 @@ main() {
     printf "     This ensures long-running compilations are not killed by idle timers.\n\n"
     
     printf "${C_BLUE}NOTE:${C_RESET} These are temporary settings for the setup phase.\n"
-    printf "This will later automatically revert to the defaults or you can customize these timeouts later by running:\n"
-    printf "${C_BOLD}~/user_scripts/hypridle/timeout.sh${C_RESET}\n"
+    printf "This will later automatically revert to the defaults or you can customize\n"
+    printf "these timeouts later by running: ${C_BOLD}~/user_scripts/hypridle/timeout.sh${C_RESET}\n"
     echo "------------------------------------------------------------------------"
-    printf "${C_BOLD}Press [Enter] to acknowledge and proceed...${C_RESET}"
-    read -r
-    echo
-
-    # 1. Validation
-    [[ -f "$CONFIG_FILE" ]] || die "Config file not found: $CONFIG_FILE"
-    [[ -w "$CONFIG_FILE" ]] || die "Config file not writable: $CONFIG_FILE"
-    TEMP_FILE=$(mktemp) || die "Failed to create temporary file"
-
-    echo
-    printf "${C_BOLD}HYPRIDLE CONFIGURATOR${C_RESET}\n"
+    printf "${C_BOLD}PROPOSED CONFIGURATION:${C_RESET}\n"
     printf "Target Config: ${C_BLUE}%s${C_RESET}\n" "$CONFIG_FILE"
-    echo "----------------------------------------"
+    echo
     printf "%-15s : ${C_GREEN}%s${C_RESET} s\n" "Dim Screen" "$TIMEOUT_DIM"
     printf "%-15s : ${C_GREEN}%s${C_RESET} s\n" "Lock Session" "$TIMEOUT_LOCK"
     printf "%-15s : ${C_GREEN}%s${C_RESET} s\n" "Screen Off" "$TIMEOUT_OFF"
     printf "%-15s : ${C_GREEN}%s${C_RESET} s\n" "System Suspend" "$TIMEOUT_SUSPEND"
-    echo "----------------------------------------"
+    echo "------------------------------------------------------------------------"
+    printf "${C_BOLD}Press [Enter] to apply these settings and proceed...${C_RESET}"
+    read -r
+    echo
 
-    # 2. Logic Check
-    if (( TIMEOUT_DIM >= TIMEOUT_LOCK )) || \
-       (( TIMEOUT_LOCK >= TIMEOUT_OFF )) || \
-       (( TIMEOUT_OFF >= TIMEOUT_SUSPEND )); then
-        warn "Timeline logic check failed!" 
-        warn "Expected: Dim < Lock < Off < Suspend"
-        read -rp "Apply settings anyway? [y/N] " -n 1 REPLY
-        echo
-        [[ "${REPLY:-n}" =~ ^[Yy]$ ]] || exit 0
-    fi
-
-    # 3. Apply Changes
+    # 4. Apply Changes
     info "Writing configuration..."
     update_all_timeouts "$TIMEOUT_DIM" "$TIMEOUT_LOCK" "$TIMEOUT_OFF" "$TIMEOUT_SUSPEND"
     success "Configuration saved successfully."
 
-    # 4. Restart Service
-    if systemctl --user is-active --quiet hypridle 2>/dev/null; then
-        info "Restarting hypridle service..."
-        if systemctl --user restart hypridle; then
-            success "Hypridle restarted."
+    # 5. Service Handling (Automated)
+    # Check if the unit file exists on disk (even if not loaded) to determine if installed
+    if systemctl --user list-unit-files hypridle.service &>/dev/null; then
+        if systemctl --user is-active --quiet hypridle; then
+            info "Restarting hypridle service..."
+            systemctl --user restart hypridle && success "Hypridle restarted." || warn "Failed to restart hypridle."
         else
-            die "Failed to restart hypridle."
+            info "Starting hypridle service..."
+            systemctl --user start hypridle && success "Hypridle started." || warn "Failed to start hypridle."
         fi
     else
-        warn "Hypridle service is not running."
-        read -rp "Start it now? [y/N] " -n 1 REPLY
-        echo
-        if [[ "${REPLY:-n}" =~ ^[Yy]$ ]]; then
-            systemctl --user start hypridle
-            success "Hypridle started."
-        fi
+        # Service not found - likely not installed yet. This is expected behavior in setup phase.
+        warn "Hypridle service not found (likely not installed yet)."
+        info "Config file updated. Service will use new settings when installed/started later."
     fi
 }
 

@@ -5,7 +5,7 @@
 #              Includes backup logic, auto-install, service state management,
 #              and "human-readable" pacing.
 # Author: Elite DevOps (Arch/Hyprland)
-# Dependencies: preload, systemd, bash 5+, paru
+# Dependencies: preload, systemd, bash 5+, paru OR yay
 # -----------------------------------------------------------------------------
 
 # 1. Strict Safety & Error Handling
@@ -223,8 +223,19 @@ else
         exit 1
     fi
 
-    log_info "Installing preload using paru as user: ${real_user}..."
-    if sudo -u "$real_user" paru -S --needed --noconfirm preload; then
+    # Determine AUR helper (Paru > Yay)
+    aur_helper=""
+    if sudo -u "$real_user" command -v paru &>/dev/null; then
+        aur_helper="paru"
+    elif sudo -u "$real_user" command -v yay &>/dev/null; then
+        aur_helper="yay"
+    else
+        log_error "Neither 'paru' nor 'yay' found. Please install 'preload' manually."
+        exit 1
+    fi
+
+    log_info "Installing preload using ${aur_helper} as user: ${real_user}..."
+    if sudo -u "$real_user" "$aur_helper" -S --needed --noconfirm preload; then
         log_success "Preload installed successfully."
         sleep 0.5
     else

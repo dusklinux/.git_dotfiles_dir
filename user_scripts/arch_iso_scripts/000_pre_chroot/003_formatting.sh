@@ -40,12 +40,12 @@ echo ""
 if [[ "$BOOT_MODE" == "UEFI" ]]; then
     echo -e "${C_CYAN}Instruction for UEFI Systems:${C_RESET}"
     echo -e "  1. ${C_GREEN}EFI Partition${C_RESET}:  At least 512MB  (Type: ${C_BOLD}EFI System${C_RESET})"
-    echo -e "  2. ${C_GREEN}Root Partition${C_RESET}: Remaining Space (Type: ${C_BOLD}Linux Filesystem${C_RESET})"
+    echo -e "  2. ${C_GREEN}Root Partition${C_RESET}: At least 15GB (Type: ${C_BOLD}Linux Filesystem${C_RESET})"
 else
     echo -e "${C_CYAN}Instruction for BIOS (Legacy) Systems:${C_RESET}"
     echo "  * If using GPT partition table (Recommended):"
     echo -e "  1. ${C_GREEN}Boot Loader${C_RESET}:    1MB exact       (Type: ${C_BOLD}BIOS Boot${C_RESET})"
-    echo -e "  2. ${C_GREEN}Root Partition${C_RESET}: Remaining Space (Type: ${C_BOLD}Linux Filesystem${C_RESET})"
+    echo -e "  2. ${C_GREEN}Root Partition${C_RESET}: At least 15GB (Type: ${C_BOLD}Linux Filesystem${C_RESET})"
     echo "  * If using MBR/DOS partition table: Just create one Linux partition."
 fi
 

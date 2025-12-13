@@ -20,7 +20,7 @@ INSTALL_SEQUENCE=(
     "U | 006_enabling_user_services.sh"
     "S | 007_pam_keyring.sh"
     "U | 008_changing_shell_zsh.sh"
-    "S | 009_aur_paru.sh"
+    "S | 009_aur_paru_fallback_yay.sh"
     "S | 010_warp.sh"
     "U | 011_paru_packages_optional.sh"
     "S | 012_battery_limiter_again_dusk.sh"
