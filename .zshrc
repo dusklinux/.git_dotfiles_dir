@@ -181,17 +181,23 @@ alias fgrep='fgrep --color=auto'
 #alias for using gdu instead of ncdu
 alias ncdu='gdu'
 
-#alias for disk io realtime. 
+#alias for disk io realtime.
 alias io_drives='~/user_scripts/drives/io_monitor.sh'
 
-# alias for diff colored side by side
-alias gitdelta='cd ~ && git_dusky_add_list && git_dusky diff HEAD'
-
-# alias for git dotfiles bear repo
+# 1. Base Bare Repo Alias
+# (Defined first for logical clarity, though strictly not required by Zsh)
 alias git_dusky='/usr/bin/git --git-dir=$HOME/dusky/ --work-tree=$HOME'
 
-# alias for automatically adding the list of files to the staging area.
-alias git_dusky_add_list='git_dusky add --pathspec-from-file=.git_dusky_list'
+# 2. Add List Alias (FIXED with Subshell)
+# The ( ) runs this specific command inside $HOME so the paths match,
+# but it DOES NOT change your actual terminal directory.
+alias git_dusky_add_list='(cd $HOME && git_dusky add --pathspec-from-file=.git_dusky_list)'
+
+# 3. Alias for discarding all local changes (both staged and unstaged) and revert the state of tracked files to exactly match the last commit (HEAD), this is a destructive operation. (DANGER ZONE)
+alias git_dusky_restore='git_dusky reset --hard HEAD'
+
+# 4. Delta/Diff Alias
+alias gitdelta='git_dusky_add_list && git_dusky diff HEAD'
 
 # unlock block_devices
 alias unlock='$HOME/user_scripts/drives/drive_manager.sh unlock'
