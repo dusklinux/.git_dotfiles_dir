@@ -83,9 +83,10 @@ These scripts default to **Intel (CPU) +  Intel Integrated GPU + Nvidia (GPU)**
 - Compatible with Windows or other Linux distros.
     
 - **Bootloader:** Defaults to `systemd-boot` for UEFI (boots up to 5s faster). Defaults to `GRUB` for BIOS.
-    
 
-# Instalation 💿
+
+
+# Installation 💿
 ## Method 1: The "Clean Slate" (Recommended)
 
 Best for: New installs, Dual Booting, ensuring zero bloat.
