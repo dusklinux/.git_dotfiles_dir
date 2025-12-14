@@ -44,11 +44,6 @@
         "backlight": {
             "label": ""
         },
-        "mpris": {
-            "image-size": 96,
-            "image-radius": 12,
-            "autohide": true
-        },
         "buttons-grid": {
             "actions": [
                 {
@@ -76,24 +71,8 @@
                     "command": "uwsm-app -- kitty -e $HOME/user_scripts/performance/services_and_process_terminator.sh"
                 },
                 {
-                    "label": "󰌾",
-                    "command": "uwsm-app -- hyprlock -q"
-                },
-                {
-                    "label": "󰤄",
-                    "command": "systemctl suspend"
-                },
-                {
-                    "label": "󰜉",
-                    "command": "systemctl reboot"
-                },
-                {
                     "label": "󱫓",
                     "command": "uwsm-app -- kitty -e $HOME/user_scripts/hypridle/timeout.sh"
-                },
-                {
-                    "label": "⏻",
-                    "command": "systemctl poweroff"
                 }
             ]
         }
