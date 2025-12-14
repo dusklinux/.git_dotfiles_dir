@@ -45,7 +45,7 @@ INSTALL_SEQUENCE=(
 #    "S | 031_firefox_symlink_parition.sh"
 #    "S | 032_tlp_config.sh"
     "S | 033_zram_configuration.sh"
-    "S | 034_zram_optimize_swappiness.sh"
+#    "S | 034_zram_optimize_swappiness.sh"
     "S | 035_powerkey_lid_close_behaviour.sh"
     "S | 036_logrotate_optimization.sh"
     "S | 037_faillock_timeout.sh"

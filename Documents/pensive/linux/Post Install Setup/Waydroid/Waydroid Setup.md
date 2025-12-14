@@ -30,9 +30,9 @@ nodev	ashmem
 ```
 
 > [!note] (Optional, NOT NEEDED)
-> If the command returns no output or is missing one of the modules, Waydroid will not work. On Arch Linux, the `linux-zen` kernel includes these modules by default. You may need to install it and reboot your system.
+> If the command returns no output or is missing one of the modules, Waydroid will not work. On Arch Linux, the `linux`, `linux-lts` or `linux-zen` kernel includes these modules by default. You may need to install it and reboot your system. , it's possible with other kernals as well with the `binder_linux-dkms` package, refer to the arch wiki for more info
 > ```bash
-> sudo pacman -S --needed linux-zen
+> sudo pacman -S --needed linux
 > ```
 
 ---
