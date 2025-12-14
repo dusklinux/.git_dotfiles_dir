@@ -1,89 +1,267 @@
-Great News! the entire thing has been semi automated with scripts. you still need to enter a few commands but they are about 99% less in number than before. the commands you need to run are merely to clone the github repo and run the scripts.
+# 🎻 Dusky: The Ultimate Arch Hyprland Experience
 
-These dotfiles are configured for intel with or without nvidia. but you can just as easily install it on amd, with a few minor changes to the packages installer script `004_package_installation.sh` . replace intel specific packages with amd.
-If you have an amd gpu/cpu. you're going to have to research packages specific to your cpu/gpu. also make sure to include the microcode for amd.
+> A Note from the Creator:
+> 
+> This repository is the result of 8 months of tinkering, breaking, fixing, and polishing. It is a labor of love designed to feel as easy to install as a "standard" distribution, but with the raw power and minimalism of Arch Linux.
+> 
+> Since I build and maintain this alone, **please consider starring ⭐ this repo** as a token of support.
 
-🌆 Dusk Linux Dotfiles
+## 🚀 Overview
 
-Hi there! Welcome to my personal configuration setup.
+**Great News!** The installation process is 99% automated.
 
-This repository is the result of about 8 months of tinkering, breaking, fixing, and polishing. It's a true labor of love. I wanted to design something that feels as easy to install as a "standard" distribution, but with the power and minimalism of Arch Linux.
+While these dotfiles are extremely powerful, you don't need to be a wizard to install them. You only need to run a few commands to clone the repo and trigger the "Orchestra" scripts.
+
+### ✨ Key Features
+
+**Performance & System**
+
+- **Ultra Lightweight:** ~900MB RAM usage and ~5GB disk usage (fully configured).
+    
+- **ZSTD & ZRAM:** Compression enabled by default to save storage and triple your effective RAM (great for low-spec machines).
+    
+- **Native Optimization:** AUR helpers configured to build with CPU-native flags (up to 20% performance boost).
+    
+- **Space Efficient:** Vertical Waybar saves vertical screen real estate.
+    
+- **UWSM Environment:** Optimized specifically for Hyprland.
+    
+
+**Graphics & Gaming**
+
+- **Fluid Animations:** Tuned physics and momentum for a "liquid" feel.
+    
+- **GPU Passthrough Guide:** Zero latency (native performance) for dual-GPU setups using Looking Glass.
+    
+- **Instant Shaders:** Switch visual shaders instantly via Rofi.
+    
+- **Android Support:** Automated Waydroid installer script.
+    
+
+**Usability & Theming**
+
+- **Universal Theming:** `Matugen` powers a unified Light/Dark mode across the system.
+    
+- **Dual Workflow:** Designed for both GUI-centric (mouse) and Terminal-centric (keyboard) users.
+    
+- **Rofi System Menu:** A resource-efficient one-stop-shop for settings.
+    
+- **Accessibility:** Text-to-Speech (TTS) and Speech-to-Text (STT) capabilities (hardware dependent).
+    
+- **Keybind Cheatsheet:** Press `CTRL` + `SHIFT` + `SPACE` anytime to see your controls.
+    
+
+## ⚠️ Prerequisites & Hardware
+
+### Filesystem
+
+This setup is strictly optimized for **BTRFS**.
+
+- **Why?** ZSTD compression, Copy-on-Write (CoW) to prevent data corruption, and instant Snapshots.
+    
+
+### Hardware Config (Intel/Nvidia/AMD)
+
+These scripts default to **Intel (CPU) +  Intel Integrated GPU + Nvidia (GPU)**
+
+> [!CAUTION]
+> 
+> AMD Users: You must edit the 004_package_installation.sh script before running the installer.
+> 
+> 1. Open the script.
+>     
+> 2. Replace Intel-specific packages (drivers/microcode) with their AMD equivalents.
+>     
+> 3. Ensure you include the AMD microcode package.
+> 
+>4. I will automate this in the future, i don't currently have an amd system at hand.  
 
 
-⚠️ A Friendly Disclaimer
 
-Since this entire system is built and maintained by just one person (me!), it might not be quite as polished as a corporate OS. Every part of this setup was created from scratch, though I did borrow and tune a few clever files from the community over the months to fit this specific vision.
+### Dual Booting
 
-The steepest learning curve of this will be the keybinds, I've put a lot of thought into making it make sense but I understand what might be intuitive for me may not be so for you. So feel free to configure your own keybinds if you dont like something. You can press `SUPER`+ `SPACE` to list all the preconfigured keybinds and invoke them right from the rofi menu. you dont need to remember everything, as you use the system, you'll eventually remember the ones you use the most.
+- Compatible with Windows or other Linux distros.
+    
+- **Bootloader:** Defaults to `systemd-boot` for UEFI (boots up to 5s faster). Defaults to `GRUB` for BIOS.
+    
 
-🚀 Installation Guide
+## 💿 Method 1: The "Clean Slate" (Recommended)
 
-While this should theoretically work on any already preconfigured arch based system, i can't assure it will work, In my experience, installing it on top of omarchy did work but had a few fixable issues, nothing too bad. Gemini is your friend if you hit a wall. A clean install is highly recommended to minimize curve balls. 
+Best for: New installs, Dual Booting, ensuring zero bloat.
 
-Step 1: The Base System
+Requirement: Official Arch Linux ISO.
 
-To get the smoothest experience, I highly recommend starting with the official Arch Linux ISO and starting fresh with the preconfigured/automated hyprland install.
-USE BTRFS instead of any other format, it's superior in everyday and it has matured. The zstd compression alone is worth it, not to mention CoW to prevent corruption. And Snapshotting capabilities. 
+This method handles everything from disk partitioning with guided user intervention to automated installing of packages and everything else.
 
-Also use gurb, You can obviously chose to use other bootloaders but the scirpt is optimized for grub, plus to keep these dotfiles widely supporting of hardware, grub is the obvious choice since it supports both uefi/legacy bios.
+### Step 1: Connect to Internet
 
-Download the ISO from the Arch Linux website.
+Boot the Arch ISO. USB tethering usually works out of the box. For WiFi, follow these steps:
 
-Boot it up and run the archinstall script.
+<details>
 
-Under Desktop options, make sure to select Hyprland.
+<summary>Click to view WiFi Connection Commands</summary>
 
-Why this method?
-While you can do a minimal setup and run the scripts from the TTY, starting with the Hyprland profile via archinstall makes the process much faster and ensures fewer hiccups. If you go the TTY route, one or two scripts might fail, don't worry, you can re run them after you boot into the environment.
+1. Run the interactive tool:
+    
+    ```
+    iwctl
+    ```
+    
+2. List your devices (note your device name, e.g., `wlan0`):
+    
+    ```
+    device list
+    ```
+    
+3. Scan for networks:
+    
+    ```
+    station wlan0 scan
+    ```
+    
+4. List available networks:
+    
+    ```
+    station wlan0 get-networks
+    ```
+    
+5. Connect:
+    
+    ```
+    station wlan0 connect "YOUR_SSID"
+    ```
+    
+6. Exit the tool:
+    
+    ```
+    exit
+    ```
+    
 
-Step 2: deploy the Dotfiles
+</details>
 
-Once you are logged into your new system, open your terminal. We are going to use a specific Git method (bare repository) to drop the files exactly where they need to go.
+### Step 2: Download the Script
 
-1. Download the repository:
+Run the following commands to initialize keys, install git, and clone the installer:
+
 ```bash
+pacman-key --init
+pacman -Sy git
+```
+
+##### Clone the repo (type carefully or it asks a password if you enter the wrong repo)
+```bash
+git clone --depth 1 https://github.com/dusklinux/dusky.git
+```
+
+##### Copy the pre-chroot scripts to the current directory
+```bash
+cp dusky/user_scripts/arch_iso_scripts/000_pre_chroot/* .
+```
+
+### Step 3: Run the ISO Orchestra
+
+This script automates the pre-chroot setup (disk partitioning)
+```bash
+./001_ISO_ORCHESTRA.sh
+```
+
+### Step 4: Run the Chroot Orchestra
+
+Once the previous script finishes, enter your new system and run the final stage:
+```bash
+arch-chroot /mnt
+```
+
+```bash
+./001_CHROOT_ORCHESTRA.sh
+```
+
+### Step 5: Post-Reboot Setup
+
+1. Reboot your computer.
+    
+2. Login with your username and password.
+    
+3. Open the terminal (Default: `Super` + `Q`).
+    
+4. Run the final deployment scripts:
+    
+
+```
+# Connect to wifi if needed
+./wifi_connect.sh
+
+# Deploy config files
+./deploy_dotfiles.sh
+```
+
+the main setup script.
+```bash
+~/user_scripts/arch_setup_scripts/ORCHESTRA.sh
+```
+
+## 📦 Method 2: Existing Arch Install
+
+**Best for:** Users who already have Arch + Hyprland installed via `archinstall` or manual installation.
+
+### Step 1: Clone Dotfiles (Bare Repo Method)
+
+We use a bare git repository method to drop files exactly where they belong in your home directory.
+
+```
 git clone --bare --depth 1 https://github.com/dusklinux/dusky.git $HOME/dusky
 ```
 
-2. Checkout (Deploy) the files:
 ```bash
 git --git-dir=$HOME/dusky/ --work-tree=$HOME checkout -f
 ```
 
-> Note: The  f flag stands for force. It will overwrite existing configuration files in your home directory with these dotfiles.
+### Step 2: Run the Orchestra
 
-🎻 The Orchestra Script
+Run the master script to install dependencies, themes, and services.
 
-This setup relies on a parent script I call ORCHESTRA. It acts as a conductor, managing about ~50 subscripts that handle everything from theming to system services to package isntallation.
-
-run it with this command. 
 ```bash
-$HOME/user_scripts/setup_scripts/ORCHESTRA.sh
+~/user_scripts/arch_setup_scripts/ORCHESTRA.sh
 ```
 
-> Note: all the subscripts it runs are located in $HOME/user_scripts/setup_scripts/scripts/ , if a subscript fails, you can run it individually, or throw it into gemini/gpt to have it figure out why it's not working on your system. 
+## 🎻 The Orchestra Script
 
-⏳ Time Expectation
+The `ORCHESTRA.sh` is a "conductor" that manages ~70 subscripts.
 
-Grab a coffee (or two). The entire auto install takes anywhere from 30 minutes to an hour, depending on your internet connection and CPU speed.
+- **Smart:** It detects installed packages and skips them.
+    
+- **Safe:** You can re-run it as many times as you like without breaking things.
+    
+- **Time:** Expect 30–60 minutes. We use `paru` to install AUR packages, and compiling from source takes time. Grab a coffee! ☕
+    
 
-Why? We use paru to manage packages, and some of them need to be compiled from source.
+## ⌨️ Usage & Keybinds
 
-🔧 Troubleshooting
+The steepest learning curve will be the keybinds. I have designed them to be intuitive, but feel free to change them in the config.
 
-If you see a red line or a script fails, don't panic! It happens. The installation is robust enough to keep going even if one subscript trips up.
+> 💡 Pro Tip:
+> 
+> Press CTRL + SHIFT + SPACE to open the Keybinds Cheatsheet. You can click commands in this menu to run them directly!
 
-Tip: If a specific script fails, take a look at the file content. If you're stuck, copy the script into ChatGPT or an LLM, it usually does a great job of explaining exactly what went wrong.
+## 🔧 Troubleshooting
 
-You can usually fix the specific issue and run that single script again manually.
+If a script fails (which can happen on a rolling release distro):
 
-↺ Reset / Restore
+1. **Don't Panic.** The scripts are modular. The rest of the system usually installs fine.
+    
+2. **Check the Output.** Identify which subscript failed (located in `$HOME/user_scripts/setup_scripts/scripts/`).
+    
+3. **Run Manually.** You can try running that specific subscript individually.
+    
+4. **AI Help.** Copy the script content and the error message into ChatGPT/Gemini. It can usually pinpoint the exact issue (missing dependency, changed package name, etc.).
+    
 
-If you've messed around with the configurations and just want to get back to the clean state of this repo (or if you want to remove the git tracking for these dotfiles), run:
-```bash
-rm -rf ~/dusky
-```
 
-> Warning: This removes the local git history for the dotfiles. If you re run the clone command after this, it will revert any personal changes you've made to the config files.
+<div align="center">
 
-Enjoy the setup! I hope it serves you as well as it has served me.
+Enjoy the experience!
+
+If you run into issues, check the detailed Obsidian notes included in the repo (~2MB).
+
+</div>
