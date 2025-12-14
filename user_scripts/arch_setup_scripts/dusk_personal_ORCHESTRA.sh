@@ -81,6 +81,7 @@ INSTALL_SEQUENCE=(
     "U | 067_cursor_theme_bibata_classic_modern.sh"
     "S | 068_nvidia_open_source.sh"
     "U | 070_reverting_sleep_timeout.sh"
+    "S | 069_waydroid_setup.sh"
 )
 
 # ==============================================================================

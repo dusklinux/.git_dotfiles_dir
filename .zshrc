@@ -205,6 +205,28 @@ alias unlock='$HOME/user_scripts/drives/drive_manager.sh unlock'
 # lock block_devices
 alias lock='$HOME/user_scripts/drives/drive_manager.sh lock'
 
+# share zram1 directory with waydroid at pictures point inside waydroid
+# Function to remount Waydroid pictures to ZRAM
+waydroid_bind() {
+    local target="$HOME/.local/share/waydroid/data/media/0/Pictures"
+    local source="/mnt/zram1"
+
+    # 1. Attempt to unmount recursively.
+    # 2>/dev/null silences the error if it's not mounted.
+    # || true ensures the script doesn't abort if you have 'set -e' active or strict chaining.
+    sudo umount -R "$target" 2>/dev/null || true
+
+    # 2. Perform the bind mount
+    # We check if the source exists first to avoid mounting nothing.
+    if [[ -d "$source" ]]; then
+        sudo mount --bind "$source" "$target"
+        echo "Successfully bound $source to Waydroid Pictures."
+    else
+        echo "Error: Source $source does not exist."
+        return 1
+    fi
+}
+
 # sudo edit nvim sudoedit
 # Function to intercept 'sudo nvim' and convert it to 'sudoedit'
 sudo() {

@@ -80,6 +80,7 @@ INSTALL_SEQUENCE=(
     "S | 066_arch_install_scripts_cleanup.sh"
     "U | 067_cursor_theme_bibata_classic_modern.sh"
     "S | 068_nvidia_open_source.sh"
+#    "S | 069_waydroid_setup.sh"
     "U | 070_reverting_sleep_timeout.sh"
 )
 
