@@ -194,7 +194,7 @@ alias git_dusky='/usr/bin/git --git-dir=$HOME/dusky/ --work-tree=$HOME'
 alias git_dusky_add_list='(cd $HOME && git_dusky add --pathspec-from-file=.git_dusky_list)'
 
 # 3. Alias for discarding all local changes (both staged and unstaged) and revert the state of tracked files to exactly match the last commit (HEAD), this is a destructive operation. (DANGER ZONE)
-alias git_dusky_restore='git_dusky reset --hard HEAD'
+ alias git_dusky_restore='echo "git --git-dir=$HOME/dusky/ --work-tree=$HOME reset --hard HEAD" && git_dusky reset --hard HEAD'
 
 # 4. Delta/Diff Alias
 alias gitdelta='git_dusky_add_list && git_dusky diff HEAD'
