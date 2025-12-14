@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# Purpose: Switch Hyprland animation config to 'fluid.conf'
+# Purpose: Switch Hyprland animation config to 'dusky.conf'
 # Env:     Arch Linux / Hyprland / UWSM
 # -----------------------------------------------------------------------------
 
@@ -8,7 +8,8 @@
 set -euo pipefail
 
 # --- Configuration ---
-readonly SOURCE_FILE="${HOME}/.config/hypr/source/animations/fluid.conf"
+# Updated source to point to dusky.conf
+readonly SOURCE_FILE="${HOME}/.config/hypr/source/animations/dusky.conf"
 readonly TARGET_LINK="${HOME}/.config/hypr/source/animations/active/active.conf"
 
 # --- Styling (StdOut only) ---
@@ -32,11 +33,10 @@ main() {
     fi
 
     # 3. Create Symlink
-    # We use ln -fs 
     ln -fs "$SOURCE_FILE" "$TARGET_LINK"
 
     # 4. Feedback
-    printf "${C_RESET}[${C_GREY}$(date +%T)${C_RESET}] ${C_BLUE}[INFO]${C_RESET}  Switched animation to: ${C_GREEN}Fluid${C_RESET}\n"
+    printf "${C_RESET}[${C_GREY}$(date +%T)${C_RESET}] ${C_BLUE}[INFO]${C_RESET}  Switched animation to: ${C_GREEN}Dusky${C_RESET}\n"
 }
 
 main "$@"
