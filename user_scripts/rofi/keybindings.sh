@@ -12,7 +12,7 @@ declare -a MENU_COMMAND=(
     -markup-rows
     -p 'Keybinds'
     -theme-str 'window {width: 70%;}'
-    -theme-str 'listview {columns: 1;}'
+    -theme-str 'listview {fixed-height: true;}'
 )
 
 # ASCII Unit Separator (Hidden delimiter)
