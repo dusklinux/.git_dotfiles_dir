@@ -198,6 +198,10 @@ arch-chroot /mnt
 ./deploy_dotfiles.sh
 ```
 
+> Note:
+> 
+> This will immediately list a few errors at the top, but dont worry, that's expected behaviour, the errors will later go away on there own after matugen generates colors and cycles through a wallpaper. 
+
 the main setup script.
 ```bash
 ~/user_scripts/arch_setup_scripts/ORCHESTRA.sh
