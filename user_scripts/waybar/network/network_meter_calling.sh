@@ -28,25 +28,48 @@ if [[ -r "$STATE_FILE" ]]; then
     read -r UNIT UP DOWN CLASS < "$STATE_FILE"
 fi
 
+# --- NEW: FORMATTING LOGIC ---
+# Enforce strictly 3 characters to keep Waybar narrow and steady.
+# 1 char  -> " X " (Centered)
+# 2 chars -> " XX" (Right-aligned / "Centered" in 3-slot)
+# 3 chars -> "XXX" (As is)
+fmt_fixed() {
+    local s="${1:-}"
+    local len=${#s}
+    if [[ $len -eq 1 ]]; then
+        echo " $s "
+    elif [[ $len -eq 2 ]]; then
+        echo " $s"
+    else
+        echo "${s:0:3}"
+    fi
+}
+
+# Create Display variables (formatted) vs keeping Originals for tooltips
+D_UNIT=$(fmt_fixed "$UNIT")
+D_UP=$(fmt_fixed "$UP")
+D_DOWN=$(fmt_fixed "$DOWN")
+# -----------------------------
+
 # 6. Define output based on argument
 case "${1:-}" in
   vertical)
-    # OPTIMIZED: No Icon. Just 3 lines.
-    # Structure: Up \n Unit \n Down
-    TEXT="$UP\n$UNIT\n$DOWN"
+    # Use Display variables for fixed width
+    TEXT="$D_UP\n$D_UNIT\n$D_DOWN"
+    # Use Original variables for accurate tooltip
     TOOLTIP="Interface: $CLASS\nUpload: $UP $UNIT/s\nDownload: $DOWN $UNIT/s"
     ;;
     
   unit)
-    TEXT="$UNIT"
+    TEXT="$D_UNIT"
     TOOLTIP="Unit: $UNIT/s"
     ;;
   up|upload)
-    TEXT="$UP"
+    TEXT="$D_UP"
     TOOLTIP="Upload: $UP $UNIT/s\nDownload: $DOWN $UNIT/s"
     ;;
   down|download)
-    TEXT="$DOWN"
+    TEXT="$D_DOWN"
     TOOLTIP="Download: $DOWN $UNIT/s\nUpload: $UP $UNIT/s"
     ;;
   *)
