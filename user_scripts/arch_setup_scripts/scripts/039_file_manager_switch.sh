@@ -101,14 +101,29 @@ switch_to_yazi() {
 # --- Main Interaction Loop ---
 main() {
     printf "${BOLD}File Manager Switcher (UWSM/Hyprland)${NC}\n"
-    printf "1) Switch to ${BOLD}Thunar${NC} (GUI)\n"
+    
+    # --- Detection Logic ---
+    if is_current_manager "thunar"; then
+        printf "Current Config: ${GREEN}Thunar${NC}\n"
+    elif is_current_manager "yazi"; then
+        printf "Current Config: ${GREEN}Yazi${NC}\n"
+    else
+        printf "Current Config: ${RED}Unknown / Neither${NC}\n"
+    fi
+    printf -- "--------------------------------------\n"
+
+    printf "1) Switch to ${BOLD}Thunar${NC} (GUI) [Default]\n"
     printf "2) Switch to ${BOLD}Yazi${NC} (Terminal)\n"
     printf "q) Quit\n"
     
-    read -r -p "Select an option: " choice
+    # Read with default logic
+    read -r -p "Select an option [1]: " choice
+
+    # Trim whitespace (optional but good practice)
+    choice="${choice#"${choice%%[![:space:]]*}"}"
 
     case "$choice" in
-        1|thunar|Thunar)
+        1|thunar|Thunar|"")
             switch_to_thunar
             ;;
         2|yazi|Yazi)
