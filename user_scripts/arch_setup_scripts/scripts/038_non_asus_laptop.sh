@@ -158,8 +158,10 @@ main() {
     printf "Is the machine you are currently running an ${BOLD}ASUS TUF F15${RESET}?\n"
     printf " > [y] Yes, this IS an Asus TUF F15.\n"
     printf " > [n] No, this is DIFFERENT hardware.\n"
-    printf -v prompt_text "\nSelection [y/n]: "
+    # UPDATED: Shows N as default, defaults to 'n' if empty
+    printf -v prompt_text "\nSelection [y/N]: "
     read -r -p "$prompt_text" is_asus
+    is_asus=${is_asus:-n}
 
     if [[ "$is_asus" =~ ^([nN][oO]|[nN])$ ]]; then
         # === PATH: NON-ASUS HARDWARE (DISABLE CONFIGS) ===
