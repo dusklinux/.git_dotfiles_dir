@@ -158,7 +158,7 @@ main() {
     printf "Is the machine you are currently running an ${BOLD}ASUS TUF F15${RESET}?\n"
     printf " > [y] Yes, this IS an Asus TUF F15.\n"
     printf " > [n] No, this is DIFFERENT hardware.\n"
-    # UPDATED: Shows N as default, defaults to 'n' if empty
+    # Defaults to 'n' if empty
     printf -v prompt_text "\nSelection [y/N]: "
     read -r -p "$prompt_text" is_asus
     is_asus=${is_asus:-n}
@@ -169,9 +169,10 @@ main() {
         printf "The script will now ${RED}COMMENT OUT${RESET} (disable) Asus-specific drivers and keybinds.\n"
         printf "This ensures better compatibility with your current hardware.\n\n"
         
-        # Double Confirmation
-        printf "${RED}Are you absolutely sure you want to disable these configs?${RESET} [y/N] "
+        # Double Confirmation - UPDATED: Defaults to Y if empty
+        printf "${RED}Are you absolutely sure you want to disable these configs?${RESET} [Y/n] "
         read -r confirm
+        confirm=${confirm:-y}
         
         if [[ "$confirm" =~ ^([yY][eE][sS]|[yY])$ ]]; then
             printf "\n"
