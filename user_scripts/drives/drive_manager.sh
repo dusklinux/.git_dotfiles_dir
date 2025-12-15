@@ -29,7 +29,7 @@ set -o pipefail
 declare -A DRIVES
 
 # --- PROTECTED DRIVES ---
-DRIVES["browser"]="PROTECTED|/mnt/browser|48182dde-f5ae-4878-bc15-fe60cf6cd271|9cab0013-8640-483a-b3f0-4587cfedb694|LAP_P"
+DRIVES["browser"]="PROTECTED|/mnt/browser|0a52e1bb-4fa0-4138-a150-f59467903e22|1adeb61a-0605-4bbc-8178-bb81fe1fca09|LAP_P"
 DRIVES["media"]="PROTECTED|/mnt/media|55d50d6d-a1ed-41d9-ba38-a6542eebbcd9|9C38076638073F30|LAP_P"
 DRIVES["slow"]="PROTECTED|/mnt/slow|e15929e5-417f-4761-b478-55c9a7c24220|5A921A119219F26D|game_simple"
 DRIVES["wdslow"]="PROTECTED|/mnt/wdslow|01f38f5b-86de-4499-b93f-6c982e2067cb|2765359f-232e-4165-bc69-ef402b50c74c|game_simple"

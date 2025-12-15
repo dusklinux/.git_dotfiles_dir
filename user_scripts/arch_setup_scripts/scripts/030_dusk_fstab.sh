@@ -64,7 +64,7 @@ UUID=848A215E8A214E4C	/mnt/windows	ntfs3	defaults,noatime,uid=1000,gid=1000,umas
 
 #SSD BTRFS with Copy_on_Write Disabled which also disabled Compression (Browser)
 
-UUID=9cab0013-8640-483a-b3f0-4587cfedb694	/mnt/browser	btrfs		defaults,nodatacow,ssd,discard=async,comment=x-gvfs-show,noatime,space_cache=v2,nofail,noauto,subvol=/	0 0
+UUID=1adeb61a-0605-4bbc-8178-bb81fe1fca09	/mnt/browser	btrfs		defaults,nodatacow,ssd,discard=async,comment=x-gvfs-show,noatime,space_cache=v2,nofail,noauto,subvol=/	0 0
 
 
 #SSD NTFS (Media)
