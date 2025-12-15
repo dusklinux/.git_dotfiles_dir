@@ -109,7 +109,7 @@ pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza 
 _Build tools, languages, and image previewers for Neovim/Yazi._
 
 ```
-pacman -S --needed neovim git git-delta meson cmake clang uv rq jq bc viu chafa ueberzugpp ccache mold shellcheck fd ripgrep fzf shfmt stylua prettier
+pacman -S --needed neovim git git-delta meson cmake clang uv rq jq bc viu chafa ueberzugpp ccache mold shellcheck fd ripgrep fzf shfmt stylua prettier tree-sitter-cli
 ```
 
 
