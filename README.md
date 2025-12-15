@@ -193,7 +193,9 @@ arch-chroot /mnt
 ```
 # Connect to wifi if needed
 ./wifi_connect.sh
+```
 
+```
 # Deploy config files
 ./deploy_dotfiles.sh
 ```
