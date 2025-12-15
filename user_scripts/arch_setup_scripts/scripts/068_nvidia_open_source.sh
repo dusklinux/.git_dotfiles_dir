@@ -87,6 +87,9 @@ perform_install() {
 
 # 5. Main Logic Loop
 main() {
+    # Added: Automatically detect and list all GPUs at startup
+    detect_gpu_hardware
+
     local valid_input=0
     
     while [[ $valid_input -eq 0 ]]; do
