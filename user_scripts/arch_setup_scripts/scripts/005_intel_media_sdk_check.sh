@@ -33,6 +33,9 @@ detect_cpu_info() {
 main() {
     printf "%s[INFO]%s Starting Intel Media SDK Compatibility Check...\n" "${BLUE}" "${RESET}"
 
+    # ADDED: Auto-detect and show CPU info immediately for educated decision making
+    detect_cpu_info
+
     while true; do
         # Using printf for consistency, generally safer than echo -e in strict scripts
         printf "%sDo you have an Intel CPU between 5th Gen and 11th Gen?%s\n" "${BOLD}" "${RESET}"
@@ -51,6 +54,7 @@ main() {
                 break
                 ;;
             d|dont*|idk|*)
+                # Kept this here as a fallback reminder if they select 'd'
                 detect_cpu_info
                 printf "%sTip: Look for the number after 'i3/i5/i7/i9'.%s\n" "${YELLOW}" "${RESET}"
                 # Fixed typo below: {RESET} -> ${RESET}
