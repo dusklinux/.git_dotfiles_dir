@@ -197,4 +197,20 @@ main() {
   log_step "All Done. Traffic is secured."
 }
 
+# -----------------------------------------------------------------------------
+# User Interaction / Pre-check
+# -----------------------------------------------------------------------------
+if ! command -v warp-cli &> /dev/null; then
+  printf "${C_YELLOW}[?]${C_RESET} Cloudflare Warp is not installed.\n"
+  read -r -p "Would you like to install and activate it? [Y/n] " response
+  # Default to Yes if empty
+  response=${response:-Y}
+  
+  # Check if response matches n, N, no, No, etc.
+  if [[ "$response" =~ ^[nN]$ || "$response" =~ ^[nN][oO]$ ]]; then
+    log_info "Installation aborted by user."
+    exit 0
+  fi
+fi
+
 main
