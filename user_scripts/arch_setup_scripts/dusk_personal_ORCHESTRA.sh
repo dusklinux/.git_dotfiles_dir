@@ -12,6 +12,7 @@
 
 INSTALL_SEQUENCE=(
     "U | 000_long_sleep_timeout.sh"
+    "S | 000_openssh_setup.sh"
     "S | 001_battery_limiter.sh"
     "S | 002_pacman_config.sh"
     "S | 003_pacman_reflector.sh"
