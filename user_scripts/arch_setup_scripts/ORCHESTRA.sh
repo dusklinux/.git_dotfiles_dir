@@ -56,7 +56,7 @@ INSTALL_SEQUENCE=(
 #    "S | 041_asusd_service_fix.sh"
 #    "S | 042_ftp_arch.sh"
     "U | 043_tldr_update.sh"
-    "U | 044_spotify.sh"
+#    "U | 044_spotify.sh"
     "U | 045_mouse_button_reverse.sh"
     "U | 046_neovim_clean.sh"
     "U | 047_neovim_lazy_sync.sh"

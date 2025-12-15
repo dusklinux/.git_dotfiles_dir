@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 # Script: 044_spotify.sh
-# Description: Installs Spotify via Paru and runs SpotX verbatim.
+# Description: Installs Spotify via Paru or Yay and runs SpotX verbatim.
 #              Does NOT delete SpotX backups.
 #              Asks for user confirmation before proceeding.
 # -----------------------------------------------------------------------------
@@ -34,15 +34,23 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# --- Global Variables ---
+AUR_HELPER=""
+
 # --- Prerequisite Checks ---
 check_environment() {
     if [[ $EUID -eq 0 ]]; then
-        log_error "Do not run as root. Paru requires a non-root user."
+        log_error "Do not run as root. AUR helpers require a non-root user."
         exit 1
     fi
 
-    if ! command -v paru &>/dev/null; then
-        log_error "Paru is not installed."
+    # Check for paru, then yay, else fail
+    if command -v paru &>/dev/null; then
+        AUR_HELPER="paru"
+    elif command -v yay &>/dev/null; then
+        AUR_HELPER="yay"
+    else
+        log_error "Neither 'paru' nor 'yay' was found. Please install an AUR helper first."
         exit 1
     fi
 }
@@ -63,11 +71,11 @@ if [[ ! "$response" =~ ^[yY](es)?$ ]]; then
 fi
 
 # 1. Install/Reinstall Spotify
-log_info "Installing Spotify via Paru..."
-if paru -S --noconfirm spotify; then
+log_info "Installing Spotify via $AUR_HELPER..."
+if "$AUR_HELPER" -S --noconfirm spotify; then
     log_success "Spotify installed successfully."
 else
-    log_error "Paru failed to install Spotify."
+    log_error "$AUR_HELPER failed to install Spotify."
     exit 1
 fi
 
