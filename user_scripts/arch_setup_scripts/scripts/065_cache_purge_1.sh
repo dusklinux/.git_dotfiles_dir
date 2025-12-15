@@ -2,8 +2,7 @@
 # ==============================================================================
 #  ARCH LINUX CACHE PURGE & OPTIMIZER
 # ==============================================================================
-#  Description: Aggressively cleans Pacman, Paru, and Yay caches to reclaim space.
-#               Includes fixes for stuck 'download-*' directories.
+#  Description: Aggressively cleans Pacman and Paru caches to reclaim disk space.
 #               Calculates and displays total space saved in MB.
 #  Mode:        USER (U) - Handles sudo internally for Pacman.
 # ==============================================================================
@@ -25,7 +24,6 @@ readonly BOLD=$'\e[1m'
 # We track these directories to calculate space saved
 readonly PACMAN_CACHE="/var/cache/pacman/pkg"
 readonly PARU_CACHE="${HOME}/.cache/paru"
-readonly YAY_CACHE="${HOME}/.cache/yay"
 
 # --- 4. Helper Functions ---
 
@@ -58,58 +56,33 @@ main() {
     sleep 0.5
 
     # --- Step 1: Pre-Flight Check ---
-    local has_paru=false
-    local has_yay=false
-
-    if command -v paru &>/dev/null; then has_paru=true; fi
-    if command -v yay &>/dev/null; then has_yay=true; fi
-
-    if [[ "$has_paru" == "false" && "$has_yay" == "false" ]]; then
-        echo -e "${Y}Warning: No AUR helpers (yay/paru) detected. Cleaning Pacman only.${RESET}"
+    if ! command -v paru &>/dev/null; then
+        echo -e "${Y}Warning: Paru not found. Skipping AUR cleanup.${RESET}"
     fi
 
     # --- Step 2: Measure Initial Size ---
     log "Measuring current cache usage..."
     
     local pacman_start
-    local paru_start=0
-    local yay_start=0
+    local paru_start
     
     pacman_start=$(get_dir_size_mb "$PACMAN_CACHE")
-    echo -e "   ${BOLD}Pacman Cache:${RESET} ${pacman_start} MB"
-
-    if [[ "$has_paru" == "true" ]]; then
-        paru_start=$(get_dir_size_mb "$PARU_CACHE")
-        echo -e "   ${BOLD}Paru Cache:${RESET}   ${paru_start} MB"
-    fi
-
-    if [[ "$has_yay" == "true" ]]; then
-        yay_start=$(get_dir_size_mb "$YAY_CACHE")
-        echo -e "   ${BOLD}Yay Cache:${RESET}    ${yay_start} MB"
-    fi
+    paru_start=$(get_dir_size_mb "$PARU_CACHE")
     
-    local total_start=$((pacman_start + paru_start + yay_start))
+    local total_start=$((pacman_start + paru_start))
+    
+    echo -e "   ${BOLD}Pacman Cache:${RESET} ${pacman_start} MB"
+    echo -e "   ${BOLD}Paru Cache:${RESET}   ${paru_start} MB"
     sleep 0.5
 
-    # --- Step 3: Clean Pacman (System Level) ---
+    # --- Step 3: Clean Pacman (Requires Root) ---
     log "Purging Pacman cache (System)..."
     
+    # We pipe 'yes' to answer "y" to:
+    # 1. Remove ALL files from cache?
+    # 2. Remove unused repositories?
     if sudo -v; then
-        # === FIX: Remove stuck download directories before pacman sees them ===
-        # Finds directories named 'download-*' inside pkg cache and nukes them.
-        # This prevents "Is a directory" errors during -Scc.
-        if [[ -d "$PACMAN_CACHE" ]]; then
-            # 'find' is safer than shell expansion here
-            if sudo find "$PACMAN_CACHE" -maxdepth 1 -type d -name "download-*" -print -quit | grep -q .; then
-                 echo -e "   ${Y}Found stuck download directories. Removing...${RESET}"
-                 sudo find "$PACMAN_CACHE" -maxdepth 1 -type d -name "download-*" -exec rm -rf {} +
-            fi
-        fi
-
-        # Standard Pacman Clean
-        # We pipe 'yes' to answer "y" to:
-        # 1. Remove ALL files from cache?
-        # 2. Remove unused repositories?
+        # 'yes' outputs 'y' repeatedly until pipe closes
         yes | sudo pacman -Scc > /dev/null 2>&1 || true
         echo -e "   ${G}✔ Pacman cache cleared.${RESET}"
     else
@@ -117,40 +90,27 @@ main() {
     fi
     sleep 0.5
 
-    # --- Step 4: Clean AUR Helpers (User Level) ---
-    
-    # Clean Paru
-    if [[ "$has_paru" == "true" ]]; then
+    # --- Step 4: Clean Paru (User Level) ---
+    if command -v paru &>/dev/null; then
         log "Purging Paru cache (AUR)..."
-        # Paru cleanup
+        
+        # Paru asks 4 questions usually (pkg, repos, clones, diffs)
+        # We pipe 'yes' to ensure deep clean
         yes | paru -Scc > /dev/null 2>&1 || true
         echo -e "   ${G}✔ Paru cache cleared.${RESET}"
+        sleep 0.5
     fi
-
-    # Clean Yay
-    if [[ "$has_yay" == "true" ]]; then
-        log "Purging Yay cache (AUR)..."
-        # Yay cleanup. 
-        # Note: yay -Scc might ask to clean system cache too, but since we
-        # ran pacman -Scc already, it's fine. We suppress output anyway.
-        yes | yay -Scc > /dev/null 2>&1 || true
-        echo -e "   ${G}✔ Yay cache cleared.${RESET}"
-    fi
-
-    sleep 0.5
 
     # --- Step 5: Measure Final Size ---
     log "Calculating reclaimed space..."
     
     local pacman_end
-    local paru_end=0
-    local yay_end=0
+    local paru_end
     
     pacman_end=$(get_dir_size_mb "$PACMAN_CACHE")
-    if [[ "$has_paru" == "true" ]]; then paru_end=$(get_dir_size_mb "$PARU_CACHE"); fi
-    if [[ "$has_yay" == "true" ]]; then yay_end=$(get_dir_size_mb "$YAY_CACHE"); fi
+    paru_end=$(get_dir_size_mb "$PARU_CACHE")
     
-    local total_end=$((pacman_end + paru_end + yay_end))
+    local total_end=$((pacman_end + paru_end))
     local saved=$((total_start - total_end))
 
     # --- Step 6: Final Report ---
