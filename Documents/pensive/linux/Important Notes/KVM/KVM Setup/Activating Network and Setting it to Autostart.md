@@ -23,9 +23,9 @@ sudo virsh net-list --all
 
 **Expected Output:**
 
-| **Name** | **State**  | **Autostart** | **Persistent** |
-| -------- | ---------- | ------------- | -------------- |
-| default  | **active** | **yes**       | yes            |
+| **Name** | **State**    | **Autostart** | **Persistent** |
+| -------- | ------------ | ------------- | -------------- |
+| default  | **inactive** | **yes**       | yes            |
 >[!error] If you dont see the result, make sure to follow the `Fixing errrors` step!
 ## 2. Start the Network
 
@@ -44,7 +44,11 @@ sudo virsh net-autostart default
 ### Fixing errors. 
 
 ```bash
+# 1. Force firewalld to pick up the libvirt zone file
 sudo firewall-cmd --reload
+
+# 2. Try starting the network again
+sudo virsh net-start default
 ```
 
 ```bash
@@ -75,10 +79,13 @@ sudo virsh net-define /dev/stdin <<EOF
 </network>
 EOF
 
-# 3. Start the network (This creates virbr0)
+# 3. Force firewalld to pick up the libvirt zone file
+sudo firewall-cmd --reload
+
+# 4. Try starting the network again
 sudo virsh net-start default
 
-# 4. Enable autostart
+# 5. Enable autostart
 sudo virsh net-autostart default
 ```
 
