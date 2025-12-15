@@ -51,6 +51,19 @@ trap cleanup EXIT
 main() {
   log_info "Initializing battery notify installation..."
 
+  # 0. Pre-check: Verify Battery Presence
+  # We use compgen to check for BAT* files in sysfs without spawning ls
+  if ! compgen -G "/sys/class/power_supply/BAT*" > /dev/null; then
+    printf "${BLUE}[QUERY]${NC} No battery detected on this system.\n"
+    printf "${BLUE}[QUERY]${NC} This service is recommended for laptops with batteries, not desktops.\n"
+    read -rp "${BLUE}[QUERY]${NC} Do you still wish to enable the battery notification service? (y/N): " user_choice
+    
+    if [[ ! "$user_choice" =~ ^[Yy]$ ]]; then
+      log_info "Skipping installation as per user request."
+      exit 0
+    fi
+  fi
+
   # 1. Validation: Ensure source exists
   if [[ ! -f "$SOURCE_FILE" ]]; then
     log_error "Source file not found at: $SOURCE_FILE"
