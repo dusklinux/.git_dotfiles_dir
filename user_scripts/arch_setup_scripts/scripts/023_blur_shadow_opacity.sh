@@ -60,11 +60,13 @@ main() {
     # Step 1: Set Brightness
     # We silence stdout but keep stderr to keep the terminal clean
     log_info "Setting brightness to 100%..."
+    
+    # MODIFIED: Graceful degradation for VMs/External Monitors
+    # Check if command succeeds; if not, log info and continue instead of exiting.
     if brightnessctl set 100% &>/dev/null; then
         log_success "Brightness maximized."
     else
-        log_error "Failed to set brightness."
-        exit 1
+        log_info "Brightness control unavailable (VM or external monitor detected). Skipping..."
     fi
 
     # Step 2: Run Visual Toggle Script
