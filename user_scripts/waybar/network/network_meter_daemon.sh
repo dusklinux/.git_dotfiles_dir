@@ -8,19 +8,15 @@ STATE_FILE="$STATE_DIR/state"
 HEARTBEAT_FILE="$STATE_DIR/heartbeat"
 mkdir -p "$STATE_DIR"
 
-# Initialize heartbeat
 touch "$HEARTBEAT_FILE"
-
-# Cleanup on exit
 trap 'rm -rf "$STATE_DIR"' EXIT
 
-# SIGNAL TRAP: Use no-op. 
-# This interrupts 'wait', allowing the loop to continue.
+# TRAP: Allow USR1 to interrupt sleep without crashing the script
 trap ':' USR1
 
 get_primary_iface() {
-    # FIX: ( ... || true ) prevents the script from crashing if network is unreachable
-    (ip route get 1.1.1.1 2>/dev/null || true) | awk '{for(i=1;i<=NF;i++) if($i=="dev"){print $(i+1); exit}}'
+    (ip route get 1.1.1.1 2>/dev/null || true) | \
+        awk '{for(i=1;i<=NF;i++) if($i=="dev"){print $(i+1); exit}}'
 }
 
 rx_prev=0
@@ -28,55 +24,46 @@ tx_prev=0
 iface=""
 
 while :; do
-    # --- OPTIMIZED WATCHDOG ---
+    # 1. WATCHDOG: Check if Waybar is active
     now=$(printf '%(%s)T' -1)
-    
     if [[ -f "$HEARTBEAT_FILE" ]]; then
         last_heartbeat=$(stat -c %Y "$HEARTBEAT_FILE" 2>/dev/null || echo 0)
     else
         last_heartbeat=0
     fi
     
-    diff=$(( now - last_heartbeat ))
-
-    # If Waybar hasn't touched the file in 3 seconds:
-    if (( diff > 3 )); then
-        # Sleep for 60 seconds (background)
+    # If Waybar has been gone for >3 seconds, Deep Sleep (10 mins)
+    if (( (now - last_heartbeat) > 3 )); then
+        # We run sleep in background & wait so we can catch the wake-up signal
         sleep 600 &
-        sleep_pid=$!
-        
-        # Wait blocks until sleep finishes OR signal USR1 arrives.
-        # If signal arrives, wait returns >128. We catch that with || true
-        wait $sleep_pid || true
-        
-        # If we woke up early due to signal, kill the sleep process
-        kill $sleep_pid 2>/dev/null || true
-        
-        # Restart loop immediately to process data
+        wait $! || true  # <--- CRITICAL FIX: '|| true' prevents crash on signal
+        kill $! 2>/dev/null || true
         continue
     fi
-    # ----------------
 
-    start_time=$(date +%s%N)
+    # 2. CHECK CONNECTION
     current_iface=$(get_primary_iface)
-    
-    # Graceful handling if no interface found (e.g. network down)
+
+    # 3. DISCONNECTED STATE (Low Power)
     if [[ -z "$current_iface" ]]; then
-        # Write safe zeros
-        echo "KB 0 0 network-kb" > "$STATE_FILE.tmp"
+        echo "- - - network-disconnected" > "$STATE_FILE.tmp"
         mv -f "$STATE_FILE.tmp" "$STATE_FILE"
         rx_prev=0; tx_prev=0
-        sleep 1
+        
+        # Sleep 3s, but allow wake-up signal
+        sleep 3 &
+        wait $! || true
         continue
     fi
 
-    # Interface switching logic
+    # 4. CONNECTED STATE
+    start_time=$(date +%s%N)
+
     if [[ "$current_iface" != "$iface" ]]; then
         iface="$current_iface"
         rx_prev=0; tx_prev=0
     fi
 
-    # Read stats safely
     if [[ -r "/sys/class/net/$iface/statistics/rx_bytes" ]]; then
         read -r rx_now < "/sys/class/net/$iface/statistics/rx_bytes"
         read -r tx_now < "/sys/class/net/$iface/statistics/tx_bytes"
@@ -84,23 +71,22 @@ while :; do
         rx_now=0; tx_now=0
     fi
 
-    # Handle first run (prev=0) to avoid spikes
     if [[ $rx_prev -eq 0 && $tx_prev -eq 0 ]]; then
-        rx_prev=$rx_now
-        tx_prev=$tx_now
-        sleep 1
+        rx_prev=$rx_now; tx_prev=$tx_now
+        # Short sleep for init
+        sleep 1 || true
         continue
     fi
 
     rx_delta=$(( rx_now - rx_prev ))
     tx_delta=$(( tx_now - tx_prev ))
-    (( rx_delta < 0 )) && rx_delta=0
-    (( tx_delta < 0 )) && tx_delta=0
+    # Safety checks
+    [[ $rx_delta -lt 0 ]] && rx_delta=0
+    [[ $tx_delta -lt 0 ]] && tx_delta=0
 
     rx_prev=$rx_now
     tx_prev=$tx_now
 
-    # Math and formatting (MB/KB switching)
     awk -v rx="$rx_delta" -v tx="$tx_delta" '
     function fmt(val, is_mb) {
         if (is_mb) {
@@ -115,26 +101,23 @@ while :; do
     BEGIN {
         max = (rx > tx ? rx : tx)
         if (max >= 1048576) {
-            unit="MB"
-            cls="network-mb"
-            up_str=fmt(tx, 1)
-            down_str=fmt(rx, 1)
+            printf "MB %s %s network-mb\n", fmt(tx, 1), fmt(rx, 1)
         } else {
-            unit="KB"
-            cls="network-kb"
-            up_str=fmt(tx, 0)
-            down_str=fmt(rx, 0)
+            printf "KB %s %s network-kb\n", fmt(tx, 0), fmt(rx, 0)
         }
-        printf "%s %s %s %s\n", unit, up_str, down_str, cls
     }' > "$STATE_FILE.tmp"
-
     mv -f "$STATE_FILE.tmp" "$STATE_FILE"
 
-    # Precision sleep
+    # 5. PRECISION SLEEP (Fixed Math)
     end_time=$(date +%s%N)
-    elapsed=$(( (end_time - start_time) / 1000000 ))
-    sleep_sec=$(( 1000 - elapsed ))
-    if (( sleep_sec > 0 )); then
-        sleep "0.$(printf "%03d" $sleep_sec)"
+    elapsed_ms=$(( (end_time - start_time) / 1000000 ))
+    sleep_ms=$(( 1000 - elapsed_ms ))
+
+    # CRITICAL FIX: Handle cases where sleep_ms >= 1000 or <= 0
+    if (( sleep_ms >= 1000 )); then
+        sleep 1 || true
+    elif (( sleep_ms > 0 )); then
+        # Format explicitly to avoid "0.1000" bug
+        sleep "0.$(printf "%03d" $sleep_ms)" || true
     fi
 done
