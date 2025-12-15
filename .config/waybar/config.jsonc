@@ -2,7 +2,7 @@
     // ===================================================================
     // GENERAL SETTINGS
     // ===================================================================
-    "layer": "bottom",
+    "layer": "top",
     "position": "left",
     "spacing": 3,
     "width": 10,
@@ -45,7 +45,9 @@
     
     "hyprland/workspaces": {
         "all-outputs": true,
-        "sort-by-number": true
+        "sort-by-number": true,
+        "on-scroll-up": "hyprctl dispatch workspace e-1",
+        "on-scroll-down": "hyprctl dispatch workspace e+1"
     },
 
     "tray": {
