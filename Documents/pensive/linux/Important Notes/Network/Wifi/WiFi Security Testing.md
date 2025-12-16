@@ -2,6 +2,8 @@ This note is my documentation:
 
 official documentation [[WiFi Security Testing Official]]
 
+[[Gemini  guide]]
+
 Monitor Mode: Normally, your Wi-Fi card only listens to traffic addressed specifically to it. To see all the Wi-Fi traffic in the air around you, including data not meant for you, the card must be put into a special "monitor mode."
 
 The Handshake: For WPA2, the critical piece of data is the 4-Way Handshake. This is a four-packet exchange that happens every time a device connects to the router. This handshake proves the device knows the password without ever sending the password itself. We can capture this handshake and then try to crack it offline.
