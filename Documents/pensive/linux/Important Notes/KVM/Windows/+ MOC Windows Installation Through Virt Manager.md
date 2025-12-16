@@ -1,12 +1,12 @@
-# Overview: Installing Windows 11 on KVM
+# Overview: Installing Windows on KVM
 
 > [!SUMMARY] Goal
 > 
-> This guide provides a clear, linear path to installing and optimizing a Windows 11 virtual machine using KVM (Kernel-based Virtual Machine) via Virt-Manager.
+> This guide provides a clear, linear path to installing and optimizing a Windows virtual machine using KVM (Kernel-based Virtual Machine) via Virt-Manager.
 > 
 > Follow the steps in order. Each section links to a detailed note with specific instructions.
 
-## 1. [[Configure Windows 11 Virtual Hardware]]
+## 1. [[Configure Windows Virtual Hardware]]
 
 This initial phase involves setting up the physical "bones" of your virtual machine. We will configure the hardware before we even attempt to install the operating system to ensure best performance.
 
@@ -53,7 +53,7 @@ This initial phase involves setting up the physical "bones" of your virtual mach
     - This step is **not required** if you are using a custom "de-bloated" Windows ISO that has the TPM requirement patched out.
         
 
-## 2. [[Install a Windows 11 Virtual Machine on KVM]]
+## 2. [[Install a Windows Virtual Machine on KVM]]
 
 With the hardware ready, we proceed to the actual installation.
 
@@ -62,7 +62,7 @@ With the hardware ready, we proceed to the actual installation.
 - It also covers installing the **Guest Tools** after Windows boots up for the first time.
     
 
-## 3. **OPTIONAL** Recommanded to skip this step [[Optional Enable Hardware Security on Windows 11]]
+## 3. **OPTIONAL** Recommanded to skip this step [[Optional Enable Hardware Security on Windows]]
 
 > [!DANGER] Performance Warning
 > 

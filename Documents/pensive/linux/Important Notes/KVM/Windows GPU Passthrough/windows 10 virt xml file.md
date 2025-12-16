@@ -1,5 +1,5 @@
 > [!NOTE] replace the overview xml with this. 
-> ```xml
+> ```ini
 > <domain type="kvm">
 >   <name>win10</name>
 >   <uuid>5fb07cd7-762b-4d64-97ef-e22a8f32b1fa</uuid>
@@ -8,13 +8,13 @@
 >       <libosinfo:os id="http://microsoft.com/win/10"/>
 >     </libosinfo:libosinfo>
 >   </metadata>
->   <memory>8290304</memory>
->   <currentMemory>8290304</currentMemory>
+>   <memory>41058304</memory>
+>   <currentMemory>41058304</currentMemory>
 >   <memoryBacking>
 >     <source type="memfd"/>
 >     <access mode="shared"/>
 >   </memoryBacking>
->   <vcpu current="4">4</vcpu>
+>   <vcpu current="12">12</vcpu>
 >   <os firmware="efi">
 >     <type arch="x86_64" machine="q35">hvm</type>
 >     <boot dev="hd"/>
@@ -39,7 +39,7 @@
 >     <vmport state="off"/>
 >   </features>
 >   <cpu mode="host-passthrough">
->     <topology sockets="1" cores="2" threads="2"/>
+>     <topology sockets="1" cores="6" threads="2"/>
 >   </cpu>
 >   <clock offset="localtime">
 >     <timer name="rtc" tickpolicy="catchup"/>
@@ -55,12 +55,12 @@
 >     <emulator>/usr/bin/qemu-system-x86_64</emulator>
 >     <disk type="file" device="disk">
 >       <driver name="qemu" type="qcow2" cache="none" discard="unmap"/>
->       <source file="/mnt/zram1/win10.qcow2"/>
+>       <source file="/var/lib/libvirt/images/win10.qcow2"/>
 >       <target dev="vda" bus="virtio"/>
 >     </disk>
 >     <disk type="file" device="cdrom">
 >       <driver name="qemu" type="raw"/>
->       <source file="/mnt/media/Downloads/Torrents/OS/lite/litest/win10.iso"/>
+>       <source file="/mnt/zram1/NTLite.iso"/>
 >       <target dev="sdb" bus="sata"/>
 >       <readonly/>
 >     </disk>
@@ -91,8 +91,8 @@
 >       <target dir="host_zram"/>
 >       <driver type="virtiofs"/>
 >     </filesystem>
->     <interface type="network">
->       <source network="default"/>
+>     <interface type="bridge">
+>       <source bridge="virbr0"/>
 >       <mac address="52:54:00:f8:33:98"/>
 >       <model type="virtio"/>
 >     </interface>
@@ -119,6 +119,7 @@
 >     </hostdev>
 >     <redirdev bus="usb" type="spicevmc"/>
 >     <redirdev bus="usb" type="spicevmc"/>
+>     <input type="tablet" bus="usb"/>
 >   </devices>
 > </domain>
 > ```

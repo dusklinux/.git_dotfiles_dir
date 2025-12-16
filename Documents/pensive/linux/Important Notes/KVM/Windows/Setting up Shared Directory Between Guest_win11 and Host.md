@@ -91,6 +91,15 @@ WinFsp allows Windows to create custom file systems, functioning similarly to FU
     GitHub: WinFsp Releases
     
 2. Run the installer and click through the default options (Next > Next > Install).
+if you dont have a browser and want to downlaoded it driectly from the website using command prompt you can do this, make sure where the path is and thats where it'll be saved. 
+```bash
+Invoke-WebRequest -Uri "https://github.com/winfsp/winfsp/releases/download/v2.1/winfsp-2.1.25156.msi" -OutFile "winfsp.msi"
+```
+
+or from github
+```bash
+https://github.com/winfsp/winfsp/releases
+```
 
 ### 3. Enable the VirtIO-FS Service
 

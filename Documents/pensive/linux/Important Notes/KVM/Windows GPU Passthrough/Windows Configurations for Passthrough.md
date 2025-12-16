@@ -30,7 +30,6 @@ This driver creates a "monitor" that exists only in memory, which Looking Glass 
 1. Download the latest release (zip file) from GitHub.
     
 2. Extract the folder and instal. 
-    
 
 ```http
 https://github.com/VirtualDrivers/Virtual-Display-Driver
@@ -126,4 +125,5 @@ Sometimes, enabling the VirtIO mouse driver causes the cursor to vanish.
 
 - **Fix:** Uninstall the mouse driver in Device Manager, then reinstall it while viewing the VM through the Looking Glass client.
 or 
-uninstall the virio driver using the x64 file in cd drive virtio and then resintall it after restarting the vm. 
+**(THIS ONE WORKS, TESTED!!)**
+**uninstall the virio driver using the x64 file in cd drive virtio and then resintall it after restarting the vm.** 
