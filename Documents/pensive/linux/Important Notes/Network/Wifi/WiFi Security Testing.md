@@ -132,7 +132,7 @@ for 2.4 GHz only (band b)
 sudo airodump-ng --band b wlan0mon
 ```
 
-for 5 GHz only (band a)
+for 5 GHz only (band a) not sure if my card supports this. 
 ```bash
 sudo airodump-ng --band a wlan0mon
 ```
