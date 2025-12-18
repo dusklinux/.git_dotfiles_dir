@@ -1,7 +1,7 @@
+# Updated demo Video coming soon.
+
 # 🎻 Dusky: The Ultimate Arch Hyprland Experience
 
-> A Note from the Creator:
-> 
 > This repository is the result of 8 months of tinkering, breaking, fixing, and polishing. It is a labor of love designed to feel as easy to install as a "standard" distribution, but with the raw power and minimalism of Arch Linux.
 > 
 > Since I build and maintain this alone, **please consider starring ⭐ this repo** as a token of support.
@@ -29,7 +29,7 @@ While these dotfiles are extremely powerful, you don't need to be a wizard to in
 
 **Graphics & Gaming**
 
-- **Fluid Animations:** Tuned physics and momentum for a "liquid" feel.
+- **Fluid Animations:** Tuned physics and momentum for a "liquid" feel, I've spent days fine tuning this.
     
 - **GPU Passthrough Guide:** Zero latency (native performance) for dual-GPU setups using Looking Glass.
     
