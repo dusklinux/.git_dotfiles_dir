@@ -349,10 +349,11 @@ scan_targets() {
     mapfile -t target_lines < <(awk -F',' '
         /Station MAC/ {exit} 
         length($14) > 1 && $1 ~ /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/ {
-            gsub(/^ +| +$/, "", $14);
-            gsub(/^ +| +$/, "", $1);
-            gsub(/^ +| +$/, "", $4);
-            gsub(/^ +| +$/, "", $6);
+            gsub(/^ +| +$/, "", $14); # ESSID
+            gsub(/^ +| +$/, "", $1);  # BSSID
+            gsub(/^ +| +$/, "", $4);  # Channel
+            gsub(/^ +| +$/, "", $6);  # Privacy
+            gsub(/^ +| +$/, "", $9);  # Power (Signal Strength)
             
             # Derive Band from Channel
             ch = $4 + 0;
@@ -360,7 +361,8 @@ scan_targets() {
             else if (ch >= 32) band="5G";
             else band="N/A";
 
-            print $1","$4","band","$6","$14
+            # Output: BSSID, Power, CH, Band, SEC, ESSID
+            print $1","$9","$4","band","$6","$14
         }' "$csv_file")
 
     if [[ ${#target_lines[@]} -eq 0 ]]; then
@@ -368,29 +370,37 @@ scan_targets() {
         exit 1
     fi
 
-    printf "${CYAN}%-3s | %-17s | %-4s | %-5s | %-8s | %s${NC}\n" "ID" "BSSID" "CH" "BAND" "SEC" "ESSID"
-    printf "%.0s-" {1..65}
+    # Updated header with PWR column
+    printf "${CYAN}%-3s | %-17s | %-4s | %-4s | %-5s | %-8s | %s${NC}\n" "ID" "BSSID" "PWR" "CH" "BAND" "SEC" "ESSID"
+    printf "%.0s-" {1..70}
     echo ""
 
     local i=1
     local -a bssids channels essids
 
     for line in "${target_lines[@]}"; do
-        IFS=',' read -r bssid ch band priv essid <<< "$line"
+        # Read new pwr variable
+        IFS=',' read -r bssid pwr ch band priv essid <<< "$line"
         bssids+=("$bssid")
         channels+=("$ch")
         essids+=("$essid")
-        printf "%-3d | %s | %-4s | %-5s | %-8s | %s\n" "$i" "$bssid" "$ch" "$band" "$priv" "$essid"
+        
+        # Include PWR in the formatted output
+        printf "%-3d | %s | %-4s | %-4s | %-5s | %-8s | %s\n" "$i" "$bssid" "$pwr" "$ch" "$band" "$priv" "$essid"
         ((i++))
     done
 
     echo ""
-    read -r -p "Select Target ID: " selection
+    
+    while true; do
+        read -r -p "Select Target ID: " selection
 
-    if [[ ! "$selection" =~ ^[0-9]+$ ]] || [[ "$selection" -lt 1 ]] || [[ "$selection" -gt ${#bssids[@]} ]]; then
-        log_err "Invalid selection."
-        exit 1
-    fi
+        if [[ "$selection" =~ ^[0-9]+$ ]] && [[ "$selection" -ge 1 ]] && [[ "$selection" -le ${#bssids[@]} ]]; then
+            break
+        else
+            log_warn "Invalid selection. Please enter a number between 1 and ${#bssids[@]}."
+        fi
+    done
 
     local idx=$((selection - 1))
     TARGET_BSSID="${bssids[$idx]}"
@@ -463,11 +473,15 @@ perform_client_micro_scan() {
 }
 
 get_connected_clients() {
+    # Accepting an optional argument for the input CSV file
+    local custom_csv="${1:-}"
     local specific_csv="$TMP_DIR/$CLIENT_SCAN_PREFIX-01.csv"
     local initial_csv="$TMP_DIR/$SCAN_PREFIX-01.csv"
     local source_csv=""
 
-    if [[ -f "$specific_csv" ]]; then
+    if [[ -n "$custom_csv" && -f "$custom_csv" ]]; then
+        source_csv="$custom_csv"
+    elif [[ -f "$specific_csv" ]]; then
         source_csv="$specific_csv"
     else
         source_csv="$initial_csv"
@@ -522,15 +536,18 @@ attack_wpa_handshake() {
         echo "$record_cmd"
     fi
 
-    # While user is setting up other terminal, perform micro-scan for clients
-    perform_client_micro_scan
-
+    # Removed conflicting internal scan:
+    # We now rely on the user's running command in the other terminal to populate data.
+    
     read -r -p "Press ENTER when recorder is running..."
 
     # --- CLIENT SELECTION LOOP ---
     local target_mac=""
+    # This is the file the user's command will be generating
+    local user_capture_csv="${capture_base}-01.csv"
+
     while true; do
-        get_connected_clients
+        get_connected_clients "$user_capture_csv"
         
         echo -e "\nTarget Selection:"
         echo "1) Broadcast Deauth (Kick Everyone)"
@@ -546,14 +563,15 @@ attack_wpa_handshake() {
             echo "   (No connected clients found yet)"
         fi
         
-        echo "r) Rescan for Clients (Run 5s Scan again)"
+        echo "r) Refresh Client List (Read Capture File)"
         
         read -r -p "Select Target [1-$((c-1))] or 'r' (Default 1): " sel
         sel=${sel:-1}
         
         # RESCAN LOGIC
         if [[ "${sel,,}" == "r" ]]; then
-            perform_client_micro_scan
+            log_info "Reloading client data from capture file..."
+            sleep 0.5
             continue
         fi
         
