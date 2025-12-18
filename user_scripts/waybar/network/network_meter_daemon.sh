@@ -2,6 +2,13 @@
 # waybar-netd: Signal-driven network speed daemon
 set -euo pipefail
 
+# ELITE OPTIMIZATION: Load 'sleep' as a builtin.
+# This prevents forking a new process every second.
+# On Arch, this is provided by the 'bash' package.
+if [[ -f /usr/lib/bash/sleep ]]; then
+    enable -f /usr/lib/bash/sleep sleep 2>/dev/null || true
+fi
+
 RUNTIME="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 STATE_DIR="$RUNTIME/waybar-net"
 STATE_FILE="$STATE_DIR/state"
@@ -14,13 +21,27 @@ echo $$ > "$PID_FILE"
 
 # Clean up entire directory (including PID file) on exit
 trap 'rm -rf "$STATE_DIR"' EXIT
-
 # TRAP: Allow USR1 to interrupt sleep without crashing the script
 trap ':' USR1
 
 get_primary_iface() {
     (ip route get 1.1.1.1 2>/dev/null || true) | \
         awk '{for(i=1;i<=NF;i++) if($i=="dev"){print $(i+1); exit}}'
+}
+
+# Pure Bash timing function (Microseconds) - No forks!
+get_time_us() {
+    local t="${EPOCHREALTIME:-}"
+    if [[ -z "$t" ]]; then
+        # Fallback for older bash (unlikely on Arch)
+        echo $(($(date +%s%N) / 1000))
+    else
+        # Split seconds and microseconds
+        IFS=. read -r s us <<< "$t"
+        # Pad to ensure 6 digits (0.1 -> 100000, 0.000001 -> 000001)
+        us="${us}000000"
+        echo "$(( s * 1000000 + 10#${us:0:6} ))"
+    fi
 }
 
 rx_prev=0
@@ -53,16 +74,18 @@ while :; do
         mv -f "$STATE_FILE.tmp" "$STATE_FILE"
         rx_prev=0; tx_prev=0
         
-        # Sleep 3s, but allow wake-up signal
-        sleep 3 &
+        # Sleep 3s (backgrounded to allow wake-up)
+        # Note: We don't use builtin sleep here because we need '&' backgrounding
+        # which works better with external processes for PID tracking.
+        /usr/bin/sleep 3 &
         wait $! || true
-        # FIX: Kill the background sleep if woken early
         kill $! 2>/dev/null || true
         continue
     fi
 
     # 4. CONNECTED STATE
-    start_time=$(date +%s%N)
+    # OPTIMIZATION: Get start time without 'date' fork
+    start_time=$(get_time_us)
 
     if [[ "$current_iface" != "$iface" ]]; then
         iface="$current_iface"
@@ -111,14 +134,17 @@ while :; do
     }' > "$STATE_FILE.tmp"
     mv -f "$STATE_FILE.tmp" "$STATE_FILE"
 
-    # 5. PRECISION SLEEP
-    end_time=$(date +%s%N)
-    elapsed_ms=$(( (end_time - start_time) / 1000000 ))
-    sleep_ms=$(( 1000 - elapsed_ms ))
+    # 5. PRECISION SLEEP (Microsecond Precision)
+    end_time=$(get_time_us)
+    elapsed_us=$(( end_time - start_time ))
+    # Target: 1 second (1,000,000 microseconds)
+    sleep_us=$(( 1000000 - elapsed_us ))
 
-    if (( sleep_ms >= 1000 )); then
+    if (( sleep_us >= 1000000 )); then
         sleep 1 || true
-    elif (( sleep_ms > 0 )); then
-        sleep "0.$(printf "%03d" $sleep_ms)" || true
+    elif (( sleep_us > 0 )); then
+        # Format explicitly for sleep command
+        printf -v sleep_arg "0.%06d" "$sleep_us"
+        sleep "$sleep_arg" || true
     fi
 done
