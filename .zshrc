@@ -275,6 +275,89 @@ mkcd() {
   mkdir -p "$1" && cd "$1"
 }
 
+# --- Windows 10 KVM Manager ---
+# HOW TO USE 
+# Start VM: win start
+# Open Looking Glass: win view
+# Do both (One-click gaming): win launch
+# Kill it: win kill
+
+win() {
+    local vm="win10"
+    local shm_file="/dev/shm/looking-glass"
+    local lg_cmd="looking-glass-client -f ${shm_file} -m KEY_F6"
+
+    # Helper for colored output
+    local p_info() { echo -e "\e[34m[WIN10]\e[0m $1"; }
+    local p_err()  { echo -e "\e[31m[ERROR]\e[0m $1"; }
+
+    case "$1" in
+        start)
+            p_info "Starting VM..."
+            sudo virsh start "$vm"
+            ;;
+        stop|shutdown)
+            p_info "Sending shutdown signal..."
+            sudo virsh shutdown "$vm"
+            ;;
+        kill|destroy)
+            p_info "Forcefully destroying VM..."
+            sudo virsh destroy "$vm"
+            ;;
+        reboot)
+            p_info "Rebooting VM..."
+            sudo virsh reboot "$vm"
+            ;;
+        view|lg|show)
+            if [ -f "$shm_file" ]; then
+                p_info "Launching Looking Glass..."
+                eval "$lg_cmd"
+            else
+                p_err "Looking Glass SHM file not found. Is the VM running?"
+            fi
+            ;;
+        # --- Advanced Options ---
+        launch|play)
+            # Starts VM and waits for Looking Glass to be ready
+            p_info "Two birds one stone: Starting VM and waiting for Looking Glass..."
+            sudo virsh start "$vm" 2>/dev/null
+            
+            p_info "Waiting for Shared Memory..."
+            # Efficient bash wait loop (timeout after 30s)
+            local timeout=30
+            while [ ! -f "$shm_file" ] && [ $timeout -gt 0 ]; do
+                sleep 1
+                ((timeout--))
+            done
+
+            if [ -f "$shm_file" ]; then
+                p_info "Ready! Launching Client..."
+                eval "$lg_cmd"
+            else
+                p_err "Timed out waiting for VM graphics."
+            fi
+            ;;
+        status)
+            sudo virsh domstate "$vm"
+            ;;
+        edit)
+            sudo virsh edit "$vm"
+            ;;
+        *)
+            echo "Usage: win {start|stop|kill|reboot|view|launch|status|edit}"
+            ;;
+    esac
+}
+
+# --- Auto-Completion for 'win' ---
+# This makes hitting 'tab' show your options
+_win_completion() {
+    local -a commands
+    commands=('start' 'stop' 'kill' 'reboot' 'view' 'launch' 'status' 'edit')
+    _describe 'command' commands
+}
+compdef _win_completion win
+
 
 # -----------------------------------------------------------------------------
 #  Pacman / Expac Metrics
