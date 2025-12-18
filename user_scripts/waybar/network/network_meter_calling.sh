@@ -4,6 +4,7 @@
 STATE_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/waybar-net"
 STATE_FILE="$STATE_DIR/state"
 HEARTBEAT_FILE="$STATE_DIR/heartbeat"
+PID_FILE="$STATE_DIR/daemon.pid"
 
 # Default values
 UNIT="KB"
@@ -16,17 +17,17 @@ if [[ -r "$STATE_FILE" ]]; then
     read -r UNIT UP DOWN CLASS < "$STATE_FILE"
 fi
 
-# 2. SIGNAL DAEMON
+# 2. SIGNAL DAEMON (Optimized PID method)
 mkdir -p "$STATE_DIR"
 touch "$HEARTBEAT_FILE"
 
-# FIX APPLIED: Always signal the daemon.
-# The previous logic prevented signaling when "disconnected", assuming the daemon 
-# was on a short 3s loop. However, if the daemon entered the 600s "Deep Sleep" 
-# (due to inactivity) while disconnected, it would NEVER wake up because 
-# this script refused to send the signal.
-# We use -f to match the script name regardless of path.
-pkill -USR1 -f "network_meter_daemon.sh" || true
+# OPTIMIZATION: Use PID file instead of pkill to avoid /proc scan overhead
+if [[ -f "$PID_FILE" ]]; then
+    kill -USR1 "$(< "$PID_FILE")" 2>/dev/null || true
+else
+    # Fallback if daemon is starting up or PID file missing
+    pkill -USR1 -f "network_meter_daemon.sh" || true
+fi
 
 # 3. FORMATTING (Strict 3 chars)
 fmt_fixed() {
@@ -49,7 +50,6 @@ D_DOWN=$(fmt_fixed "$DOWN")
 if [[ "$CLASS" == "network-disconnected" ]]; then
     TOOLTIP="Disconnected"
 else
-    # Safe tooltip for all modes
     TOOLTIP="Interface: ${CLASS}\nUpload: ${UP} ${UNIT}/s\nDownload: ${DOWN} ${UNIT}/s"
 fi
 
