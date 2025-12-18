@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
-# waybar-netd: Signal-driven network speed daemon
+# waybar-netd: Zero-fork optimized network speed daemon
 set -euo pipefail
 
-# ELITE OPTIMIZATION: Load 'sleep' as a builtin.
-# This prevents forking a new process every second.
-# On Arch, this is provided by the 'bash' package.
+# Load 'sleep' as builtin (avoids fork every second)
 if [[ -f /usr/lib/bash/sleep ]]; then
     enable -f /usr/lib/bash/sleep sleep 2>/dev/null || true
 fi
@@ -19,132 +17,153 @@ mkdir -p "$STATE_DIR"
 touch "$HEARTBEAT_FILE"
 echo $$ > "$PID_FILE"
 
-# Clean up entire directory (including PID file) on exit
 trap 'rm -rf "$STATE_DIR"' EXIT
-# TRAP: Allow USR1 to interrupt sleep without crashing the script
 trap ':' USR1
 
+# Interface check - FIXED: handle failure gracefully
 get_primary_iface() {
-    (ip route get 1.1.1.1 2>/dev/null || true) | \
-        awk '{for(i=1;i<=NF;i++) if($i=="dev"){print $(i+1); exit}}'
+    ip route get 1.1.1.1 2>/dev/null | \
+        awk '{for(i=1;i<=NF;i++) if($i=="dev"){print $(i+1); exit}}' || :
 }
 
-# Pure Bash timing function (Microseconds) - No forks!
+# Pure bash timing via nameref (no subshell)
 get_time_us() {
-    local t="${EPOCHREALTIME:-}"
-    if [[ -z "$t" ]]; then
-        # Fallback for older bash (unlikely on Arch)
-        echo $(($(date +%s%N) / 1000))
+    local -n _out=$1
+    local s us
+    IFS=. read -r s us <<< "${EPOCHREALTIME:-0.0}"
+    us="${us}000000"
+    _out=$(( s * 1000000 + 10#${us:0:6} ))
+}
+
+# Pure bash speed formatting (replaces awk)
+format_speed() {
+    local -n _unit=$1 _tx=$2 _rx=$3 _class=$4
+    local rx_d=$5 tx_d=$6
+    local max=$(( rx_d > tx_d ? rx_d : tx_d ))
+
+    if (( max >= 1048576 )); then
+        local tx_x10=$(( tx_d * 10 / 1048576 ))
+        local rx_x10=$(( rx_d * 10 / 1048576 ))
+
+        if (( tx_x10 < 100 )); then
+            _tx="$((tx_x10 / 10)).$((tx_x10 % 10))"
+        else
+            _tx="$((tx_x10 / 10))"
+        fi
+
+        if (( rx_x10 < 100 )); then
+            _rx="$((rx_x10 / 10)).$((rx_x10 % 10))"
+        else
+            _rx="$((rx_x10 / 10))"
+        fi
+
+        _unit="MB"
+        _class="network-mb"
     else
-        # Split seconds and microseconds
-        IFS=. read -r s us <<< "$t"
-        # Pad to ensure 6 digits (0.1 -> 100000, 0.000001 -> 000001)
-        us="${us}000000"
-        echo "$(( s * 1000000 + 10#${us:0:6} ))"
+        _tx=$(( tx_d / 1024 ))
+        _rx=$(( rx_d / 1024 ))
+        _unit="KB"
+        _class="network-kb"
     fi
 }
 
 rx_prev=0
 tx_prev=0
 iface=""
+iface_counter=0
+hb_counter=2  # FIXED: Will trigger heartbeat check on first iteration (2+1=3)
+hb_time=0
 
 while :; do
-    # 1. WATCHDOG: Check if Waybar is active
     now=$(printf '%(%s)T' -1)
-    if [[ -f "$HEARTBEAT_FILE" ]]; then
-        last_heartbeat=$(stat -c %Y "$HEARTBEAT_FILE" 2>/dev/null || echo 0)
-    else
-        last_heartbeat=0
+
+    # WATCHDOG: Check heartbeat every 3 iterations
+    if (( ++hb_counter >= 3 )); then
+        hb_counter=0
+        if [[ -f "$HEARTBEAT_FILE" ]]; then
+            hb_time=$(stat -c %Y "$HEARTBEAT_FILE" 2>/dev/null) || hb_time=$now
+        else
+            hb_time=$now  # FIXED: No heartbeat file = assume active (first run)
+        fi
     fi
-    
-    # If Waybar has been gone for >3 seconds, Deep Sleep (10 mins)
-    if (( (now - last_heartbeat) > 3 )); then
+
+    # Deep sleep if Waybar inactive >10s
+    if (( now - hb_time > 10 )); then
         sleep 600 &
         wait $! || true
-        kill $! 2>/dev/null || true
+        hb_counter=10  # Force check on wake
         continue
     fi
 
-    # 2. CHECK CONNECTION
-    current_iface=$(get_primary_iface)
+    # INTERFACE CHECK: Every 5 iterations (or if empty)
+    if (( ++iface_counter >= 5 )) || [[ -z "$iface" ]]; then
+        iface_counter=0
+        current_iface=$(get_primary_iface)  # Now safe - returns empty on failure
+    else
+        current_iface="$iface"
+    fi
 
-    # 3. DISCONNECTED STATE (Low Power)
+    # DISCONNECTED
     if [[ -z "$current_iface" ]]; then
-        echo "- - - network-disconnected" > "$STATE_FILE.tmp"
+        printf '%s\n' "- - - network-disconnected" > "$STATE_FILE.tmp"
         mv -f "$STATE_FILE.tmp" "$STATE_FILE"
-        rx_prev=0; tx_prev=0
-        
-        # Sleep 3s (backgrounded to allow wake-up)
-        # Note: We don't use builtin sleep here because we need '&' backgrounding
-        # which works better with external processes for PID tracking.
-        /usr/bin/sleep 3 &
-        wait $! || true
-        kill $! 2>/dev/null || true
+        rx_prev=0
+        tx_prev=0
+        iface=""
+        sleep 3 || true
         continue
     fi
 
-    # 4. CONNECTED STATE
-    # OPTIMIZATION: Get start time without 'date' fork
-    start_time=$(get_time_us)
+    # CONNECTED
+    get_time_us start_time
 
     if [[ "$current_iface" != "$iface" ]]; then
         iface="$current_iface"
-        rx_prev=0; tx_prev=0
+        rx_prev=0
+        tx_prev=0
     fi
 
-    if [[ -r "/sys/class/net/$iface/statistics/rx_bytes" ]]; then
-        read -r rx_now < "/sys/class/net/$iface/statistics/rx_bytes"
-        read -r tx_now < "/sys/class/net/$iface/statistics/tx_bytes"
+    # Read stats - FIXED: handle missing interface gracefully
+    if [[ -r "/sys/class/net/$iface/statistics/rx_bytes" ]] && \
+       [[ -r "/sys/class/net/$iface/statistics/tx_bytes" ]]; then
+        read -r rx_now < "/sys/class/net/$iface/statistics/rx_bytes" || rx_now=0
+        read -r tx_now < "/sys/class/net/$iface/statistics/tx_bytes" || tx_now=0
     else
-        rx_now=0; tx_now=0
+        rx_now=0
+        tx_now=0
     fi
 
-    if [[ $rx_prev -eq 0 && $tx_prev -eq 0 ]]; then
-        rx_prev=$rx_now; tx_prev=$tx_now
+    # First sample: store and wait
+    if (( rx_prev == 0 && tx_prev == 0 )); then
+        rx_prev=$rx_now
+        tx_prev=$tx_now
         sleep 1 || true
         continue
     fi
 
+    # Calculate deltas
     rx_delta=$(( rx_now - rx_prev ))
     tx_delta=$(( tx_now - tx_prev ))
-    [[ $rx_delta -lt 0 ]] && rx_delta=0
-    [[ $tx_delta -lt 0 ]] && tx_delta=0
-
+    (( rx_delta < 0 )) && rx_delta=0
+    (( tx_delta < 0 )) && tx_delta=0
     rx_prev=$rx_now
     tx_prev=$tx_now
 
-    awk -v rx="$rx_delta" -v tx="$tx_delta" '
-    function fmt(val, is_mb) {
-        if (is_mb) {
-            val = val / 1048576
-            if (val < 10) return sprintf("%.1f", val)
-            return sprintf("%.0f", val)
-        } else {
-            val = val / 1024
-            return sprintf("%.0f", val)
-        }
-    }
-    BEGIN {
-        max = (rx > tx ? rx : tx)
-        if (max >= 1048576) {
-            printf "MB %s %s network-mb\n", fmt(tx, 1), fmt(rx, 1)
-        } else {
-            printf "KB %s %s network-kb\n", fmt(tx, 0), fmt(rx, 0)
-        }
-    }' > "$STATE_FILE.tmp"
+    # Format and write (pure bash - no fork)
+    format_speed unit tx_fmt rx_fmt class "$rx_delta" "$tx_delta"
+    printf '%s %s %s %s\n' "$unit" "$tx_fmt" "$rx_fmt" "$class" > "$STATE_FILE.tmp"
     mv -f "$STATE_FILE.tmp" "$STATE_FILE"
 
-    # 5. PRECISION SLEEP (Microsecond Precision)
-    end_time=$(get_time_us)
-    elapsed_us=$(( end_time - start_time ))
-    # Target: 1 second (1,000,000 microseconds)
-    sleep_us=$(( 1000000 - elapsed_us ))
+    # PRECISION SLEEP
+    get_time_us end_time
+    sleep_us=$(( 1000000 - (end_time - start_time) ))
 
-    if (( sleep_us >= 1000000 )); then
+    if (( sleep_us <= 0 )); then
+        :  # Behind schedule, skip sleep
+    elif (( sleep_us >= 1000000 )); then
         sleep 1 || true
-    elif (( sleep_us > 0 )); then
-        # Format explicitly for sleep command
-        printf -v sleep_arg "0.%06d" "$sleep_us"
-        sleep "$sleep_arg" || true
+    else
+        printf -v sleep_sec "0.%06d" "$sleep_us"
+        sleep "$sleep_sec" || true
     fi
 done
