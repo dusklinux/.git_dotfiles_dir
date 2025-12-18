@@ -36,7 +36,7 @@ while :; do
     if (( (now - last_heartbeat) > 3 )); then
         # We run sleep in background & wait so we can catch the wake-up signal
         sleep 600 &
-        wait $! || true  # <--- CRITICAL FIX: '|| true' prevents crash on signal
+        wait $! || true  # '|| true' prevents crash on signal
         kill $! 2>/dev/null || true
         continue
     fi
@@ -53,6 +53,8 @@ while :; do
         # Sleep 3s, but allow wake-up signal
         sleep 3 &
         wait $! || true
+        # FIX APPLIED: Kill the background sleep when woken up by signal
+        kill $! 2>/dev/null || true
         continue
     fi
 
@@ -113,7 +115,7 @@ while :; do
     elapsed_ms=$(( (end_time - start_time) / 1000000 ))
     sleep_ms=$(( 1000 - elapsed_ms ))
 
-    # CRITICAL FIX: Handle cases where sleep_ms >= 1000 or <= 0
+    # Handle cases where sleep_ms >= 1000 or <= 0
     if (( sleep_ms >= 1000 )); then
         sleep 1 || true
     elif (( sleep_ms > 0 )); then

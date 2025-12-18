@@ -20,12 +20,13 @@ fi
 mkdir -p "$STATE_DIR"
 touch "$HEARTBEAT_FILE"
 
-# Only signal if connected. If disconnected, daemon wakes every 3s anyway.
-# This prevents spamming signals.
-if [[ "$CLASS" != "network-disconnected" ]]; then
-    # We use -f to match the script name regardless of path
-    pkill -USR1 -f "network_meter_daemon.sh" || true
-fi
+# FIX APPLIED: Always signal the daemon.
+# The previous logic prevented signaling when "disconnected", assuming the daemon 
+# was on a short 3s loop. However, if the daemon entered the 600s "Deep Sleep" 
+# (due to inactivity) while disconnected, it would NEVER wake up because 
+# this script refused to send the signal.
+# We use -f to match the script name regardless of path.
+pkill -USR1 -f "network_meter_daemon.sh" || true
 
 # 3. FORMATTING (Strict 3 chars)
 fmt_fixed() {
