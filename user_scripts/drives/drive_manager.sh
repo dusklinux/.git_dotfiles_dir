@@ -215,7 +215,11 @@ do_unlock() {
             fi
 
             # Unlock with retry limit
-            while ! udisksctl unlock --block-device "$outer_dev" 2>&1 | grep -v "^$"; do
+            while true; do
+                if udisksctl unlock --block-device "$outer_dev" 2>&1; then
+                    break
+                fi
+                
                 ((unlock_attempts++))
                 
                 if [[ $unlock_attempts -ge $MAX_UNLOCK_RETRIES ]]; then
@@ -256,16 +260,17 @@ do_unlock() {
     # Mount the drive
     log "Mounting to $MOUNTPOINT..."
     
-    local mount_error
+    local mount_error1 mount_error2
     
     # Try udisksctl first (uses polkit, respects fstab)
-    if mount_error=$(udisksctl mount --block-device "$mount_dev" 2>&1); then
+    if mount_error1=$(udisksctl mount --block-device "$mount_dev" 2>&1); then
         success "'$TARGET' mounted at $MOUNTPOINT"
     # Fallback to sudo mount
-    elif mount_error=$(sudo mount "$MOUNTPOINT" 2>&1); then
+    elif mount_error2=$(sudo mount "$MOUNTPOINT" 2>&1); then
         success "'$TARGET' mounted at $MOUNTPOINT"
     else
-        err "Mount failed: $mount_error"
+        err "Mount failed (udisksctl): $mount_error1"
+        err "Mount failed (sudo mount): $mount_error2"
         err "Check /etc/fstab entry for $MOUNTPOINT"
         exit 1
     fi
