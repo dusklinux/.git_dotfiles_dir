@@ -63,14 +63,14 @@ window#waybar {
 /* --- CENTER SECTION --- */
 #workspaces {
     background-color: @surface_container_high;
-    padding: 8px 0;
+    padding: 2px 0;
 }
 
 #workspaces button {
     padding: 4px 0;
     /* CHANGED: Reduced horizontal margin */
     margin: 2px 2px; 
-    border-radius: 6px;
+    border-radius: 9px;
     color: @on_surface_variant;
     background: transparent;
     transition: all 0.2s ease;
