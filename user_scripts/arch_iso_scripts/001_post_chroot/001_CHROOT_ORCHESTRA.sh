@@ -10,13 +10,13 @@
 INSTALL_SEQUENCE=(
     "002_etc_skel.sh"
     "003_post_chroot.sh"
-    "004_chroot_package_installer.sh"
-    "005_mkinitcpio_generation.sh"
-    "006_systemd_bootloader.sh"
-    "006_grub.sh"
-    "007_zram_config.sh"
-    "008_services.sh"
-    "009_exiting_unmounting.sh"
+    "005_chroot_package_installer.sh"
+    "006_mkinitcpio_generation.sh"
+    "007_systemd_bootloader.sh"
+    "008_grub.sh"
+    "009_zram_config.sh"
+    "010_services.sh"
+    "011_exiting_unmounting.sh"
 )
 
 # --- 2. SETUP & SAFETY ---

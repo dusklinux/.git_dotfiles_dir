@@ -66,7 +66,7 @@ These scripts default to **Intel (CPU) +  Intel Integrated GPU + Nvidia (GPU)**
 
 > [!CAUTION]
 > 
-> AMD Users: You must edit the 004_package_installation.sh script before running the installer.
+> AMD Users: You must edit the 005_package_installation.sh script before running the installer.
 > 
 > 1. Open the script.
 >     
