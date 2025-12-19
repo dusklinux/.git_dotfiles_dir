@@ -1,0 +1,147 @@
+23:26:51.265: Platform: Wayland
+23:26:51.266: CPU Name: 12th Gen Intel(R) Core(TM) i7-12700H
+23:26:51.266: CPU Speed: 4400.000MHz
+23:26:51.266: Physical Cores: 14, Logical Cores: 20
+23:26:51.266: Physical Memory: 63912MB Total, 47587MB Free
+23:26:51.266: Kernel Version: Linux 6.18.1-arch1-2
+23:26:51.266: Distribution: "Arch Linux" Unknown
+23:26:51.266: Desktop Environment: Hyprland (Hyprland)
+23:26:51.266: Session Type: wayland
+23:26:51.267: Current Date/Time: 2025-12-19, 11:26:51 PM
+23:26:51.267: Browser Hardware Acceleration: true
+23:26:51.267: Qt Version: 6.10.1 (runtime), 6.10.1 (compiled)
+23:26:51.267: Portable mode: false
+23:26:51.287: OBS 32.0.2 (linux)
+23:26:51.287: ---------------------------------
+23:26:51.287: ---------------------------------
+23:26:51.287: audio settings reset:
+23:26:51.287: 	samples per sec: 48000
+23:26:51.287: 	speakers:        2
+23:26:51.287: 	max buffering:   960 milliseconds
+23:26:51.287: 	buffering type:  dynamically increasing
+23:26:51.289: ---------------------------------
+23:26:51.289: Initializing OpenGL...
+23:26:51.289: Using EGL/Wayland
+23:26:51.318: Initialized EGL 1.5
+23:26:51.327: Loading up OpenGL on adapter Intel Mesa Intel(R) Iris(R) Xe Graphics (ADL GT2)
+23:26:51.327: OpenGL loaded successfully, version 4.6 (Core Profile) Mesa 25.3.2-arch1.1, shading language 4.60
+23:26:51.413: ---------------------------------
+23:26:51.413: video settings reset:
+23:26:51.413: 	base resolution:   1920x1080
+23:26:51.413: 	output resolution: 1280x720
+23:26:51.413: 	downscale filter:  Bicubic
+23:26:51.413: 	fps:               30/1
+23:26:51.413: 	format:            NV12
+23:26:51.413: 	YUV mode:          Rec. 709/Partial
+23:26:51.413: NV12 texture support enabled
+23:26:51.413: P010 texture support not available
+23:26:51.417: Audio monitoring device:
+23:26:51.417: 	name: Default
+23:26:51.417: 	id: default
+23:26:51.418: ---------------------------------
+23:26:51.420: Failed to load 'en-US' text for module: 'decklink-captions.so'
+23:26:51.421: Failed to load 'en-US' text for module: 'decklink-output-ui.so'
+23:26:51.423: A DeckLink iterator could not be created.  The DeckLink drivers may not be installed
+23:26:51.423: Failed to initialize module 'decklink.so'
+23:26:51.498: [pipewire] Available capture sources:
+23:26:51.498: [pipewire]     - Monitor source
+23:26:51.498: [pipewire]     - Window source
+23:26:51.504: v4l2loopback not installed, virtual camera not registered
+23:26:51.513: LIBVA_DRIVER_NAME variable is set, this could prevent FFmpeg VAAPI from working correctly
+23:26:51.515: VAAPI: API version 1.22
+23:26:51.515: FFmpeg VAAPI H264 encoding supported
+23:26:51.516: FFmpeg VAAPI AV1 encoding not supported
+23:26:51.518: FFmpeg VAAPI HEVC encoding supported
+23:26:54.141: [NVENC] Test process failed: unknown
+23:26:54.141: NVENC not supported
+23:26:54.141: Failed to initialize module 'obs-nvenc.so'
+23:26:54.843: [obs-websocket] [obs_module_load] you can haz websockets (Version: 5.6.3 | RPC Version: 1)
+23:26:54.843: [obs-websocket] [obs_module_load] Qt version (compile-time): 6.10.1 | Qt version (run-time): 6.10.1
+23:26:54.843: [obs-websocket] [obs_module_load] Linked ASIO Version: 103600
+23:26:54.843: [obs-websocket] [Config::Load] Existing configuration not found, using defaults.
+23:26:54.843: [obs-websocket] [Config::Load] (FirstLoad) Generating new server password.
+23:26:54.846: [obs-websocket] [obs_module_load] Module loaded.
+23:26:54.849: ---------------------------------
+23:26:54.849:   Loaded Modules:
+23:26:54.849:     text-freetype2.so
+23:26:54.849:     rtmp-services.so
+23:26:54.849:     obs-x264.so
+23:26:54.849:     obs-websocket.so
+23:26:54.849:     obs-webrtc.so
+23:26:54.849:     obs-vst.so
+23:26:54.849:     obs-transitions.so
+23:26:54.849:     obs-qsv11.so
+23:26:54.849:     obs-outputs.so
+23:26:54.849:     obs-libfdk.so
+23:26:54.849:     obs-filters.so
+23:26:54.849:     obs-ffmpeg.so
+23:26:54.849:     linux-v4l2.so
+23:26:54.849:     linux-pulseaudio.so
+23:26:54.849:     linux-pipewire.so
+23:26:54.849:     linux-jack.so
+23:26:54.849:     linux-capture.so
+23:26:54.849:     linux-alsa.so
+23:26:54.849:     image-source.so
+23:26:54.849:     frontend-tools.so
+23:26:54.849:     decklink-output-ui.so
+23:26:54.849:     decklink-captions.so
+23:26:54.849: ---------------------------------
+23:26:54.849: ---------------------------------
+23:26:54.849: Available Encoders:
+23:26:54.849:   Video Encoders:
+23:26:54.849: 	- ffmpeg_svt_av1 (SVT-AV1)
+23:26:54.849: 	- ffmpeg_aom_av1 (AOM AV1)
+23:26:54.849: 	- ffmpeg_vaapi_tex (FFmpeg VAAPI H.264)
+23:26:54.849: 	- hevc_ffmpeg_vaapi_tex (FFmpeg VAAPI HEVC)
+23:26:54.849: 	- obs_qsv11_v2 (QuickSync H.264)
+23:26:54.849: 	- obs_qsv11_hevc (QuickSync HEVC)
+23:26:54.849: 	- obs_x264 (x264)
+23:26:54.849:   Audio Encoders:
+23:26:54.849: 	- ffmpeg_aac (FFmpeg AAC)
+23:26:54.849: 	- ffmpeg_opus (FFmpeg Opus)
+23:26:54.849: 	- ffmpeg_pcm_s16le (FFmpeg PCM (16-bit))
+23:26:54.849: 	- ffmpeg_pcm_s24le (FFmpeg PCM (24-bit))
+23:26:54.849: 	- ffmpeg_pcm_f32le (FFmpeg PCM (32-bit float))
+23:26:54.849: 	- ffmpeg_alac (FFmpeg ALAC (24-bit))
+23:26:54.849: 	- ffmpeg_flac (FFmpeg FLAC (16-bit))
+23:26:54.849: 	- libfdk_aac (libfdk AAC)
+23:26:54.849: ==== Startup complete ===============================================
+23:26:54.851: No scene file found, creating default scene
+23:26:54.894: Failed to register with host portal QDBusError("org.freedesktop.portal.Error.Failed", "Could not register app ID: Connection already associated with an application ID")
+23:26:54.894: All scene data cleared
+23:26:54.894: ------------------------------------------------
+23:26:54.905: pulse-input: Server name: 'PulseAudio (on PipeWire 1.4.9) 15.0.0'
+23:26:54.905: pulse-input: Audio format: s24le, 48000 Hz, 2 channels
+23:26:54.905: pulse-input: Sample format s24le not supported by OBS,using float32le instead for recording
+23:26:54.905: pulse-input: Started recording from 'alsa_output.usb-ASUSTeK_COMPUTER_INC._C-Media_R__Audio-00.analog-stereo.monitor' (default)
+23:26:54.905: pulse-input: Server name: 'PulseAudio (on PipeWire 1.4.9) 15.0.0'
+23:26:54.905: pulse-input: Audio format: s16le, 48000 Hz, 2 channels
+23:26:54.905: pulse-input: Started recording from 'alsa_input.usb-ASUSTeK_COMPUTER_INC._C-Media_R__Audio-00.analog-stereo' (default)
+23:26:54.906: Switched to scene 'Scene'
+23:26:54.906: Created scene collection 'Untitled' (clean, Untitled.json)
+23:26:54.906: ------------------------------------------------
+23:26:54.914: Device for 'Audio Output Capture' source is also used for audio monitoring:
+23:26:54.914: Deduplication logic is being applied to all monitored sources.
+23:26:54.914: 
+23:26:55.512: adding 42 milliseconds of audio buffering, total audio buffering is now 42 milliseconds (source: Desktop Audio)
+23:26:55.512: 
+23:26:55.984: [rtmp-services plugin] Successfully updated file 'services.json' (version 281)
+23:26:55.984: [rtmp-services plugin] Successfully updated package (version 281)
+23:30:33.522: 
+23:30:33.522: ==== Auto-config wizard testing commencing ======
+
+23:30:58.651: ---------------------------------
+23:30:58.651: video settings reset:
+23:30:58.651: 	base resolution:   1920x1080
+23:30:58.651: 	output resolution: 1920x1080
+23:30:58.651: 	downscale filter:  Bicubic
+23:30:58.651: 	fps:               60/1
+23:30:58.651: 	format:            NV12
+23:30:58.651: 	YUV mode:          Rec. 709/Partial
+23:30:58.651: NV12 texture support enabled
+23:30:58.651: P010 texture support not available
+23:30:58.655: 
+23:30:58.655: ==== Auto-config wizard testing stopping ========
+
+23:38:56.134: Settings changed (outputs)
+23:38:56.134: ------------------------------------------------
