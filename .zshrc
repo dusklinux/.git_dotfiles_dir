@@ -344,7 +344,7 @@ win() {
             sudo virsh edit "$vm"
             ;;
         *)
-            echo "Usage: win {start|stop|kill|reboot|view|launch|status|edit}"
+            echo "Usage: win {start|shutdown|destroy|reboot|view|launch|status|edit}"
             ;;
     esac
 }
@@ -353,7 +353,7 @@ win() {
 # This makes hitting 'tab' show your options
 _win_completion() {
     local -a commands
-    commands=('start' 'stop' 'kill' 'reboot' 'view' 'launch' 'status' 'edit')
+    commands=('start' 'shutdown' 'destroy' 'reboot' 'view' 'launch' 'status' 'edit')
     _describe 'command' commands
 }
 compdef _win_completion win
