@@ -84,7 +84,7 @@ main() {
         log_info "Waybar is not running. Starting via UWSM..."
         # Launch using UWSM to ensure proper systemd scoping and env vars
         if command -v uwsm > /dev/null 2>&1; then
-            uwsm app -- "${APP_NAME}" > /dev/null 2>&1 &
+            uwsm-app -- "${APP_NAME}" > /dev/null 2>&1 &
         else
             # Fallback if UWSM isn't in PATH (unlikely given constraints)
             "${APP_NAME}" > /dev/null 2>&1 &
