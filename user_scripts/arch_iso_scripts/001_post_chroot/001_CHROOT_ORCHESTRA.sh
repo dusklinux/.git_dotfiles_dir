@@ -10,6 +10,7 @@
 INSTALL_SEQUENCE=(
     "002_etc_skel.sh"
     "003_post_chroot.sh"
+    "004_mkintcpip_optimizer.sh"
     "005_chroot_package_installer.sh"
     "006_mkinitcpio_generation.sh"
     "007_systemd_bootloader.sh"

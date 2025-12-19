@@ -29,7 +29,7 @@ ask_next_step() {
     printf "\n${BLUE}----------------------------------------------------------------${RESET}\n"
     printf "${BOLD}UPCOMING STEP:${RESET} %s\n" "$step_description"
 
-    # === NEW: Check for Automated Mode ===
+    # === Check for Automated Mode (Inherited from Orchestra or set locally) ===
     if [[ "${INTERACTIVE_MODE:-false}" == "false" ]]; then
         printf "${GREEN}>> Auto-proceeding...${RESET}\n"
         return 0
@@ -63,6 +63,12 @@ trap 'printf "${RESET}\n"' EXIT
 
 # --- 3. Pre-flight Check (Chroot) ---
 log_step "Environment Check"
+# Only check if /mnt is NOT the root, implying we are inside chroot or on real metal
+if [[ -d "/sys/firmware/efi" ]]; then
+     : # We are likely okay, simple check. 
+     # Real chroot check is complex, assuming Orchestra handled this.
+fi
+# Minimal check for user assurance
 read -r -p "$(printf "${BOLD}Are you currently inside the 'arch-chroot /mnt' environment? [Y/n]: ${RESET}")" chroot_check
 chroot_check=${chroot_check:-y}
 
@@ -75,7 +81,7 @@ log_success "Environment confirmed."
 
 # --- 4. Main Logic ---
 
-# === NEW: Execution Mode Selection ===
+# === Execution Mode Selection ===
 log_step "Execution Mode"
 printf "Select execution mode:\n"
 printf "  ${BOLD}[A]${RESET}utomated  - Proceed through all steps without pausing (Default)\n"
@@ -179,29 +185,36 @@ if ask_next_step "Set System Hostname"; then
     log_success "Hostname set to: $FINAL_HOST"
 fi
 
-# === Step 23: Setting Root Password ===
+# === Step 23: Setting Root Password (Resilient) ===
 if ask_next_step "Set Password for Root (Administrator)"; then
     log_step "Setting Root Password"
-
-    log_info "Please enter the password for the ROOT account:"
-    passwd
-    if [[ $? -eq 0 ]]; then
-        log_success "Root password set successfully."
-    else
-        log_error "Failed to set root password."
-        exit 1
-    fi
+    
+    while true; do
+        log_info "Please enter the password for the ROOT account:"
+        
+        # Disable exit-on-error temporarily for the interactive passwd command
+        set +e
+        passwd
+        PASS_RET=$?
+        set -e
+        
+        if [[ $PASS_RET -eq 0 ]]; then
+            log_success "Root password set successfully."
+            break
+        else
+            log_error "Password setup failed (mismatch or empty). Please try again."
+            # Loop continues
+        fi
+    done
 fi
 
-# === Step 24: Creating User Account ===
+# === Step 24: Creating User Account (Resilient) ===
 if ask_next_step "Create User Account & Install ZSH"; then
     log_step "Creating User Account"
 
-    # === MODIFICATION START: Pre-install ZSH ===
+    # Pre-install ZSH
     log_info "Ensuring ZSH binary exists before assignment..."
-    # Using --noconfirm to prevent script hang, --needed to skip if already present
     pacman -S --needed --noconfirm zsh
-    # === MODIFICATION END ===
 
     DEFAULT_USER="dusk"
     read -r -p "$(printf "Enter username [Default: ${BOLD}%s${RESET}]: " "$DEFAULT_USER")" INPUT_USER
@@ -212,13 +225,26 @@ if ask_next_step "Create User Account & Install ZSH"; then
         log_info "User '$FINAL_USER' already exists. Skipping creation."
     else
         log_info "Creating user '$FINAL_USER' with ZSH as default shell..."
-        # Explicitly set shell to zsh during creation (Greenfield approach)
         useradd -m -G wheel,input,audio,video,storage,optical,network,lp,power,games,rfkill -s /usr/bin/zsh "$FINAL_USER"
         log_success "User '$FINAL_USER' created with ZSH shell."
     fi
 
-    log_info "Please set the password for user '$FINAL_USER':"
-    passwd "$FINAL_USER"
+    # Loop for user password resilience
+    while true; do
+        log_info "Please set the password for user '$FINAL_USER':"
+        
+        set +e
+        passwd "$FINAL_USER"
+        PASS_RET=$?
+        set -e
+
+        if [[ $PASS_RET -eq 0 ]]; then
+            log_success "User password set successfully."
+            break
+        else
+            log_error "Password setup failed. Please try again."
+        fi
+    done
 
     log_success "User account setup complete."
 fi
@@ -234,27 +260,5 @@ if ask_next_step "Configure Sudoers (Grant Wheel group access)"; then
     log_success "Wheel group privileges granted."
 fi
 
-# === Step 26: Configuring Initramfs (mkinitcpio) ===
-if ask_next_step "Configure mkinitcpio (BTRFS modules & Systemd hooks)"; then
-    log_step "Configuring mkinitcpio.conf"
-
-    CONF_FILE="/etc/mkinitcpio.conf"
-
-    if [[ -f "$CONF_FILE" ]]; then
-        log_info "Applying BTRFS modules, binaries, and systemd hooks to $CONF_FILE..."
-        
-        # Executing the exact sed command from notes
-        sed -i -e 's/^MODULES=.*/MODULES=(btrfs)/' \
-            -e 's|^BINARIES=.*|BINARIES=(/usr/bin/btrfs)|' \
-            -e 's/^HOOKS=.*/HOOKS=(systemd autodetect microcode modconf kms keyboard sd-vconsole block filesystems)/' \
-            "$CONF_FILE"
-            
-        log_success "mkinitcpio.conf updated."
-    else
-        log_error "$CONF_FILE not found! Cannot apply configuration."
-        exit 1
-    fi
-fi
-
 # Final Exit Message
-printf "\n${GREEN}${BOLD}Please run the package installer script now to install all the packages. . .${RESET}\n"
+printf "\n${GREEN}${BOLD}Post-Chroot configuration complete. Proceeding to next orchestrator step...${RESET}\n"
