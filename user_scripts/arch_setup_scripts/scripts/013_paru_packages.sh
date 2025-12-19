@@ -3,7 +3,6 @@
 # Script Name: install_pkg_manifest.sh
 # Description: Autonomous AUR/Repo package installer with failure intervention.
 # Context:     Arch Linux (Rolling) | Hyprland | UWSM
-# Author:      Gemini (Elite DevOps Persona)
 # ==============================================================================
 
 # ------------------------------------------------------------------------------

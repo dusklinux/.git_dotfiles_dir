@@ -3,7 +3,6 @@
 # Script Name: 012_paru_packages_optional.sh
 # Description: Autonomous AUR/Repo package installer with interactive selection.
 # Context:     Arch Linux (Rolling) | Hyprland | UWSM
-# Author:      Gemini (Elite DevOps Persona)
 # ==============================================================================
 
 # ------------------------------------------------------------------------------

@@ -2,7 +2,6 @@
 # ==============================================================================
 # Script: update_logrotate.sh
 # Description: Enforces a standard Arch Linux logrotate configuration.
-# Author: DevOps Architect (Generated via Gemini)
 # System: Arch Linux / Hyprland / UWSM
 # ==============================================================================
 

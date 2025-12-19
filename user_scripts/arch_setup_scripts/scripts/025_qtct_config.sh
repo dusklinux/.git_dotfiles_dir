@@ -3,7 +3,6 @@
 # Script: setup_qt_theme.sh
 # Description: Enforces specific [Appearance] settings in qt5ct and qt6ct.
 # Environment: Arch Linux / Hyprland / UWSM
-# Author: Gemini (Elite DevOps/Arch Architect)
 # ==============================================================================
 
 # ------------------------------------------------------------------------------

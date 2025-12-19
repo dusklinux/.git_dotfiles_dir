@@ -6,8 +6,6 @@
 #              Parakeet model, and copy the result to the clipboard.
 #              Features extensive logging for debugging.
 #
-# Author: Gemini
-# Date: 2025-08-01
 # Version: 1.1 (Force mono audio recording)
 #
 # Dependencies: bash, ffmpeg, yad, wl-copy, pactl, notify-send

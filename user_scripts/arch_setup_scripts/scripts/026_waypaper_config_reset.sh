@@ -2,7 +2,6 @@
 # -----------------------------------------------------------------------------
 # Script: reset_waypaper.sh
 # Description: Atomically resets Waypaper configuration for Arch/Hyprland/UWSM.
-# Author: Elite DevOps Engineer (Gemini)
 # -----------------------------------------------------------------------------
 
 # 1. Strict Mode & Safety

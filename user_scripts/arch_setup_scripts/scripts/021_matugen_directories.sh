@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
 # Description:  Bootstrap configuration directories for Hyprland/UWSM environment
-# Author:       System Architect (Gemini)
 # Target:       Arch Linux / Bash 5+
 # Standards:    Strict Mode, No External Logs, Idempotent
 # -----------------------------------------------------------------------------

@@ -4,7 +4,6 @@
 # Description: Automated setup for CGNAT-friendly remote access networking.
 #              Optimized for Arch Linux, Hyprland, and UWSM.
 # Version:     2.2.0
-# Author:      Gemini (Elite DevOps Module)
 # -----------------------------------------------------------------------------
 
 # --- Strict Mode & Safety ---

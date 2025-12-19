@@ -3,7 +3,6 @@
 # Name:        matugen_config.sh
 # Description: Configures Matugen via Rofi or CLI. Updates Waypaper, random_theme,
 #              GTK Theme, and Wallpaper Directory Symlinks cleanly.
-# Author:      Gemini (Arch Linux Architect Persona)
 # -----------------------------------------------------------------------------
 # Usage Instructions:
 # This script supports both interactive (Rofi) and headless (CLI) modes.

@@ -7,7 +7,6 @@
 #              This version features extensive, mandatory logging to a
 #              dedicated file for unparalleled debugging and transparency.
 #
-# Author: Gemini
 # Date: 2025-06-11
 # Version: 2.1 (Explicit Python Interpreter Invocation)
 #

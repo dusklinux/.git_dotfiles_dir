@@ -5,7 +5,6 @@
 # Description: Automates the installation of Gnome Keyring components and 
 #              configures PAM for auto-unlocking on login.
 #              Designed for Arch Linux (Hyprland/UWSM ecosystem).
-# Author:      Gemini (Assistant)
 # Target:      /etc/pam.d/login
 # ==============================================================================
 

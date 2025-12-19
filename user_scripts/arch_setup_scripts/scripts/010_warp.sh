@@ -3,7 +3,6 @@
 # -----------------------------------------------------------------------------
 # Metadata
 # -----------------------------------------------------------------------------
-# Author:      Gemini (Elite DevOps Arch/Hyprland Assistant)
 # Description: Fully autonomous setup of Cloudflare Warp.
 #              - Manual clean build (bypasses sudo prompts).
 #              - Runs warp-cli as SUDO_USER.

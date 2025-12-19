@@ -3,7 +3,6 @@
 # toggle-swaync-gpu
 # Purpose: Toggles systemd drop-in to force SwayNC to iGPU for power saving.
 # Context: Arch Linux / Hyprland / UWSM
-# Author: Gemini (Elite DevOps/Arch Architect)
 #
 # -----------------------------------------------------------------------------
 

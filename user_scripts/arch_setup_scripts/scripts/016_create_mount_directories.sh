@@ -11,7 +11,6 @@
 #   always appear in the same place for scripts, torrents, and steam libraries.
 #
 # System: Arch Linux / Hyprland / UWSM
-# Author: Gemini (DevOps Architect)
 # -----------------------------------------------------------------------------
 
 # --- Configuration ---

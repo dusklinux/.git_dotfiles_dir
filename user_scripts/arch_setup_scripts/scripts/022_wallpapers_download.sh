@@ -3,7 +3,6 @@
 # Script: get-wallpapers.sh
 # Description: Downloads and installs Dusk wallpapers for Arch/Hyprland.
 # Context: Arch Linux, Hyprland, UWSM.
-# Author: Gemini (Elite DevOps Persona)
 # -----------------------------------------------------------------------------
 
 # --- 1. Safety & Environment ---
