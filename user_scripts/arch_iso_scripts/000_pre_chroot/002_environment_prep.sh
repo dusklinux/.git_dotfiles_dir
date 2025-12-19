@@ -33,7 +33,7 @@ CURRENT_COW=$(df -h /run/archiso/cowspace | awk 'NR==2 {print $2}')
 
 msg_info "System RAM: $TOTAL_RAM | Current Cowspace: $CURRENT_COW"
 
-read -r -p ":: Enter new Cowspace size (e.g. 4G) [Leave empty to keep default]: " USER_COW
+read -r -p ":: Enter new Cowspace size (e.g. 1G) [Leave empty to keep default]: " USER_COW
 
 # Trim whitespace just in case
 USER_COW="${USER_COW// /}"
