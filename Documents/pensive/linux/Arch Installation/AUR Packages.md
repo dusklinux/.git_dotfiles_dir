@@ -24,3 +24,9 @@ for Lenovo 3000 G430's wifi card. (old laptop from 2008)
 ```bash
 paru -S --needed b43-firmware
 ```
+
+
+for git hyprland 
+```bash
+paru -S aquamarine-git hyprlang-git hyprutils-git hyprcursor-git hyprwayland-scanner-git hyprland-git
+```
