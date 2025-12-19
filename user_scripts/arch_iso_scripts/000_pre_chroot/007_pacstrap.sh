@@ -3,7 +3,7 @@
 # MODULE: PACSTRAP (VERIFIED HARDWARE & FIXED REGEX)
 # AUTHOR: Elite DevOps Setup
 # -----------------------------------------------------------------------------
-set -uo pipefail
+set -euo pipefail
 
 # --- Colors ---
 if [[ -t 1 ]]; then
@@ -178,6 +178,8 @@ fi
 
 echo "Installing..."
 # -K initializes keyring in the target
+# NOTE: Because we used 'set -e' at the top, if this fails, the script 
+# exits immediately with the error code, triggering the Orchestra's error handler.
 pacstrap -K "$MOUNT_POINT" "${FINAL_PACKAGES[@]}" --needed
 
 echo -e "\n${C_GREEN}Pacstrap Complete.${C_RESET}"
