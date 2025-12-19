@@ -4,6 +4,8 @@
 .config/fastfetch/
 .config/firefox_extention_export_data_backup/
 .config/fontconfig/
+.config/gtk-3.0/settings.ini
+.config/gtk-4.0/settings.ini
 .config/hypr/
 .config/kitty/
 .config/matugen/config.toml
