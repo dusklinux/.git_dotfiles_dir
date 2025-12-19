@@ -11,15 +11,13 @@
 # --- USER CONFIGURATION AREA ---
 
 INSTALL_SEQUENCE=(
-    "U | 000_long_sleep_timeout.sh"
-    "S | 000_openssh_setup.sh"
-    "S | 001_battery_limiter.sh"
-    "S | 002_pacman_config.sh"
-    "S | 003_pacman_reflector.sh"
-    "S | 004_package_installation.sh"
-    "S | 005_intel_media_sdk_check.sh"
+    "U | 001_long_sleep_timeout.sh"
+    "S | 002_battery_limiter.sh"
+    "S | 003_pacman_config.sh"
+    "S | 004_pacman_reflector.sh"
+    "S | 005_package_installation.sh"
     "U | 006_enabling_user_services.sh"
-    "S | 007_pam_keyring.sh"
+    "S | 007_openssh_setup.sh"
     "U | 008_changing_shell_zsh.sh"
     "S | 009_aur_paru_fallback_yay.sh"
     "S | 010_warp.sh"
@@ -29,7 +27,7 @@ INSTALL_SEQUENCE=(
     "S | 014_aur_packages_sudo_services.sh"
     "U | 015_aur_packages_user_services.sh"
     "S | 016_create_mount_directories.sh"
-    "U | 017_clipboard_persistance.sh"
+    "S | 017_pam_keyring.sh"
     "U | 018_network_meter_service.sh"
     "U | 019_battery_notify_service.sh"
     "U | 020_fc_cache_fv.sh"
@@ -81,8 +79,10 @@ INSTALL_SEQUENCE=(
     "S | 066_arch_install_scripts_cleanup.sh"
     "U | 067_cursor_theme_bibata_classic_modern.sh"
     "S | 068_nvidia_open_source.sh"
-    "U | 070_reverting_sleep_timeout.sh"
     "S | 069_waydroid_setup.sh"
+    "U | 070_reverting_sleep_timeout.sh"
+    "U | 071_clipboard_persistance.sh"
+    "S | 072_intel_media_sdk_check.sh"
 )
 
 # ==============================================================================
