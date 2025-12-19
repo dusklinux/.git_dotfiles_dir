@@ -155,6 +155,9 @@ alias ln='ln -v'
 alias disk_usage='sudo btrfs filesystem usage /' # The TRUTH about BTRFS space
 alias df='df -hT'                           # Show filesystem types
 
+#alias for waybar config swap and relaod
+alias waybar_swap='~/user_scripts/waybar/waybar_swap_config.sh'
+
 #Theme Switcher
 alias darkmode='~/user_scripts/theme_matugen/matugen_config.sh --mode dark'
 alias lightmode='~/user_scripts/theme_matugen/matugen_config.sh --mode light'
