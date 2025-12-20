@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=PowerTOP
+GenericName=Power Consumption Monitor
+Comment=Monitor power usage and maximize battery life
+Exec=uwsm-app -- kitty --class powertop -e sudo powertop
+Terminal=false
+Categories=System;Monitor;ConsoleOnly;
+Keywords=power;battery;consumption;monitor;
+Icon=utilities-system-monitor
+StartupNotify=true
