@@ -683,7 +683,7 @@ sudo nvim /etc/hosts
 cd ~/.local/share/applications/
 ```
 
-> [!NOTE]- files to check, if your username is anything other than dusk, change them. 
+> [!NOTE]- files to check, if your username is anything other than dusk, change them, example for this line in each file "Exec=uwsm-app -- /home/dusk/user_scripts/sliders/brightness_slider.sh" change dusk to what every your username is. 
 > ```ini
 >     "asus_control.desktop"
 >     "brightness_slider.desktop"
