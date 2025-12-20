@@ -54,6 +54,16 @@ window#waybar {
     padding: 0;
     font-size: 10px;
     color: @on_surface_variant;
+    
+    /* ADDED: Strong black text-shadow for visibility on light backgrounds */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 1.0);
+}
+
+/* ADDED: Critical State Coloring (Red when > 80%) */
+#cpu.critical, 
+#memory.critical, 
+#temperature.critical {
+    color: @error;
 }
 
 #custom-notification {

@@ -14,7 +14,7 @@
     // ===================================================================
     "modules-left": [ 
         "clock", 
-        "group/stats",         
+        "group/stats",        
         "custom/notification"
     ],
     
@@ -49,20 +49,26 @@
         "format": "\n{usage}",
         "interval": 2,
         "on-click": "uwsm-app -- kitty --class htop -e htop",
-        "tooltip-format": "CPU: {usage}%"
+        "tooltip-format": "CPU: {usage}%",
+        "states": {
+            "critical": 80
+        }
     },
 
     "memory": {
         "format": "\n{percentage}",
         "interval": 2,
         "on-click": "uwsm-app -- kitty --class io_monitor.sh -e $HOME/user_scripts/drives/io_monitor.sh",
-        "tooltip-format": "Used: {used}GiB"
+        "tooltip-format": "Used: {used}GiB",
+        "states": {
+            "critical": 80
+        }
     },
 
     "temperature": {
         "thermal-zone": 6,
         "format": "\n{temperatureC}",
-        "critical-threshold": 65,
+        "critical-threshold": 80,
         "format-critical": "🔥\n{temperatureC}",
         "tooltip-format": "Temp: {temperatureC}°C"
     },
