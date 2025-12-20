@@ -1,0 +1,10 @@
+# --- Scale Down ---
+[Desktop Entry]
+Type=Application
+Name=Scale UI Down
+Comment=Decrease display scaling
+Exec=uwsm-app -- /home/dusk/user_scripts/hypr/adjust_scale.sh -
+Terminal=false
+Categories=Settings;
+Icon=zoom-out
+StartupNotify=true

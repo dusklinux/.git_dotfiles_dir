@@ -1,0 +1,12 @@
+# --- Screenshot (Swappy) ---
+[Desktop Entry]
+Type=Application
+Name=Screenshot Region
+Comment=Capture region and edit in Swappy
+# Wrapped in 'sh -c' to handle pipes correctly
+Exec=sh -c "slurp | grim -g - - | uwsm-app -- swappy -f -"
+Terminal=false
+Categories=Utility;
+Keywords=screenshot;capture;image;
+Icon=camera-photo
+StartupNotify=true

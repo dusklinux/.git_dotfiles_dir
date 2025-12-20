@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Htop
+GenericName=Process Viewer
+Comment=Interactive process viewer
+Exec=uwsm-app -- kitty --class htop -e htop
+Terminal=false
+Categories=System;Monitor;ConsoleOnly;
+Keywords=system;process;task;manager;
+Icon=htop
+StartupNotify=true

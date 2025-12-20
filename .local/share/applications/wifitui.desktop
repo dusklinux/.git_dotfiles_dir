@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Wifi TUI
+GenericName=Wireless Network Manager
+Comment=TUI for managing Wi-Fi connections
+Exec=uwsm-app -- kitty --class wifitui -e wifitui
+Terminal=false
+Categories=Network;ConsoleOnly;
+Keywords=wifi;network;internet;wireless;
+Icon=network-wireless
+StartupNotify=true

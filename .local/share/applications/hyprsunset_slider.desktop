@@ -1,0 +1,13 @@
+# --- Hyprsunset Slider (Blue Light) ---
+[Desktop Entry]
+Type=Application
+Name=Hyprsunset Slider
+GenericName=Blue Light Filter
+Comment=Adjust Color Temperature
+Exec=uwsm-app -- /home/dusk/user_scripts/sliders/hyprsunset_slider.sh
+Terminal=false
+Categories=Settings;
+Keywords=blue;light;filter;color;temperature;
+Icon=preferences-system-display
+StartupNotify=true
+

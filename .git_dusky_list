@@ -35,6 +35,7 @@
 .git_dusky_list
 .config/starship.toml
 .config/mimeapps.list
+.local/share/applications/
 .local/share/errands/data.json
 .local/share/rofi-cliphist/pins/
 Documents/pensive/Adobe/
