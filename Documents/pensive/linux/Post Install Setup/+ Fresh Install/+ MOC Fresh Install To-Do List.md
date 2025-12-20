@@ -677,7 +677,45 @@ sudo nvim /etc/hosts
 > ```
 
 ---
+*Script*
+- [ ] Make sure the user name for your desktop entries in this direcotry matches your username.
+```bash
+cd ~/.local/share/applications/
+```
 
+> [!NOTE]- files to check, if your username is anything other than dusk, change them. 
+> ```ini
+>     "asus_control.desktop"
+>     "brightness_slider.desktop"
+>     "cache_purge.desktop"
+>     "clipboard_persistance.desktop"
+>     "file_switcher.desktop"
+>     "hypridle_timeout.desktop"
+>     "hypridle_toggle.desktop"
+>     "hyprsunset_slider.desktop"
+>     "IO_Monitor.desktop"
+>     "matugen.desktop"
+>     "mouse_button_reverse.desktop"
+>     "new_github_repo.desktop"
+>     "opacity_blur_shadow.desktop"
+>     "openssh.desktop"
+>     "powersave.desktop"
+>     "process_terminator.desktop"
+>     "relink_github_repo.desktop"
+>     "rotate_screen_clockwise.desktop"
+>     "rotate_screen_counter_clockwise.desktop"
+>     "scale_down.desktop"
+>     "scale_up.desktop"
+>     "sysbench_benchmark.desktop"
+>     "tailscale_setup.desktop"
+>     "tailscale_uninstall.desktop"
+>     "volume_slider.desktop"
+>     "warp.desktop"
+>     "waybar_config_switcher.desktop"
+>     "wifi_security.desktop"
+> ```
+
+---
 *Script*
 **OPTIONAL** 
 - [ ] *Optional* : Link Browser data to existing drive (only do if you have a separate browser drive where you want for browser data to be stored)
