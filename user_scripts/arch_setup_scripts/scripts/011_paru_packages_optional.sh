@@ -66,6 +66,7 @@ readonly AVAILABLE_PACKAGES=(
 "## Misc Tools"
 "pacseek-bin"
 "keypunch-git"
+"kew-git"
 "pinta"
 "youtube-dl-gui-bin"
 "sysmontask"
