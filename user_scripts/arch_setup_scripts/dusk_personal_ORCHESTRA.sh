@@ -84,6 +84,7 @@ INSTALL_SEQUENCE=(
     "U | 071_clipboard_persistance.sh"
     "S | 072_intel_media_sdk_check.sh"
     "U | 073_desktop_apps_username_setter.sh"
+    "U | 074_firefox_matugen_pywalfox.sh"
 )
 
 # ==============================================================================
