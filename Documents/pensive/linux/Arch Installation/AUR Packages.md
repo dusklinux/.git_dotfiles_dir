@@ -7,7 +7,7 @@ paru --needed -Syu wlogout acpi_call adwaita-qt6 adwaita-qt5 pacseek jdownloader
 
 games/fun
 ```bash
-paru -needed -Syyu brogue-ce pipes.sh 2048.c clidle-bin maze-tui vitetris pokete arttime-git
+paru -needed -Syyu brogue-ce pipes-rs-bin 2048.c clidle-bin maze-tui vitetris pokete arttime-git
 ```
 additional optional packages
 ```bash
