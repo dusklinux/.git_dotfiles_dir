@@ -2,7 +2,10 @@
 
 This checklist provides a structured overview of essential tasks to perform after a fresh Arch Linux installation. Follow these steps to configure your system, restore your environment, and set up your applications.
 
-> [!NOTE] Sections with "*Script*" at the top indicate that section has been automated with a script or in process of being written a script for.  
+> [!NOTE] Sections with "*Script*" at the top indicate that section has been automated with a script at the following location.  
+> ```bash
+> cd ~/user_scripts/arch_setup_scripts/scripts/
+> ```
 
 > [!IMPORTANT]+
 > Steps to be followed Sequentially. 

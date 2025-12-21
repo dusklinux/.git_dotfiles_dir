@@ -5,18 +5,19 @@
 # Dependencies: rofi, libqalculate (qalc), wl-copy
 # ------------------------------------------------------------------------------
 
-# 1. Dependency Check
-if ! command -v rofi &> /dev/null || ! command -v qalc &> /dev/null || ! command -v wl-copy &> /dev/null; then
-    notify-send "Error" "Missing dependencies: rofi, libqalculate, or wl-copy" -u critical
-    exit 1
-fi
-
-# 2. Kill existing instance (Toggle behavior)
+# 1. Kill existing instance (Toggle behavior)
 # If you map this to a keybind, pressing it again closes the calc.
 if pgrep -x "rofi" >/dev/null; then
     pkill rofi
     exit 0
 fi
+
+# 2. Dependency Check
+if ! command -v rofi &> /dev/null || ! command -v qalc &> /dev/null || ! command -v wl-copy &> /dev/null; then
+    notify-send "Error" "Missing dependencies: rofi, libqalculate, or wl-copy" -u critical
+    exit 1
+fi
+
 
 # 3. Main Loop
 # Initialize variables to avoid empty display on first run

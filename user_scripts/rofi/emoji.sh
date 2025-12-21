@@ -4,6 +4,13 @@
 # Optimized for: Bash 5+, Wayland (wl-copy), and Custom Rofi Configs
 # ------------------------------------------------------------------------------
 
+# 0. Kill existing instance (Toggle behavior)
+# If you map this to a keybind, pressing it again closes the calc.
+if pgrep -x "rofi" >/dev/null; then
+    pkill rofi
+    exit 0
+fi
+
 # 1. Error Handling & Dependency Check
 # Exit if rofi or wl-copy is missing to prevent silent failures
 if ! command -v rofi &> /dev/null || ! command -v wl-copy &> /dev/null; then
