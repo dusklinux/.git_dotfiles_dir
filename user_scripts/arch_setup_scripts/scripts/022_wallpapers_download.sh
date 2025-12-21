@@ -89,7 +89,7 @@ main() {
     printf "${C_BOLD}:: Wallpaper Manager for Arch/Hyprland${C_RESET}\n"
     
     # 6.1 Prompt User
-    printf "   Download the handpicked wallpaper collection? Strongly Recommand! (~500MB)?\n"
+    printf "   Download the handpicked wallpaper collection? Strongly Recommand! (~1.7GB)?\n"
     local response
     read -r -p "   [y/N] > " response
     
