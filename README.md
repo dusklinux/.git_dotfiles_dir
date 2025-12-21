@@ -1,5 +1,11 @@
 # Updated demo Video coming soon.
 
+> If you're here just for wallpapers, You can get them from my 'images' repo.
+
+```bash
+https://github.com/dusklinux/images
+```
+
 # 🎻 Dusky: The Ultimate Arch Hyprland Experience
 
 > This repository is the result of 8 months of tinkering, breaking, fixing, and polishing. It is a labor of love designed to feel as easy to install as a "standard" distribution, but with the raw power and minimalism of Arch Linux.
@@ -64,17 +70,15 @@ This setup is strictly optimized for **BTRFS**.
 
 These scripts default to **Intel (CPU) +  Intel Integrated GPU + Nvidia (GPU)**
 
-> [!CAUTION]
-> 
-> AMD Users: You must edit the 005_package_installation.sh script before running the installer.
-> 
-> 1. Open the script.
->     
-> 2. Replace Intel-specific packages (drivers/microcode) with their AMD equivalents.
->     
-> 3. Ensure you include the AMD microcode package.
-> 
->4. I will automate this in the future, i don't currently have an amd system at hand.  
+> [!Note]
+>
+> AMD Users: You must configure the uwsm env files to set your gpu environment variables.
+>
+> 1. Open the files at ~/.config/uwsm/env and ~/.config/uwsm/env-hyprland
+>
+> 2. Replace Intel/Nvidia-specific variables with amd with their AMD equivalents.
+>
+>4. I will automate this in the future, i don't currently have an amd system at hand to test it on.
 
 
 
@@ -87,7 +91,50 @@ These scripts default to **Intel (CPU) +  Intel Integrated GPU + Nvidia (GPU)**
 
 
 # Installation 💿
-## Method 1: The "Clean Slate" (Recommended)
+## 📦 Method 1: Existing Arch Install (Recommended)
+
+**Best for:** Users who already have Arch + Hyprland installed via `archinstall` or manual installation.
+
+### Step 1: Clone Dotfiles (Bare Repo Method)
+
+We use a bare git repository method to drop files exactly where they belong in your home directory.
+
+```
+git clone --bare --depth 1 https://github.com/dusklinux/dusky.git $HOME/dusky
+```
+
+```bash
+git --git-dir=$HOME/dusky/ --work-tree=$HOME checkout -f
+```
+
+### Step 2: Run the Orchestra
+
+Run the master script to install dependencies, themes, and services.
+
+```bash
+~/user_scripts/arch_setup_scripts/ORCHESTRA.sh
+```
+
+## 🎻 The Orchestra Script
+
+The `ORCHESTRA.sh` is a "conductor" that manages ~70 subscripts.
+
+- **Smart:** It detects installed packages and skips them.
+
+- **Safe:** You can re-run it as many times as you like without breaking things.
+
+- **Time:** Expect 30–60 minutes. We use `paru` to install AUR packages, and compiling from source takes time. Grab a coffee! ☕
+
+
+## ⌨️ Usage & Keybinds
+
+The steepest learning curve will be the keybinds. I have designed them to be intuitive, but feel free to change them in the config.
+
+> 💡 Pro Tip:
+>
+> Press CTRL + SHIFT + SPACE to open the Keybinds Cheatsheet. You can click commands in this menu to run them directly!
+
+## Method 2: The "Clean Slate" (only recommended if you have Intel or (Intel + Nvidia) hardware.
 
 Best for: New installs, Dual Booting, ensuring zero bloat.
 
@@ -208,49 +255,6 @@ the main setup script.
 ```bash
 ~/user_scripts/arch_setup_scripts/ORCHESTRA.sh
 ```
-
-## 📦 Method 2: Existing Arch Install
-
-**Best for:** Users who already have Arch + Hyprland installed via `archinstall` or manual installation.
-
-### Step 1: Clone Dotfiles (Bare Repo Method)
-
-We use a bare git repository method to drop files exactly where they belong in your home directory.
-
-```
-git clone --bare --depth 1 https://github.com/dusklinux/dusky.git $HOME/dusky
-```
-
-```bash
-git --git-dir=$HOME/dusky/ --work-tree=$HOME checkout -f
-```
-
-### Step 2: Run the Orchestra
-
-Run the master script to install dependencies, themes, and services.
-
-```bash
-~/user_scripts/arch_setup_scripts/ORCHESTRA.sh
-```
-
-## 🎻 The Orchestra Script
-
-The `ORCHESTRA.sh` is a "conductor" that manages ~70 subscripts.
-
-- **Smart:** It detects installed packages and skips them.
-    
-- **Safe:** You can re-run it as many times as you like without breaking things.
-    
-- **Time:** Expect 30–60 minutes. We use `paru` to install AUR packages, and compiling from source takes time. Grab a coffee! ☕
-    
-
-## ⌨️ Usage & Keybinds
-
-The steepest learning curve will be the keybinds. I have designed them to be intuitive, but feel free to change them in the config.
-
-> 💡 Pro Tip:
-> 
-> Press CTRL + SHIFT + SPACE to open the Keybinds Cheatsheet. You can click commands in this menu to run them directly!
 
 ## 🔧 Troubleshooting
 
