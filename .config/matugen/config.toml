@@ -91,6 +91,11 @@ output_path = '~/.config/matugen/generated/hyprlock-colors.conf'
 input_path = '~/.config/matugen/templates/colors.css'
 output_path = '~/.config/matugen/generated/wlogout-colors.css'
 
+[templates.spicetify]
+input_path = '~/.config/matugen/templates/spotify-colors.ini'
+output_path = '~/.config/matugen/generated/spotify-colors.ini'
+post_hook = 'killall -SIGUSR2 spotify; mkdir -p $HOME/.config/spicetify/Themes/Comfy; ln -nfs $HOME/.config/matugen/generated/spotify-colors.ini $HOME/.config/spicetify/Themes/Comfy/color.ini'
+
 [templates.cava]
 input_path = '~/.config/matugen/templates/cava-colors.ini'
 output_path = '~/.config/matugen/generated/cava-colors.ini'
