@@ -252,12 +252,18 @@ main() {
 
     for entry in "${INSTALL_SEQUENCE[@]}"; do
         local mode="${entry%%|*}"
-        local filename="${entry#*|}"
+        local rest="${entry#*|}"
         
         mode=$(trim "$mode")
-        filename=$(trim "$filename")
+        rest=$(trim "$rest")
+        
+        # FIX: Separate filename from arguments
+        # read -r will assign the first word to 'filename' and the remainder to 'args'
+        local filename args
+        read -r filename args <<< "$rest"
         
         # --- MISSING FILE CHECK LOOP ---
+        # We now check only the filename (e.g. script.sh), ignoring the args
         while [[ ! -f "$filename" ]]; do
             log "ERROR" "Script not found: $filename"
             log "ERROR" "Looked in: $SCRIPT_DIR"
@@ -290,7 +296,7 @@ main() {
 
         # --- USER CONFIRMATION PROMPT (CONDITIONAL) ---
         if [[ $interactive_mode -eq 1 ]]; then
-            echo -e "\n${YELLOW}>>> NEXT SCRIPT:${RESET} $filename ($mode)"
+            echo -e "\n${YELLOW}>>> NEXT SCRIPT:${RESET} $filename ${args:+ $args} ($mode)"
             read -r -p "Do you want to [P]roceed, [S]kip, or [Q]uit? (p/s/q): " _user_confirm
             case "${_user_confirm,,}" in
                 s|skip)
@@ -310,17 +316,18 @@ main() {
 
         # --- EXECUTION RETRY LOOP ---
         while true; do
-            log "RUN" "Executing: $filename ($mode)"
+            log "RUN" "Executing: $filename $args ($mode)"
 
             if [[ $dry_run -eq 1 ]]; then
                 break
             fi
 
             local result=0
+            # FIX: We now pass $args to the command execution
             if [[ "$mode" == "S" ]]; then
-                sudo bash "$filename" || result=$?
+                sudo bash "$filename" $args || result=$?
             elif [[ "$mode" == "U" ]]; then
-                bash "$filename" || result=$?
+                bash "$filename" $args || result=$?
             else
                 log "ERROR" "Invalid mode '$mode' in config. Use 'S' or 'U'."
                 exit 1
