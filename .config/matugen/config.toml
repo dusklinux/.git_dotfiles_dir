@@ -94,7 +94,7 @@ output_path = '~/.config/matugen/generated/wlogout-colors.css'
 [templates.spicetify]
 input_path = '~/.config/matugen/templates/spotify-colors.ini'
 output_path = '~/.config/matugen/generated/spotify-colors.ini'
-post_hook = 'killall -SIGUSR2 spotify; mkdir -p $HOME/.config/spicetify/Themes/Comfy; ln -nfs $HOME/.config/matugen/generated/spotify-colors.ini $HOME/.config/spicetify/Themes/Comfy/color.ini'
+post_hook = 'killall -SIGUSR2 spotify; mkdir -p $HOME/.config/spicetify/Themes/Comfy; ln -nfs $HOME/.config/matugen/generated/spotify-colors.ini $HOME/.config/spicetify/Themes/Comfy/color.ini; spicetify config current_theme Comfy color_scheme Comfy; spicetify apply -n'
 
 [templates.cava]
 input_path = '~/.config/matugen/templates/cava-colors.ini'
