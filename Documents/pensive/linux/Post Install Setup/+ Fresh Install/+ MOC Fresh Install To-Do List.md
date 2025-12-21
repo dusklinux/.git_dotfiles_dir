@@ -1157,6 +1157,10 @@ tldr --update
 - [ ] **`spotify`:** without adds script [[Spotify]]
 
 ---
+*Script*
+- [ ] `Spicetify matugen colros.` [[Spicetify instructions]]
+
+---
 
 - [ ] **Obsidian** download `hider`, `copilot` plugins and also downlaod the `primary` theme. 
 
