@@ -36,7 +36,8 @@ die() {
 # Prerequisite Validation
 # ══════════════════════════════════════════════════════════════════════════════
 
-for cmd in swww matugen uwsm-app find shuf; do
+# Removed 'find' and 'shuf' as they are no longer required
+for cmd in swww matugen uwsm-app; do
     command -v "$cmd" >/dev/null 2>&1 || die "Required command not found: '$cmd'"
 done
 
@@ -62,21 +63,24 @@ if ! swww query >/dev/null 2>&1; then
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Wallpaper Selection
+# Wallpaper Selection (Bash 5+ Native)
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Null-delimited I/O correctly handles filenames with spaces/newlines/quotes
-target_wallpaper=""
-while IFS= read -r -d '' file; do
-    target_wallpaper="$file"
-done < <(
-    find "$WALLPAPER_DIR" -type f \
-        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \
-           -o -iname '*.webp' -o -iname '*.gif' \) \
-        -print0 2>/dev/null | shuf -z -n 1
-)
+# Enable recursive globbing (globstar) and nullglob (empty array if no matches)
+shopt -s globstar nullglob nocaseglob
 
-[[ -n "$target_wallpaper" ]] || die "No image files found in '$WALLPAPER_DIR'"
+# Load all matching files into an array
+# Note: Using immediate expansion is faster than 'find' for typical wallpaper counts (<10k)
+wallpapers=( "$WALLPAPER_DIR"/**/*.{jpg,jpeg,png,webp,gif} )
+
+# Check if array is empty
+if (( ${#wallpapers[@]} == 0 )); then
+    die "No image files found in '$WALLPAPER_DIR'"
+fi
+
+# Select a random index using Bash arithmetic
+target_wallpaper="${wallpapers[RANDOM % ${#wallpapers[@]}]}"
+
 [[ -r "$target_wallpaper" ]] || die "Image not readable: '$target_wallpaper'"
 
 # ══════════════════════════════════════════════════════════════════════════════
