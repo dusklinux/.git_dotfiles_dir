@@ -205,6 +205,21 @@ alias unlock='$HOME/user_scripts/drives/drive_manager.sh unlock'
 # lock block_devices
 alias lock='$HOME/user_scripts/drives/drive_manager.sh lock'
 
+# Weather query via wttr.in
+# Usage: wthr [location]
+# use with "-s" flag to only get one line.
+wthr() {
+    # Check if the first argument is '-s' (short)
+    if [[ "$1" == "-s" ]]; then
+        shift # Remove the -s from arguments
+        local location="${(j:+:)@}"
+        curl "wttr.in/${location}?format=%c+%t"
+    else
+        local location="${(j:+:)@}"
+        curl "wttr.in/${location}"
+    fi
+}
+
 # share zram1 directory with waydroid at pictures point inside waydroid
 # Function to remount Waydroid pictures to ZRAM
 waydroid_bind() {
