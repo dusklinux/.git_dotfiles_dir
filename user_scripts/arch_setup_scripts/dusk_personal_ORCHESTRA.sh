@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-#  ARCH LINUX MASTER ORCHESTRATOR - FINAL
+#  ARCH LINUX MASTER ORCHESTRATOR - FINAL (RESTORED)
 # ==============================================================================
 #  INSTRUCTIONS:
 #  1. Edit the 'INSTALL_SEQUENCE' list below.
@@ -104,6 +104,9 @@ readonly SCRIPT_DIR="${HOME}/user_scripts/arch_setup_scripts/scripts"
 readonly STATE_FILE="${HOME}/Documents/.install_state"
 readonly LOG_FILE="${HOME}/Documents/install_$(date +%Y%m%d_%H%M%S).log"
 
+# Constants
+readonly SUDO_REFRESH_INTERVAL=50  # Seconds between sudo refreshes
+
 # Global Variables
 declare -g SUDO_PID=""
 
@@ -130,10 +133,17 @@ setup_logging() {
         exit 1
     fi
 
+    # FIX: Ensure log directory exists to prevent crash on fresh install
+    local log_dir
+    log_dir="$(dirname "$LOG_FILE")"
+    if [[ ! -d "$log_dir" ]]; then
+        mkdir -p "$log_dir" || { echo "CRITICAL ERROR: Could not create log directory $log_dir"; exit 1; }
+    fi
+
     touch "$LOG_FILE"
     exec 3>&1 4>&2
     
-    # FIX APPLIED: We redirect output to tee. 
+    # We redirect output to tee. 
     # tee prints to STDOUT (screen) keeping colors.
     # tee pipes to sed (file) stripping colors (ANSI sequences) so the log is clean.
     exec > >(tee >(sed 's/\x1B\[[0-9;]*[a-zA-Z]//g; s/\x1B(B//g' >> "$LOG_FILE")) 2>&1
@@ -166,7 +176,8 @@ init_sudo() {
         exit 1
     fi
 
-    ( while true; do sudo -n true; sleep 50; kill -0 "$$" || exit; done 2>/dev/null ) &
+    # FIX: Use named constant instead of magic number
+    ( while true; do sudo -n true; sleep "$SUDO_REFRESH_INTERVAL"; kill -0 "$$" || exit; done 2>/dev/null ) &
     SUDO_PID=$!
     disown "$SUDO_PID"
 }
@@ -194,8 +205,20 @@ trim() {
 }
 
 main() {
+    # FIX: Root User Guard
+    # If run as root, user scripts will create files owned by root in the user's home, causing breakage.
+    if [[ $EUID -eq 0 ]]; then
+        echo -e "${RED}CRITICAL ERROR: This script must NOT be run as root!${RESET}"
+        echo "The script handles sudo privileges internally for specific steps."
+        echo "Please run as a normal user: ./ORCHESTRA.sh"
+        exit 1
+    fi
+
     setup_logging
     
+    # FIX: Start timer
+    local start_ts=$SECONDS
+
     # Check for sudo requirement
     local needs_sudo=0
     for entry in "${INSTALL_SEQUENCE[@]}"; do
@@ -209,7 +232,7 @@ main() {
     touch "$STATE_FILE"
 
     # IMPORTANT: We switch to the hardcoded directory so filenames match
-    cd "$SCRIPT_DIR"
+    cd "$SCRIPT_DIR" || { log "ERROR" "Failed to cd to $SCRIPT_DIR"; exit 1; }
 
     # Argument parsing
     local dry_run=0
@@ -236,34 +259,38 @@ main() {
     fi
 
     # --- EXECUTION MODE SELECTION ---
-    local interactive_mode=1
+    local interactive_mode=0
     echo -e "\n${YELLOW}>>> EXECUTION MODE <<<${RESET}"
-    read -r -p "Do you want to run autonomously (no prompts)? [y/N]: " _mode_choice
+    read -r -p "Do you want to run interactively (prompt before every script)? [y/N]: " _mode_choice
     if [[ "${_mode_choice,,}" == "y" || "${_mode_choice,,}" == "yes" ]]; then
-        interactive_mode=0
-        log "INFO" "Autonomous mode selected. Running all scripts without confirmation."
-    else
+        interactive_mode=1
         log "INFO" "Interactive mode selected. You will be asked before each script."
+    else
+        log "INFO" "Autonomous mode selected. Running all scripts without confirmation."
     fi
 
-    log "INFO" "Processing ${#INSTALL_SEQUENCE[@]} scripts..."
+    local total_scripts=${#INSTALL_SEQUENCE[@]}
+    local current_index=0
+    log "INFO" "Processing ${total_scripts} scripts..."
     
     local SKIPPED_OR_FAILED=()
 
     for entry in "${INSTALL_SEQUENCE[@]}"; do
+        # CRITICAL FIX: Use pre-increment ((++var)) instead of post-increment ((var++))
+        # Post-increment on 0 returns 0, which 'set -o errexit' treats as a failure!
+        ((++current_index))
+        
         local mode="${entry%%|*}"
         local rest="${entry#*|}"
         
         mode=$(trim "$mode")
         rest=$(trim "$rest")
         
-        # FIX: Separate filename from arguments
-        # read -r will assign the first word to 'filename' and the remainder to 'args'
+        # Separate filename from arguments
         local filename args
         read -r filename args <<< "$rest"
         
         # --- MISSING FILE CHECK LOOP ---
-        # We now check only the filename (e.g. script.sh), ignoring the args
         while [[ ! -f "$filename" ]]; do
             log "ERROR" "Script not found: $filename"
             log "ERROR" "Looked in: $SCRIPT_DIR"
@@ -275,12 +302,11 @@ main() {
                 s|skip)
                     log "WARN" "Skipping $filename (User Selection)"
                     SKIPPED_OR_FAILED+=("$filename")
-                    continue 2 # Jumps to the next iteration of the 'for' loop
+                    continue 2 
                     ;;
                 r|retry)
                     log "INFO" "Retrying check for $filename..."
                     sleep 1
-                    # Loop repeats to check [[ ! -f ... ]] again
                     ;;
                 *)
                     log "INFO" "Stopping execution. Please place the script in the correct location and rerun."
@@ -290,13 +316,14 @@ main() {
         done
         
         if grep -Fxq "$filename" "$STATE_FILE"; then
-            log "WARN" "Skipping $filename (Already Completed)"
+            # RESTORED: Logging of skipped files
+            log "WARN" "[${current_index}/${total_scripts}] Skipping $filename (Already Completed)"
             continue
         fi
 
         # --- USER CONFIRMATION PROMPT (CONDITIONAL) ---
         if [[ $interactive_mode -eq 1 ]]; then
-            echo -e "\n${YELLOW}>>> NEXT SCRIPT:${RESET} $filename ${args:+ $args} ($mode)"
+            echo -e "\n${YELLOW}>>> NEXT SCRIPT [${current_index}/${total_scripts}]:${RESET} $filename ${args:+ $args} ($mode)"
             read -r -p "Do you want to [P]roceed, [S]kip, or [Q]uit? (p/s/q): " _user_confirm
             case "${_user_confirm,,}" in
                 s|skip)
@@ -316,14 +343,14 @@ main() {
 
         # --- EXECUTION RETRY LOOP ---
         while true; do
-            log "RUN" "Executing: $filename $args ($mode)"
+            # FIX: Added Progress Counter
+            log "RUN" "[${current_index}/${total_scripts}] Executing: $filename $args ($mode)"
 
             if [[ $dry_run -eq 1 ]]; then
                 break
             fi
 
             local result=0
-            # FIX: We now pass $args to the command execution
             if [[ "$mode" == "S" ]]; then
                 sudo bash "$filename" $args || result=$?
             elif [[ "$mode" == "U" ]]; then
@@ -377,11 +404,19 @@ main() {
         echo -e "${YELLOW}================================================================${RESET}\n"
     fi
 
+    # FIX: Calculate elapsed time
+    local end_ts=$SECONDS
+    local duration=$((end_ts - start_ts))
+    local minutes=$((duration / 60))
+    local seconds=$((duration % 60))
+
     # --- COMPLETION & REBOOT NOTICE ---
+    # RESTORED: Original verbose instructions with timer added
     echo -e "\n${GREEN}================================================================${RESET}"
     echo -e "${BOLD}FINAL INSTRUCTIONS:${RESET}"
-    echo -e "1. Please ${BOLD}REBOOT YOUR SYSTEM${RESET} for all changes to take effect."
-    echo -e "2. This script is designed to be run multiple times."
+    echo -e "1. Execution Time: ${BOLD}${minutes}m ${seconds}s${RESET}"
+    echo -e "2. Please ${BOLD}REBOOT YOUR SYSTEM${RESET} for all changes to take effect."
+    echo -e "3. This script is designed to be run multiple times."
     echo -e "   If you think something wasn't done right, you can run this script again."
     echo -e "   It will ${BOLD}NOT${RESET} re-download the whole thing again, but instead"
     echo -e "   only download/configure what might have failed the first time."
