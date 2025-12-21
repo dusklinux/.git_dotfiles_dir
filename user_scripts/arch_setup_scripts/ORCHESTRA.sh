@@ -86,6 +86,7 @@ INSTALL_SEQUENCE=(
     "U | 073_desktop_apps_username_setter.sh"
     "U | 074_firefox_matugen_pywalfox.sh"
 #    "U | 075_spicetify_matugen_setup.sh"
+    "U | 076_waybar_swap_config.sh --choose"
 )
 
 # ==============================================================================
