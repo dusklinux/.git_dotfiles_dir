@@ -1,6 +1,6 @@
 # Updated demo Video coming soon.
 
-## If you're here just for wallpapers, you can get them from my [images repo][images].
+## If you're here just for the wallpapers, you can get them from my [images repo][images].
 
 [images]: https://github.com/dusklinux/images
 
