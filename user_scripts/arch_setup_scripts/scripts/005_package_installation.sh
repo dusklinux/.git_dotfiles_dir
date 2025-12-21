@@ -42,7 +42,7 @@ pkgs_network=(
 
 # Group 8: Terminal & Shell
 pkgs_terminal=(
-"kitty" "zsh" "zsh-syntax-highlighting" "starship" "fastfetch" "bat" "eza" "fd" "tealdeer" "yazi" "zellij" "gum" "man-db" "ttyper" "tree" "fzf" "less" "ripgrep" "expac" "zsh-autosuggestions" "calcurse" "iperf3" "pkgstats"
+"kitty" "zsh" "zsh-syntax-highlighting" "starship" "fastfetch" "bat" "eza" "fd" "tealdeer" "yazi" "zellij" "gum" "man-db" "ttyper" "tree" "fzf" "less" "ripgrep" "expac" "zsh-autosuggestions" "calcurse" "iperf3" "pkgstats" "libqalculate"
 )
 
 # Group 9: Development
@@ -62,7 +62,7 @@ pkgs_sysadmin=(
 
 # Group 12: Gnome Utilities
 pkgs_gnome=(
-"snapshot" "loupe" "gnome-text-editor" "blanket" "collision" "errands" "identity" "impression" "gnome-calculator" "gnome-clocks" "showmethekey"
+"snapshot" "cameractrls" "loupe" "gnome-text-editor" "blanket" "collision" "errands" "identity" "impression" "gnome-calculator" "gnome-clocks" "showmethekey"
 )
 
 # Group 13: Productivity

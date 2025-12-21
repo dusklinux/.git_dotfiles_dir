@@ -99,7 +99,7 @@ pacman -S --needed networkmanager iwd network-manager-applet nm-connection-edito
 _Zsh, terminal emulator, and modern Rust-based CLI replacements._
 
 ```
-pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza fd tealdeer yazi zellij gum man-db ttyper tree fzf less ripgrep expac zsh-autosuggestions calcurse iperf3 pkgstats
+pacman -S --needed kitty zsh zsh-syntax-highlighting starship fastfetch bat eza fd tealdeer yazi zellij gum man-db ttyper tree fzf less ripgrep expac zsh-autosuggestions calcurse iperf3 pkgstats libqalculate
 ```
 
 - [ ] Status
@@ -150,7 +150,7 @@ pacman -S --needed btop htop nvtop inxi sysstat sysbench logrotate acpid tlp tlp
 _Specific Gnome apps for productivity and utilities._
 
 ```
-pacman -S --needed snapshot loupe gnome-text-editor blanket collision errands identity impression gnome-calculator gnome-clocks showmethekey
+pacman -S --needed snapshot cameractrls loupe gnome-text-editor blanket collision errands identity impression gnome-calculator gnome-clocks showmethekey
 ```
 
 - [ ] Status
