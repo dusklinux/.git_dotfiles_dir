@@ -204,6 +204,30 @@ trim() {
     printf '%s' "$var"
 }
 
+show_help() {
+    cat << EOF
+Arch Linux Master Orchestrator
+
+Usage: $(basename "$0") [OPTIONS]
+
+Options:
+    --help, -h       Show this help message and exit
+    --dry-run, -d    Preview execution plan without running anything
+    --reset          Clear progress state and start fresh
+
+Description:
+    This script orchestrates the execution of multiple setup scripts
+    for Arch Linux with Hyprland. It tracks completed scripts and
+    can resume from where it left off if interrupted.
+
+Examples:
+    $(basename "$0")              # Normal run
+    $(basename "$0") --dry-run    # Preview what would be executed
+    $(basename "$0") --reset      # Reset progress and start over
+EOF
+    exit 0
+}
+
 main() {
     # FIX: Root User Guard
     # If run as root, user scripts will create files owned by root in the user's home, causing breakage.
@@ -213,6 +237,71 @@ main() {
         echo "Please run as a normal user: ./ORCHESTRA.sh"
         exit 1
     fi
+
+    # --- ARGUMENT HANDLING (EARLY - before any prompts or logging) ---
+    case "${1:-}" in
+        --help|-h)
+            show_help
+            ;;
+        --dry-run|-d)
+            echo -e "\n${YELLOW}=== DRY RUN MODE ===${RESET}"
+            echo -e "Script directory: ${BOLD}${SCRIPT_DIR}${RESET}"
+            echo -e "State file: ${BOLD}${STATE_FILE}${RESET}\n"
+            
+            if [[ ! -d "$SCRIPT_DIR" ]]; then
+                echo -e "${RED}WARNING: Script directory does not exist!${RESET}\n"
+            fi
+            
+            echo "Execution plan:"
+            echo ""
+            
+            local i=0
+            local completed_count=0
+            local missing_count=0
+            
+            for entry in "${INSTALL_SEQUENCE[@]}"; do
+                ((++i))
+                local mode="${entry%%|*}"
+                local rest="${entry#*|}"
+                mode=$(trim "$mode")
+                rest=$(trim "$rest")
+                
+                local filename args
+                read -r filename args <<< "$rest"
+                
+                local mode_label="USER"
+                [[ "$mode" == "S" ]] && mode_label="SUDO"
+                
+                local status=""
+                
+                if [[ ! -f "${SCRIPT_DIR}/${filename}" ]]; then
+                    status="${RED}[MISSING]${RESET}"
+                    ((++missing_count))
+                elif [[ -f "$STATE_FILE" ]] && grep -Fxq "$filename" "$STATE_FILE" 2>/dev/null; then
+                    status="${GREEN}[DONE]${RESET}"
+                    ((++completed_count))
+                else
+                    status="${BLUE}[PENDING]${RESET}"
+                fi
+                
+                printf "  %3d. [%s] %-45s %s\n" "$i" "$mode_label" "${filename}${args:+ $args}" "$status"
+            done
+            
+            echo ""
+            echo -e "${BOLD}Summary:${RESET}"
+            echo -e "  Total scripts: $i"
+            echo -e "  Completed: ${GREEN}${completed_count}${RESET}"
+            echo -e "  Pending: ${BLUE}$((i - completed_count - missing_count))${RESET}"
+            [[ $missing_count -gt 0 ]] && echo -e "  Missing: ${RED}${missing_count}${RESET}"
+            echo ""
+            echo "No changes were made."
+            exit 0
+            ;;
+        --reset)
+            rm -f "$STATE_FILE"
+            echo "State file reset. Starting fresh."
+            ;;
+    esac
 
     setup_logging
     
@@ -233,17 +322,6 @@ main() {
 
     # IMPORTANT: We switch to the hardcoded directory so filenames match
     cd "$SCRIPT_DIR" || { log "ERROR" "Failed to cd to $SCRIPT_DIR"; exit 1; }
-
-    # Argument parsing
-    local dry_run=0
-    if [[ "${1:-}" == "--dry-run" ]] || [[ "${1:-}" == "-d" ]]; then
-        dry_run=1
-        echo "!!! DRY RUN MODE ACTIVE !!!"
-    fi
-    if [[ "${1:-}" == "--reset" ]]; then
-        rm -f "$STATE_FILE"
-        echo "State file reset. Starting fresh."
-    fi
 
     # --- SESSION RECOVERY PROMPT ---
     if [[ -s "$STATE_FILE" ]]; then
@@ -345,10 +423,6 @@ main() {
         while true; do
             # FIX: Added Progress Counter
             log "RUN" "[${current_index}/${total_scripts}] Executing: $filename $args ($mode)"
-
-            if [[ $dry_run -eq 1 ]]; then
-                break
-            fi
 
             local result=0
             if [[ "$mode" == "S" ]]; then
