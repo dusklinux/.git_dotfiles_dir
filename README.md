@@ -1,10 +1,8 @@
 # Updated demo Video coming soon.
 
-> If you're here just for wallpapers, You can get them from my 'images' repo.
+> If you're here just for wallpapers, you can get them from my [images repo][images].
 
-```bash
-https://github.com/dusklinux/images
-```
+[images]: https://github.com/dusklinux/images
 
 # 🎻 Dusky: The Ultimate Arch Hyprland Experience
 
