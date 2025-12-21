@@ -88,7 +88,12 @@ IFS=: read -r key state <<< "${ROFI_INFO:-}"
 
 # Phase 1: No selection — render main menu
 if [[ -z ${key:-} ]]; then
-    printf '\0prompt\x1fPower\n'
+    # Get pretty uptime, remove 'up ' prefix for cleanliness
+    # e.g., "3 hours, 20 minutes"
+    uptime_str=$(uptime -p | sed 's/^up //')
+    
+    printf '\0prompt\x1fUptime\n'
+    printf '\0theme\x1fentry { placeholder: "%s"; }\n' "$uptime_str"
     for k in "${ORDER[@]}"; do
         printf '%s\0info\x1f%s\n' "${MENU[$k]}" "$k"
     done
