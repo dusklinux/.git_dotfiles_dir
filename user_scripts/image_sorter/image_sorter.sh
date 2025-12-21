@@ -7,7 +7,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-readonly VERSION="2.0.2"
+readonly VERSION="2.0.4"
 readonly SCRIPT_NAME="${0##*/}"
 readonly IMAGE_EXTENSIONS=("jpg" "jpeg" "png" "gif" "webp" "avif" "jxl" "bmp" "tiff")
 
@@ -21,7 +21,8 @@ else
     readonly C_MAGENTA='' C_CYAN='' C_BOLD='' C_DIM='' C_RESET=''
 fi
 
-readonly BOX_H="─" BOX_TL="╭" BOX_TR="╮" BOX_BL="╰" BOX_BR="╯" BOX_V="│"
+# MODIFIED: Switched to standard ASCII to fix rendering issues on some terminals
+readonly BOX_H="-" BOX_TL="+" BOX_TR="+" BOX_BL="+" BOX_BR="+" BOX_V="|"
 
 # Runtime state
 declare MODE="" TARGET_DIR="." THRESHOLD="0.5" SORT_ORDER="ascending"
@@ -41,6 +42,8 @@ die() { log_error "$1"; exit "${2:-1}"; }
 cleanup() {
     local exit_code=$?
     printf '\e[?25h' 2>/dev/null || true
+    # Kill any background xargs jobs if interrupted
+    jobs -p | xargs -r kill 2>/dev/null || true
     exit $exit_code
 }
 trap cleanup EXIT INT TERM
@@ -52,16 +55,31 @@ print_header() {
     local term_width
     term_width=$(tput cols 2>/dev/null) || term_width=60
     
+    # Ensure minimum width to prevent math errors
+    (( term_width < 40 )) && term_width=40
+
+    # Calculate precise padding to avoid wrapping
+    # Content: "|  IMAGE SORTER  vX.X.X" (Left side) + "|" (Right side)
+    # Length: 1 + 2 + 12 + 2 + 1 + len(VER) = 18 + len(VER)
+    # Right border uses 1 char. Total non-padded = 19 + len(VER)
+    local content_len=$(( 18 + ${#VERSION} ))
+    local pad_len=$(( term_width - content_len - 1 ))
+    
     printf '\n' >&2
     printf '%s%s%s\n' "$C_CYAN" "${BOX_TL}$(printf '%*s' $((term_width - 2)) '' | tr ' ' "$BOX_H")${BOX_TR}" "$C_RESET" >&2
-    printf '%s%s%s  %s🖼  IMAGE SORTER%s  v%s %*s%s%s\n' \
-        "$C_CYAN" "$BOX_V" "$C_BOLD" "$C_CYAN" "$C_RESET" "$VERSION" \
-        $((term_width - 28 - ${#VERSION})) '' "$C_CYAN" "$BOX_V$C_RESET" >&2
+    
+    # Header Line
+    printf '%s%s  %sIMAGE SORTER%s  %sv%s%s%*s%s%s\n' \
+        "$C_CYAN" "$BOX_V" \
+        "$C_BOLD" "$C_RESET" "$C_DIM" "$VERSION" "$C_RESET" \
+        "$pad_len" "" \
+        "$C_CYAN" "$BOX_V$C_RESET" >&2
+        
     printf '%s%s%s\n\n' "$C_CYAN" "${BOX_BL}$(printf '%*s' $((term_width - 2)) '' | tr ' ' "$BOX_H")${BOX_BR}" "$C_RESET" >&2
 }
 
 print_section() {
-    printf '\n%s%s═══ %s ═══%s\n\n' "$C_BOLD" "$C_BLUE" "$1" "$C_RESET" >&2
+    printf '\n%s%s=== %s ===%s\n\n' "$C_BOLD" "$C_BLUE" "$1" "$C_RESET" >&2
 }
 
 # Returns 0-based index via stdout, all prompts to stderr
@@ -107,7 +125,7 @@ select_directory() {
     printf '%s%s%s\n\n' "$C_BOLD" "Select target directory" "$C_RESET" >&2
     printf '  %s[1]%s  Current directory %s(%s)%s\n' "$C_CYAN" "$C_RESET" "$C_DIM" "$current_dir" "$C_RESET" >&2
     printf '  %s[2]%s  Enter custom path\n' "$C_CYAN" "$C_RESET" >&2
-    printf '  %s───  Or type a path directly%s\n\n' "$C_DIM" "$C_RESET" >&2
+    printf '  %s---  Or type a path directly%s\n\n' "$C_DIM" "$C_RESET" >&2
     
     printf '%sChoice/path%s [%s1%s]: ' "$C_BOLD" "$C_RESET" "$C_GREEN" "$C_RESET" >&2
     local input
@@ -152,7 +170,7 @@ select_directory() {
 select_threshold() {
     cat >&2 << 'EOF'
 
-  DARK ◀─────────────────────────────────▶ LIGHT
+  DARK <---------------------------------> LIGHT
        0.0   0.2   0.4   0.5   0.6   0.8   1.0
 
   Lower = more images marked "light"
@@ -191,8 +209,8 @@ EOF
 
 select_sort_order() {
     printf '\n%sSort order:%s\n\n' "$C_BOLD" "$C_RESET" >&2
-    printf '  %s[1]%s  Smallest → Largest  %s(0001 = smallest)%s\n' "$C_CYAN" "$C_RESET" "$C_DIM" "$C_RESET" >&2
-    printf '  %s[2]%s  Largest → Smallest  %s(0001 = largest)%s\n\n' "$C_CYAN" "$C_RESET" "$C_DIM" "$C_RESET" >&2
+    printf '  %s[1]%s  Smallest -> Largest  %s(0001 = smallest)%s\n' "$C_CYAN" "$C_RESET" "$C_DIM" "$C_RESET" >&2
+    printf '  %s[2]%s  Largest -> Smallest  %s(0001 = largest)%s\n\n' "$C_CYAN" "$C_RESET" "$C_DIM" "$C_RESET" >&2
     
     printf '%sChoice%s [%s1%s]: ' "$C_BOLD" "$C_RESET" "$C_GREEN" "$C_RESET" >&2
     local choice
@@ -253,11 +271,11 @@ show_summary() {
     printf '  %sMode:%s          ' "$C_DIM" "$C_RESET" >&2
     case "$MODE" in
         brightness)
-            printf '%sBrightness Sort%s → dark/ & light/\n' "$C_BOLD" "$C_RESET" >&2
+            printf '%sBrightness Sort%s -> dark/ & light/\n' "$C_BOLD" "$C_RESET" >&2
             printf '  %sThreshold:%s     %s\n' "$C_DIM" "$C_RESET" "$THRESHOLD" >&2
             ;;
         size)
-            printf '%sSize Rename%s → sequential numbering\n' "$C_BOLD" "$C_RESET" >&2
+            printf '%sSize Rename%s -> sequential numbering\n' "$C_BOLD" "$C_RESET" >&2
             printf '  %sOrder:%s         %s\n' "$C_DIM" "$C_RESET" "$SORT_ORDER" >&2
             ;;
     esac
@@ -271,7 +289,7 @@ show_summary() {
     printf '  %sImages:%s        %s%d%s found\n' "$C_DIM" "$C_RESET" "$C_BOLD" "$file_count" "$C_RESET" >&2
     
     if [[ $file_count -eq 0 ]]; then
-        printf '\n%s⚠ No image files found!%s\n\n' "$C_YELLOW" "$C_RESET" >&2
+        printf '\n%s! No image files found!%s\n\n' "$C_YELLOW" "$C_RESET" >&2
         return 1
     fi
     
@@ -290,21 +308,21 @@ run_interactive() {
     print_section "Step 1: Choose Operation"
     local selection
     selection=$(show_menu "What would you like to do?" \
-        "Sort by Brightness  →  dark/ and light/ folders" \
-        "Sort by Size        →  Rename as 0001, 0002, ...")
+        "Sort by Brightness  ->  dark/ and light/ folders" \
+        "Sort by Size        ->  Rename as 0001, 0002, ...")
     
     case "$selection" in
         0) MODE="brightness" ;;
         1) MODE="size" ;;
     esac
     
-    printf '\n  %s✓%s %s\n' "$C_GREEN" "$C_RESET" \
+    printf '\n  %sOK%s %s\n' "$C_GREEN" "$C_RESET" \
         "$([[ "$MODE" == "brightness" ]] && echo "Brightness sorting" || echo "Size-based renaming")" >&2
     
     # Step 2: Directory
     print_section "Step 2: Choose Directory"
     TARGET_DIR=$(select_directory)
-    printf '\n  %s✓%s %s\n' "$C_GREEN" "$C_RESET" "$TARGET_DIR" >&2
+    printf '\n  %sOK%s %s\n' "$C_GREEN" "$C_RESET" "$TARGET_DIR" >&2
     
     # Step 3: Options
     print_section "Step 3: Configure"
@@ -312,11 +330,11 @@ run_interactive() {
     case "$MODE" in
         brightness)
             THRESHOLD=$(select_threshold)
-            printf '\n  %s✓%s Threshold: %s\n' "$C_GREEN" "$C_RESET" "$THRESHOLD" >&2
+            printf '\n  %sOK%s Threshold: %s\n' "$C_GREEN" "$C_RESET" "$THRESHOLD" >&2
             ;;
         size)
             SORT_ORDER=$(select_sort_order)
-            printf '\n  %s✓%s Order: %s\n' "$C_GREEN" "$C_RESET" "$SORT_ORDER" >&2
+            printf '\n  %sOK%s Order: %s\n' "$C_GREEN" "$C_RESET" "$SORT_ORDER" >&2
             ;;
     esac
     
@@ -334,9 +352,52 @@ run_interactive() {
 # =============================================================================
 # BRIGHTNESS SORTING
 # =============================================================================
-get_brightness() {
-    magick identify -format "%[fx:mean]" "$1" 2>/dev/null
+# Worker function for parallel execution (injected from v4 engine)
+sort_brightness_worker() {
+    local file="$1"
+    local threshold="$2"
+    local dry_run="$3"
+    local dark_dir="$4"
+    local light_dir="$5"
+
+    # 1. Calculate Brightness (No -ping, force pixel read, use quiet)
+    local brightness
+    if ! brightness=$(magick identify -quiet -format "%[fx:mean]\n" "$file" 2>/dev/null | head -n1); then
+        printf "ERR|%s\n" "$file"
+        return
+    fi
+
+    # 2. Sanity check: Ensure valid float
+    if [[ -z "$brightness" ]] || ! [[ "$brightness" =~ ^[0-9.]+$ ]]; then
+        printf "ERR|%s\n" "$file"
+        return
+    fi
+
+    # 3. Compare using bc (Robust float math)
+    local is_light
+    is_light=$(echo "$brightness > $threshold" | bc -l)
+
+    local dest_dir category
+    if (( is_light )); then
+        dest_dir="$light_dir"
+        category="LIGHT"
+    else
+        dest_dir="$dark_dir"
+        category="DARK"
+    fi
+
+    # 4. Action (CRITICAL FIX: Check if move failed)
+    if [[ "$dry_run" == "false" ]]; then
+        if ! mv -- "$file" "$dest_dir/" 2>/dev/null; then
+             printf "ERR|%s\n" "$file"
+             return
+        fi
+    fi
+    
+    # Output: OK|CATEGORY|VALUE|FILE
+    printf "OK|%s|%s|%s\n" "$category" "$brightness" "$file"
 }
+export -f sort_brightness_worker
 
 sort_by_brightness() {
     local dir="$1"
@@ -344,7 +405,7 @@ sort_by_brightness() {
     local -i count_dark=0 count_light=0
     
     print_section "Processing"
-    log_info "Sorting by brightness (threshold: $THRESHOLD)"
+    log_info "Sorting by brightness (threshold: $THRESHOLD) [Multi-Core Parallel]"
     [[ "$DRY_RUN" == true ]] && log_warn "DRY RUN - no files will be moved"
     printf '\n' >&2
     
@@ -352,51 +413,67 @@ sort_by_brightness() {
         mkdir -p "$dark_dir" "$light_dir"
     fi
     
-    local -a images
-    mapfile -t images < <(get_image_files "$dir")
+    # Discovery: Use find directly to temp file for xargs efficiency
+    local tmp_list
+    tmp_list=$(mktemp)
     
-    if [[ ${#images[@]} -eq 0 ]]; then
+    for ext in "${IMAGE_EXTENSIONS[@]}"; do
+        find "$dir" -maxdepth 1 -type f -iname "*.$ext" -print0 >> "$tmp_list"
+    done
+    
+    local total_files
+    total_files=$(tr -cd '\0' < "$tmp_list" | wc -c)
+
+    if [[ "$total_files" -eq 0 ]]; then
         log_warn "No images found"
+        rm "$tmp_list"
         return 0
     fi
     
-    for img in "${images[@]}"; do
-        [[ -f "$img" ]] || continue
-        local filename="${img##*/}"
-        local brightness
-        
-        if ! brightness=$(get_brightness "$img") || [[ -z "$brightness" ]]; then
-            printf '  %s⚠%s %s (failed to analyze)\n' "$C_YELLOW" "$C_RESET" "$filename" >&2
+    # Ensure standard decimal formatting for the worker subshells
+    export LC_ALL=C
+
+    # Producer-Consumer Loop
+    while IFS='|' read -r status category val file; do
+        if [[ "$status" == "ERR" ]]; then
+            # In ERR case, category is actually the filename (2nd arg)
+            local filename="${category##*/}"
+            printf '  %s!%s %s (failed to analyze or move)\n' "$C_YELLOW" "$C_RESET" "$filename" >&2
             (( ++FAILED ))
             continue
         fi
+
+        # Format output to match original UI style
+        local filename="${file##*/}"
+        local color="$C_BLUE"
+        [[ "$category" == "LIGHT" ]] && color="$C_YELLOW"
         
-        local dest category color
-        if awk -v a="$brightness" -v b="$THRESHOLD" 'BEGIN { exit !(a > b) }'; then
-            dest="$light_dir" category="LIGHT" color="$C_YELLOW"
-            (( ++count_light ))
+        if [[ "$category" == "LIGHT" ]]; then
+             (( ++count_light ))
         else
-            dest="$dark_dir" category="DARK" color="$C_BLUE"
-            (( ++count_dark ))
+             (( ++count_dark ))
         fi
         
         if [[ "$DRY_RUN" == true ]]; then
             printf '  %s[DRY]%s %s%-5s%s %s %s(%.3f)%s\n' \
                 "$C_MAGENTA" "$C_RESET" "$color" "$category" "$C_RESET" \
-                "$filename" "$C_DIM" "$brightness" "$C_RESET" >&2
+                "$filename" "$C_DIM" "$val" "$C_RESET" >&2
         else
-            mv -- "$img" "$dest/"
             printf '  %s%-5s%s %s\n' "$color" "$category" "$C_RESET" "$filename" >&2
         fi
         (( ++PROCESSED ))
-    done
+        
+    done < <(xargs -0 -a "$tmp_list" -P "$(nproc)" -I {} bash -c \
+        'sort_brightness_worker "$@"' _ "{}" "$THRESHOLD" "$DRY_RUN" "$dark_dir" "$light_dir")
+
+    rm "$tmp_list"
     
     print_section "Results"
-    printf '  📁 Dark:  %d images' "$count_dark" >&2
-    [[ "$DRY_RUN" == false ]] && printf ' → %s' "$dark_dir" >&2
+    printf '  + Dark:  %d images' "$count_dark" >&2
+    [[ "$DRY_RUN" == false ]] && printf ' -> %s' "$dark_dir" >&2
     printf '\n' >&2
-    printf '  📁 Light: %d images' "$count_light" >&2
-    [[ "$DRY_RUN" == false ]] && printf ' → %s' "$light_dir" >&2
+    printf '  + Light: %d images' "$count_light" >&2
+    [[ "$DRY_RUN" == false ]] && printf ' -> %s' "$light_dir" >&2
     printf '\n\n' >&2
     
     log_success "Processed $PROCESSED images ($FAILED failed)"
@@ -456,11 +533,11 @@ sort_by_size() {
         fi
         
         if [[ "$DRY_RUN" == true ]]; then
-            printf '  %s[DRY]%s %s → %s %s(%s)%s\n' \
+            printf '  %s[DRY]%s %s -> %s %s(%s)%s\n' \
                 "$C_MAGENTA" "$C_RESET" "$filename" "$new_name" "$C_DIM" "$size_h" "$C_RESET" >&2
         else
             cp -- "$file_path" "${output_dir}/${new_name}"
-            printf '  %s%s%s → %s %s(%s)%s\n' \
+            printf '  %s%s%s -> %s %s(%s)%s\n' \
                 "$C_GREEN" "$filename" "$C_RESET" "$new_name" "$C_DIM" "$size_h" "$C_RESET" >&2
         fi
         
@@ -468,8 +545,8 @@ sort_by_size() {
     done
     
     print_section "Results"
-    printf '  📁 Output: %s\n' "$output_dir" >&2
-    printf '  📊 Renamed: %d images\n\n' "$PROCESSED" >&2
+    printf '  + Output: %s\n' "$output_dir" >&2
+    printf '  + Renamed: %d images\n\n' "$PROCESSED" >&2
     
     log_success "Complete!"
     [[ "$DRY_RUN" == false ]] && log_warn "Originals preserved - verify before deleting"
