@@ -281,6 +281,10 @@ function y() {
 # --- sysbench benchmark ---
 alias run_sysbench='~/user_scripts/performance/sysbench_benchmark.sh'
 
+# --- nvidia vfio bind/unbind ---
+alias nvidia_bind='~/user_scripts/nvidia_passthrough/nvidia_vfio_bind_unbind.sh'
+alias nvidia_unbind='~/user_scripts/nvidia_passthrough/nvidia_vfio_bind_unbind.sh'
+
 #-- LM- Studio-- 
 llm() {
     /mnt/media/Documents/do_not_delete_linux/appimages/LM-Studio*(Om[1]) "$@"
