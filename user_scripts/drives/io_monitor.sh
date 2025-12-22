@@ -5,144 +5,207 @@
 # Description: Full Disk I/O Dashboard (Educational Edition)
 #              Shows RAM Buffers + Lifetime Totals + Instant Write Speed.
 #              Supports CLI arguments for instant launch.
-# Version: 6.0
+# Version: 7.0 (Optimized)
 # -----------------------------------------------------------------------------
 
-# Strict Mode
+# Strict Mode - fail fast on errors
 set -euo pipefail
 shopt -s inherit_errexit 2>/dev/null || true
 
 # --- Configuration & ANSI Colors ---
-readonly C_RESET=$'\033[0m'
-readonly C_BOLD=$'\033[1m'
-readonly C_CYAN=$'\033[0;36m'
-readonly C_GREEN=$'\033[0;32m'
-readonly C_RED=$'\033[0;31m'
-readonly C_PURPLE=$'\033[0;35m'
-readonly C_GREY=$'\033[0;90m'
+# Using \e for readability (Bash 3.2+)
+readonly C_RESET=$'\e[0m'
+readonly C_BOLD=$'\e[1m'
+readonly C_CYAN=$'\e[36m'
+readonly C_GREEN=$'\e[32m'
+readonly C_RED=$'\e[31m'
+readonly C_PURPLE=$'\e[35m'
+readonly C_GREY=$'\e[90m'
+
+# Regex for valid block device names (letters, numbers, hyphens, underscores)
+readonly VALID_DEV_REGEX='^[a-zA-Z0-9_-]+$'
 
 # --- Trap & Cleanup ---
 cleanup() {
+    # Restore cursor visibility on exit
     tput cnorm 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
+# --- Utility: Print error and exit ---
+die() {
+    printf '%s[Error] %s%s\n' "$C_RED" "$1" "$C_RESET" >&2
+    exit "${2:-1}"
+}
+
 # --- Dependency Check ---
 check_deps() {
-    local -a deps=(iostat lsblk watch grep awk)
     local -a missing=()
+    local cmd
     
-    for cmd in "${deps[@]}"; do
-        if ! command -v "$cmd" >/dev/null 2>&1; then
-            missing+=("$cmd")
-        fi
+    # iostat is from sysstat package, watch from procps-ng
+    for cmd in iostat lsblk watch tput; do
+        command -v "$cmd" &>/dev/null || missing+=("$cmd")
     done
 
-    if (( ${#missing[@]} > 0 )); then
-        printf "%s[Error] Missing dependencies: %s%s\n" "$C_RED" "${missing[*]}" "$C_RESET" >&2
-        exit 1
+    if (( ${#missing[@]} )); then
+        die "Missing dependencies: ${missing[*]} (install: sysstat, procps-ng, ncurses)"
+    fi
+}
+
+# --- Validate Device Name ---
+validate_device() {
+    local dev="$1"
+    
+    # Check character validity first (security: prevents injection)
+    if [[ ! "$dev" =~ $VALID_DEV_REGEX ]]; then
+        die "Invalid device name format: '$dev'"
+    fi
+    
+    # Verify it's an actual block device
+    if [[ ! -b "/dev/$dev" ]]; then
+        die "Device '/dev/$dev' does not exist or is not a block device."
     fi
 }
 
 # --- Drive Selection (Interactive) ---
 select_drive() {
     local -a dev_list=()
+    local -A dev_set=()  # Associative array for O(1) validation
+    local name size type model formatted
     
-    # Send UI to stderr
+    # Send UI to stderr (stdout reserved for return value)
     {
         clear
-        printf "%s%s:: Drive Selection ::%s\n" "$C_BOLD" "$C_CYAN" "$C_RESET"
-        printf "%s%-10s %-10s %-10s %-20s%s\n" "$C_BOLD" "NAME" "SIZE" "TYPE" "MODEL" "$C_RESET"
-        printf "%s%s%s\n" "$C_GREY" "--------------------------------------------------------" "$C_RESET"
+        printf '%s%s:: Drive Selection ::%s\n' "$C_BOLD" "$C_CYAN" "$C_RESET"
+        printf '%s%-12s %-10s %-8s %-24s%s\n' "$C_BOLD" "NAME" "SIZE" "TYPE" "MODEL" "$C_RESET"
+        printf '%s%s%s\n' "$C_GREY" "────────────────────────────────────────────────────────────" "$C_RESET"
     } >&2
 
-    # Parse lsblk
+    # Parse lsblk - filter virtual devices
     while read -r name size type model; do
+        [[ -z "$name" ]] && continue
+        
         dev_list+=("$name")
-        local formatted
-        printf -v formatted "%-10s %-10s %-10s %-20s" "$name" "$size" "$type" "${model:-N/A}"
-        printf "%s%s%s\n" "$C_GREEN" "$formatted" "$C_RESET" >&2
-    done < <(lsblk -dno NAME,SIZE,TYPE,MODEL | grep -vE '^(loop|sr|ram|zram)')
+        dev_set["$name"]=1
+        
+        printf -v formatted '%-12s %-10s %-8s %-24s' "$name" "$size" "$type" "${model:-N/A}"
+        printf '%s%s%s\n' "$C_GREEN" "$formatted" "$C_RESET" >&2
+    done < <(lsblk -dno NAME,SIZE,TYPE,MODEL | grep -vE '^(loop|sr|ram|zram|fd)')
 
     if (( ${#dev_list[@]} == 0 )); then
-        printf "%s[Error] No physical drives detected.%s\n" "$C_RED" "$C_RESET" >&2
-        exit 1
+        die "No physical drives detected."
     fi
 
-    printf "\n%sTarget Drive (e.g., sda): %s" "$C_BOLD" "$C_RESET" >&2
+    # Prompt with first available device as example
+    printf '\n%sEnter target drive (e.g., %s): %s' "$C_BOLD" "${dev_list[0]}" "$C_RESET" >&2
     
     local input
     if ! read -r -t 60 input; then
-        printf "\n%s[Error] Timed out waiting for input.%s\n" "$C_RED" "$C_RESET" >&2
-        exit 1
+        printf '\n' >&2
+        die "Timed out waiting for input (60s)."
     fi
 
+    # Normalize: strip /dev/ prefix and whitespace
     input="${input#/dev/}"
+    input="${input//[[:space:]]/}"
 
-    # Validate against list
-    local valid=0
-    for dev in "${dev_list[@]}"; do
-        if [[ "$dev" == "$input" ]]; then
-            valid=1
-            break
-        fi
-    done
-
-    if [[ $valid -eq 0 ]]; then
-        printf "%s[Error] Invalid device name '%s'.%s\n" "$C_RED" "$input" "$C_RESET" >&2
-        exit 1
+    # O(1) validation using associative array
+    if [[ -z "${dev_set[$input]+_}" ]]; then
+        die "Invalid device: '$input'. Available: ${dev_list[*]}"
     fi
 
-    echo "$input"
+    # Return selected drive via stdout
+    printf '%s' "$input"
 }
 
-# --- Main Logic ---
+# --- Build Dashboard Command ---
+# Using a function makes the command generation cleaner and testable
+build_dashboard_cmd() {
+    local drive="$1"
+    
+    # Note: This string is passed to 'watch' which runs it via sh -c
+    # We expand colors and drive name now; escape awk's $ for later evaluation
+    cat <<-EOF
+	# Section 1: System Write Buffers
+	printf '${C_BOLD}${C_CYAN}━━━ 1. System Write Buffer (RAM) ━━━${C_RESET} ${C_GREY}[ grep Dirty|Writeback /proc/meminfo ]${C_RESET}\n'
+	grep -E '^(Dirty|Writeback):' /proc/meminfo | awk '{printf "  %-15s %8.2f MB\n", \$1, \$2/1024}'
+	
+	# Section 2: Lifetime I/O Totals
+	printf '\n${C_BOLD}${C_PURPLE}━━━ 2. Lifetime I/O (Since Boot) ━━━${C_RESET} ${C_GREY}[ iostat -m -d /dev/${drive} ]${C_RESET}\n'
+	iostat -m -d /dev/${drive} | grep -E '^(Device|${drive})'
+	
+	# Section 3: Instant Speed (1-second sample)
+	printf '\n${C_BOLD}${C_GREEN}━━━ 3. Instant Speed (Last 1s) ━━━${C_RESET} ${C_GREY}[ iostat -y -m -d 1 1 ]${C_RESET}\n'
+	iostat -y -m -d /dev/${drive} 1 1 | grep '^${drive}'
+	EOF
+}
+
+# --- Display Help ---
+show_help() {
+    cat <<-EOF
+	${C_BOLD}Usage:${C_RESET} ${0##*/} [DEVICE]
+	
+	${C_BOLD}Description:${C_RESET}
+	  Monitor disk I/O with a real-time dashboard showing:
+	    • RAM write buffers (Dirty/Writeback)
+	    • Lifetime I/O statistics (since boot)
+	    • Instant read/write speeds (1-second samples)
+	
+	${C_BOLD}Arguments:${C_RESET}
+	  DEVICE    Block device name (e.g., sda, nvme0n1)
+	            If omitted, an interactive menu is shown.
+	
+	${C_BOLD}Examples:${C_RESET}
+	  ${0##*/}           # Interactive device selection
+	  ${0##*/} sda       # Monitor /dev/sda directly
+	  ${0##*/} nvme0n1   # Monitor NVMe drive
+	
+	${C_BOLD}Dependencies:${C_RESET}
+	  iostat (sysstat), watch (procps-ng), lsblk, tput (ncurses)
+	EOF
+    exit 0
+}
+
+# --- Main Entry Point ---
 main() {
+    # Handle help flag
+    [[ "${1:-}" =~ ^(-h|--help)$ ]] && show_help
+    
     check_deps
     
-    local drive=""
-
-    # Check if user provided an argument (e.g., ./io-monitor.sh sda)
-    if [[ -n "${1:-}" ]]; then
-        # Strip potential /dev/ prefix
+    local drive
+    
+    # Parse command line or launch interactive selection
+    if (( $# > 0 )); then
         drive="${1#/dev/}"
-        
-        # Validate that it is a real block device
-        if [[ ! -b "/dev/$drive" ]]; then
-            printf "%s[Error] Device '/dev/%s' does not exist or is not a block device.%s\n" "$C_RED" "$drive" "$C_RESET" >&2
-            exit 1
-        fi
+        validate_device "$drive"
     else
-        # No argument provided, launch interactive menu
         drive=$(select_drive)
     fi
-
-    # Educational Command Strings (for display in dashboard)
-    local cmd_ram="grep -E '^(Dirty|Writeback):' /proc/meminfo"
-    local cmd_life="iostat -m -d /dev/${drive}"
-    local cmd_inst="iostat -y -m -d /dev/${drive} 1 1"
-
-    # Prepare Watch Command
-    local cmd="
-    # --- 1. MEMORY ---
-    printf \"${C_BOLD}${C_CYAN}--- 1. System Write Buffer (RAM) --- ${C_RESET}${C_GREY}[ ${cmd_ram} ]${C_RESET}\n\"; 
-    grep -E '^(Dirty|Writeback):' /proc/meminfo | awk '{printf \"  %-15s %.2f MB\n\", \$1, \$2/1024}'; 
     
-    # --- 2. LIFETIME TOTALS ---
-    printf \"\n${C_BOLD}${C_PURPLE}--- 2. Lifetime (Since Boot) --- ${C_RESET}${C_GREY}[ ${cmd_life} ]${C_RESET}\n\"; 
-    iostat -m -d /dev/${drive} | grep -E '^(Device|${drive})';
+    # Defensive check (shouldn't happen, but safe)
+    [[ -z "$drive" ]] && die "No drive selected."
 
-    # --- 3. INSTANT SPEED ---
-    printf \"\n${C_BOLD}${C_GREEN}--- 3. Instant Speed (Last 1s) --- ${C_RESET}${C_GREY}[ ${cmd_inst} ]${C_RESET}\n\"; 
-    iostat -y -m -d /dev/${drive} 1 1 | grep '${drive}'
-    "
+    # Build the dashboard command
+    local dashboard_cmd
+    dashboard_cmd=$(build_dashboard_cmd "$drive")
 
+    # Launch sequence
     clear
-    printf "%sInitializing Dashboard for /dev/%s...%s\n" "$C_GREEN" "$drive" "$C_RESET"
-    sleep 0.5
+    printf '%s╔═══════════════════════════════════════════════════════════════╗%s\n' "$C_CYAN" "$C_RESET"
+    printf '%s║  %sI/O Dashboard%s :: Monitoring /dev/%-27s%s║%s\n' "$C_CYAN" "$C_BOLD" "$C_RESET$C_CYAN" "$drive" "$C_CYAN" "$C_RESET"
+    printf '%s╚═══════════════════════════════════════════════════════════════╝%s\n' "$C_CYAN" "$C_RESET"
+    printf '%sPress Ctrl+C to exit.%s\n\n' "$C_GREY" "$C_RESET"
+    sleep 0.8
 
-    watch --color -t -d -n 1 "$cmd"
+    # Hide cursor during watch (cleanup trap restores it)
+    tput civis 2>/dev/null || true
+
+    # Use exec to replace shell process (cleaner, no zombie)
+    # The -- ensures watch doesn't interpret cmd as options
+    exec watch --color -t -d -n 1 -- "$dashboard_cmd"
 }
 
-# Pass all arguments to main
-main "${@}"
+# Execute main with all arguments
+main "$@"
