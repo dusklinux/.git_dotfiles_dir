@@ -91,7 +91,7 @@ These scripts default to **Intel (CPU) +  Intel Integrated GPU + Nvidia (GPU)**
 # Installation 💿
 ## 📦 Method 1: Existing Arch Install (Recommended)
 
-**Best for:** Users who already have a fresh and unconfigured Arch + Hyprland installed via `archinstall scritp` or manual installation. (Do so with the arch iso if you haven't already, make sure to choose btrfs for file system format and hyprland for window manager)
+**Best for:** Users who already have a fresh, unconfigured Arch Linux installation with Hyprland, set up either via the archinstall script or through a manual install. If you have not installed yet, use the Arch ISO and ensure you select Btrfs as the filesystem and Hyprland as the window manager.
 
 ### Step 1: Clone Dotfiles (Bare Repo Method)
 
