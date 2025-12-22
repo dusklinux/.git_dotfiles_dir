@@ -115,7 +115,7 @@ Run the master script to install dependencies, themes, and services.
 
 ## 🎻 The Orchestra Script
 
-The `ORCHESTRA.sh` is a "conductor" that manages ~70 subscripts.
+The `ORCHESTRA.sh` is a "conductor" that manages ~80 subscripts.
 
 - **Smart:** It detects installed packages and skips them.
 

@@ -3,6 +3,7 @@
 # Title:        Parakeet ASR Installer & Setup
 # Description:  Automates the setup of NVIDIA Parakeet ASR on Arch Linux/Hyprland.
 #               Handles dependencies, venv creation, and initial model caching.
+# Author:       Elite DevOps (Generated via Gemini, Refined by Code Review)
 # Environment:  Arch Linux | Hyprland | UWSM
 # ==============================================================================
 
@@ -53,26 +54,33 @@ fi
 readonly AUR_HELPER
 log_info "Using AUR helper: ${AUR_HELPER}"
 
-# Check 3: Check for CUDA (Arch Specific Exact Match)
-# We grep the list of installed packages (-Qq) for any package name starting with "cuda"
-if ! pacman -Qq | grep -q "^cuda"; then
-    log_warn "No CUDA packages detected in the installed package list."
-    log_warn "If you have installed it manually (outside pacman), you can ignore this."
+# Check 3: GPU Drivers (CRITICAL)
+# The kernel drivers are mandatory. If nvidia-smi fails, no GPU work is possible.
+if ! command -v nvidia-smi &>/dev/null; then
+    log_error "NVIDIA Drivers (nvidia-smi) not found! You must install 'nvidia-dkms' or 'nvidia' and reboot."
+fi
+
+# Check 4: CUDA Toolkit (ADVISORY)
+# PyTorch bundles its own runtime, but system CUDA (nvcc) is needed if NeMo compiles extensions.
+if ! pacman -Qs cuda >/dev/null && ! command -v nvcc &>/dev/null; then
+    log_warn "System-wide CUDA Toolkit (nvcc) not found."
+    log_info "PyTorch wheels usually bundle their own runtime, so inference might work without it."
+    log_info "However, if NeMo needs to compile custom extensions, this will fail."
     
-    # Safer printf usage
-    printf "%s" "${YELLOW}Would you like to stop and install CUDA now? [y/N] ${RESET}"
+    printf "%s" "${YELLOW}Do you want to install the system CUDA toolkit to be safe? [y/N] ${RESET}"
     read -r response
     
-    # Modern regex check for yes/y/YES/Yes
     if [[ "${response}" =~ ^[yY]([eE][sS])?$ ]]; then
         log_info "Please install your preferred version (e.g., '${AUR_HELPER} -S cuda-12.5 cudnn9.3-cuda12.5') and re-run this script."
         exit 0
+    else
+        log_info "Proceeding without system CUDA toolkit..."
     fi
 else
-    log_success "CUDA detected."
+    log_success "CUDA Toolkit detected (Package or Binary present)."
 fi
 
-# Check 4: Check for UV
+# Check 5: Check for UV
 if ! command -v uv &>/dev/null; then
     log_info "'uv' not found. Installing via ${AUR_HELPER}..."
     "${AUR_HELPER}" -S --needed --noconfirm uv
@@ -82,8 +90,13 @@ fi
 # 2. System Dependencies
 # ==============================================================================
 
-log_info "Installing system dependencies (SentencePiece)..."
-"${AUR_HELPER}" -S --needed --noconfirm sentencepiece
+# Check if sentencepiece is already installed to avoid AUR helper prompts
+if ! pacman -Qs sentencepiece >/dev/null; then
+    log_info "Installing system dependencies (SentencePiece)..."
+    "${AUR_HELPER}" -S --needed --noconfirm sentencepiece
+else
+    log_success "System dependency 'sentencepiece' is already installed."
+fi
 
 # ==============================================================================
 # 3. Directory & Virtual Environment Setup
