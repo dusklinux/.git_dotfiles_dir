@@ -38,15 +38,15 @@ fi
 
 readonly SCAN_PREFIX="scan_dump"
 readonly CLIENT_SCAN_PREFIX="client_scan"
-readonly HANDSHAKE_PREFIX="handshake"
 readonly SCRIPT_PID="$$"
 readonly SCRIPT_NAME="${0##*/}"
 
 # Secure temp directory creation with validation
-readonly TMP_DIR="$(mktemp -d -t wifi_audit_XXXXXX 2>/dev/null)" || {
+TMP_DIR="$(mktemp -d -t wifi_audit_XXXXXX 2>/dev/null)" || {
     printf '%s\n' "Error: Failed to create temporary directory" >&2
     exit 1
 }
+readonly TMP_DIR
 
 # Ensure TMP_DIR is valid
 [[ -d "$TMP_DIR" && -w "$TMP_DIR" ]] || {
@@ -296,7 +296,7 @@ validate_path() {
     local dangerous_chars=$'`$();&|<>!*?[]{}\'"\\'
     
     # Check each dangerous character
-    local char
+    local char i
     for ((i=0; i<${#dangerous_chars}; i++)); do
         char="${dangerous_chars:i:1}"
         if [[ "$path" == *"$char"* ]]; then
