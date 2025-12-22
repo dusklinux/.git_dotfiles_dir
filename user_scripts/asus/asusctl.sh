@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================
-#  ASUS CONTROL CENTER (v2025.12.8 - Arch/Hyprland Edition)
+#  ASUS CONTROL CENTER (Arch/Hyprland Edition)
 #  Target: ASUS TUF/ROG Laptops
 #  Features: Multi-State Power Monitor, Fan Curves, Aura RGB, Battery Limit
 #  Requires: bash 5+, gum, asusctl
@@ -19,23 +19,24 @@ declare -r C_TEXT="#f8f8f2"
 declare -r C_GREY="#6272a4"
 declare -r C_YELLOW="#f1fa8c"
 
-# Version
-declare -r VERSION="2025.12.8"
-
 # --- Environment ---
 export RUST_LOG=error
 
 # --- State Variables ---
 declare -i CLEANUP_DONE=0
 
+# --- System Info (cached at startup) ---
+declare ASUSCTL_VERSION=""
+declare PRODUCT_FAMILY=""
+declare BOARD_NAME=""
+
 # --- Cleanup ---
 cleanup() {
-    # Prevent re-entry
     (( CLEANUP_DONE )) && return
     CLEANUP_DONE=1
     
-    tput cnorm 2>/dev/null  # Restore cursor
-    stty echo 2>/dev/null   # Restore echo
+    tput cnorm 2>/dev/null
+    stty echo 2>/dev/null
     clear
 }
 trap cleanup EXIT
@@ -55,7 +56,6 @@ check_dependencies() {
         exit 1
     fi
     
-    # Version check for bash 5+ features
     if (( BASH_VERSINFO[0] < 5 )); then
         printf 'Error: Bash 5+ required (found: %s)\n' "$BASH_VERSION" >&2
         exit 1
@@ -65,7 +65,6 @@ check_dependencies
 
 # --- Root Check ---
 if (( EUID != 0 )); then
-    # Attempt to use gum if available, fallback to echo
     if command -v gum &>/dev/null; then
         gum style --foreground "$C_RED" "Error: Must be run as root (sudo)."
     else
@@ -74,11 +73,29 @@ if (( EUID != 0 )); then
     exit 1
 fi
 
+# --- Fetch System Info (once at startup) ---
+fetch_system_info() {
+    local raw
+    raw=$(asusctl -v 2>&1)
+    
+    read -r ASUSCTL_VERSION PRODUCT_FAMILY BOARD_NAME < <(awk -F': ' '
+        /^asusctl version:/ { ver = $2 }
+        /Product family:/   { prod = $2 }
+        /Board name:/       { board = $2 }
+        END { 
+            printf "%s\t%s\t%s", 
+                (ver ? ver : "Unknown"),
+                (prod ? prod : "Unknown"),
+                (board ? board : "Unknown")
+        }
+    ' <<< "$raw")
+}
+fetch_system_info
+
 # ==============================================================================
 #  UTILITY FUNCTIONS
 # ==============================================================================
 
-# Pure bash trim - no external commands
 trim() {
     local s="${1-}"
     s="${s#"${s%%[![:space:]]*}"}"
@@ -86,17 +103,14 @@ trim() {
     printf '%s' "$s"
 }
 
-# Core execution wrapper - filters zbus/tracing noise
 exec_asus() {
     local output rc
     output=$(asusctl "$@" 2>&1)
     rc=$?
-    # Filter noise lines but preserve meaningful output
     grep -vE '^(\[|INFO|WARN|ERRO|ERROR|DEBUG|zbus|Optional|Starting version)' <<< "$output"
     return "$rc"
 }
 
-# Styled notification helpers
 notify_success() {
     gum style --foreground "$C_GREEN" "✓ ${1:-Done}"
 }
@@ -118,17 +132,14 @@ rgb_to_hex() {
     
     IFS=',' read -r r g b <<< "$input"
     
-    # Trim whitespace
     r=$(trim "$r")
     g=$(trim "$g")
     b=$(trim "$b")
 
-    # Validate: must be integers
     if ! [[ "$r$g$b" =~ ^[0-9]+$ ]] || [[ -z "$r" || -z "$g" || -z "$b" ]]; then
         return 1
     fi
     
-    # Validate: range 0-255
     if (( r > 255 || g > 255 || b > 255 )); then
         return 1
     fi
@@ -158,7 +169,6 @@ pick_color() {
         "Custom Hex")
             input=$(gum input --placeholder "e.g. #FF0000 or FF0000" --width 30)
             [[ -z "$input" ]] && return 1
-            # Remove # prefix, trim, uppercase
             hex="${input#\#}"
             hex=$(trim "$hex")
             hex="${hex^^}"
@@ -174,7 +184,6 @@ pick_color() {
             ;;
     esac
     
-    # Final hex validation
     if ! [[ "${hex:-}" =~ ^[0-9A-F]{6}$ ]]; then
         notify_error "Invalid hex format. Use 6 hex characters."
         sleep 1
@@ -188,12 +197,10 @@ pick_color() {
 #  DATA FETCHING
 # ==============================================================================
 
-# Returns: "active|ac|battery" pipe-separated string
 get_power_states() {
     local raw active ac bat
     raw=$(exec_asus profile -p 2>/dev/null)
     
-    # Single awk call with multiple pattern matches
     read -r active ac bat < <(awk '
         /Active profile/     { active = $NF }
         /Profile on AC/      { ac = $NF }
@@ -220,43 +227,22 @@ get_fan_status() {
     fi
 }
 
-get_charge_limit() {
-    local limit
-    # Try to read from sysfs first (most reliable)
-    local sysfs_path="/sys/class/power_supply/BAT0/charge_control_end_threshold"
-    
-    if [[ -r "$sysfs_path" ]]; then
-        limit=$(<"$sysfs_path")
-    else
-        # Fallback: parse from asusctl output if available
-        limit=$(exec_asus -s 2>/dev/null | awk '/[Cc]harge.*[Ll]imit|[Cc]hg.*[Ll]imit/ {print $NF; exit}')
-    fi
-    
-    # Validate and return
-    if [[ "$limit" =~ ^[0-9]+$ ]] && (( limit >= 20 && limit <= 100 )); then
-        printf '%d' "$limit"
-    else
-        printf '%s' "N/A"
-    fi
-}
-
 # ==============================================================================
 #  DASHBOARD
 # ==============================================================================
 
 show_dashboard() {
     clear
-    local p_states fan_state active ac bat charge_limit
+    local p_states fan_state active ac bat
     
-    # Fetch all states
     p_states=$(get_power_states)
     IFS='|' read -r active ac bat <<< "$p_states"
     fan_state=$(get_fan_status)
-    charge_limit=$(get_charge_limit)
     
-    # Header
+    # Header with system info
     gum style --foreground "$C_PURPLE" --border double --align center --width 62 --margin "1 1" \
-        "ASUS CONTROL CENTER v$VERSION"
+        "$PRODUCT_FAMILY ($BOARD_NAME)" \
+        "asusctl v$ASUSCTL_VERSION"
     
     # Power states grid
     gum join --horizontal --align center \
@@ -264,38 +250,20 @@ show_dashboard() {
         "$(gum style --width 20 --border rounded --padding "0 1" --foreground "$C_CYAN" "AC POLICY" "$ac")" \
         "$(gum style --width 20 --border rounded --padding "0 1" --foreground "$C_ORANGE" "BAT POLICY" "$bat")"
 
-    # Status line with fan and battery info
-    local battery_display
-    if [[ "$charge_limit" == "N/A" ]]; then
-        battery_display=$(gum style --foreground "$C_GREY" "N/A")
-    elif (( charge_limit == 100 )); then
-        battery_display=$(gum style --foreground "$C_GREEN" "${charge_limit}%")
-    elif (( charge_limit >= 80 )); then
-        battery_display=$(gum style --foreground "$C_CYAN" "${charge_limit}%")
-    elif (( charge_limit >= 60 )); then
-        battery_display=$(gum style --foreground "$C_YELLOW" "${charge_limit}%")
-    else
-        battery_display=$(gum style --foreground "$C_ORANGE" "${charge_limit}%")
-    fi
-    
     gum style --align center --foreground "$C_TEXT" --margin "0 1" \
-        "Fan: $fan_state  │  Charge Limit: $battery_display"
+        "Fan Strategy: $fan_state"
     echo
 }
 
 # ==============================================================================
-#  BATTERY CHARGE LIMIT (NEW FEATURE)
+#  BATTERY CHARGE LIMIT
 # ==============================================================================
 
 menu_battery_limit() {
-    local current_limit choice new_limit
-    
-    current_limit=$(get_charge_limit)
+    local choice new_limit
     
     clear
     gum style --foreground "$C_CYAN" --border rounded "Battery Charge Limit"
-    echo
-    gum style --foreground "$C_TEXT" "Current Limit: $(gum style --foreground "$C_YELLOW" "$current_limit")"
     echo
     
     choice=$(gum choose --cursor="➜ " --header "Select Option" \
@@ -316,9 +284,8 @@ menu_battery_limit() {
             
             [[ -z "$new_limit" ]] && return
             
-            # Validate input
             new_limit=$(trim "$new_limit")
-            new_limit="${new_limit%\%}"  # Remove trailing % if present
+            new_limit="${new_limit%\%}"
             
             if ! [[ "$new_limit" =~ ^[0-9]+$ ]]; then
                 notify_error "Invalid input. Please enter a number."
@@ -347,24 +314,13 @@ menu_battery_limit() {
             ;;
     esac
     
-    # Apply the new limit
     if [[ -n "${new_limit:-}" ]]; then
         notify_info "Setting charge limit to ${new_limit}%..."
         
         if exec_asus -c "$new_limit" &>/dev/null; then
             notify_success "Charge limit set to ${new_limit}%"
         else
-            # Fallback: try direct sysfs write
-            local sysfs_path="/sys/class/power_supply/BAT0/charge_control_end_threshold"
-            if [[ -w "$sysfs_path" ]]; then
-                if echo "$new_limit" > "$sysfs_path" 2>/dev/null; then
-                    notify_success "Charge limit set via sysfs to ${new_limit}%"
-                else
-                    notify_error "Failed to set charge limit."
-                fi
-            else
-                notify_error "Failed to set charge limit. Check asusctl configuration."
-            fi
+            notify_error "Failed to set charge limit."
         fi
         sleep 1
     fi
@@ -397,7 +353,6 @@ set_brightness() {
     if exec_asus -k "$level_arg" &>/dev/null; then
         notify_success "Brightness set."
     else
-        # Fallback to sysfs
         local led_path="/sys/class/leds/asus::kbd_backlight/brightness"
         if [[ -w "$led_path" ]]; then
             if echo "$int_val" > "$led_path" 2>/dev/null; then
@@ -471,10 +426,8 @@ menu_profiles() {
     local -a profiles
     local target selected_prof
     
-    # Get available profiles dynamically
     mapfile -t profiles < <(exec_asus profile -l 2>/dev/null | grep -xE '[a-zA-Z]+')
     
-    # Fallback to common defaults
     (( ${#profiles[@]} == 0 )) && profiles=("Quiet" "Balanced" "Performance")
 
     target=$(gum choose --header "Apply Profile To..." \
@@ -522,21 +475,18 @@ run_fan_wizard() {
     gum style --foreground "$C_CYAN" "Fan Curve Wizard (Linear Interpolation)" >&2
     echo >&2
     
-    # Get temperature range
     min_temp=$(gum input --placeholder "Start Temp °C (e.g. 30)" --width 30 --header "Temperature Range")
     [[ -z "$min_temp" ]] && return 1
     
     max_temp=$(gum input --placeholder "End Temp °C (e.g. 95)" --value "95" --width 30)
     [[ -z "$max_temp" ]] && return 1
 
-    # Get fan speed range
     min_fan=$(gum input --placeholder "Start Fan % (e.g. 0)" --width 30 --header "Fan Speed Range")
     [[ -z "$min_fan" ]] && return 1
 
     max_fan=$(gum input --placeholder "End Fan % (e.g. 100)" --value "100" --width 30)
     [[ -z "$max_fan" ]] && return 1
 
-    # Validate all inputs are positive integers
     local var
     for var in "$min_temp" "$max_temp" "$min_fan" "$max_fan"; do
         if ! [[ "$var" =~ ^[0-9]+$ ]]; then
@@ -546,7 +496,6 @@ run_fan_wizard() {
         fi
     done
 
-    # Logic validation
     if (( min_temp >= max_temp )); then
         notify_error "Start temp must be lower than end temp." >&2
         sleep 2
@@ -559,11 +508,9 @@ run_fan_wizard() {
         return 1
     fi
     
-    # Clamp fan values to valid range
     (( min_fan > 100 )) && min_fan=100
     (( max_fan > 100 )) && max_fan=100
 
-    # Generate 8-point curve using linear interpolation
     raw_points=$(awk -v t1="$min_temp" -v t2="$max_temp" \
                      -v f1="$min_fan"  -v f2="$max_fan" '
     BEGIN {
@@ -591,7 +538,6 @@ run_fan_wizard() {
 menu_fans() {
     local p_states active ac bat choice curve prof_arg
     
-    # Get active profile for context
     p_states=$(get_power_states)
     IFS='|' read -r active ac bat <<< "$p_states"
     
@@ -631,14 +577,12 @@ menu_fans() {
             ;;
     esac
 
-    # Apply the curve if set
     if [[ -n "${curve:-}" ]]; then
         prof_arg="${active,,}"
         prof_arg=$(trim "$prof_arg")
         
         notify_info "Applying curve to profile: $active..."
         
-        # Apply to both CPU and GPU fans
         exec_asus fan-curve -m "$prof_arg" -f cpu -D "$curve" &>/dev/null
         exec_asus fan-curve -m "$prof_arg" -f gpu -D "$curve" &>/dev/null
         exec_asus fan-curve -m "$prof_arg" -e true &>/dev/null
