@@ -88,6 +88,8 @@ INSTALL_SEQUENCE=(
     "U | 075_spicetify_matugen_setup.sh"
     "U | 076_waybar_swap_config.sh --choose"
     "U | 077_mpv_setup.sh"
+    "U | 078_kokoro_gpu_setup.sh" #requires nvidia gpu with at least 4gb vram
+    "U | 079_parakeet_gpu_setup.sh" #requires nvidia gpu with at least 4gb vram
 )
 
 # ==============================================================================
