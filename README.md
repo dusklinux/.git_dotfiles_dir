@@ -83,7 +83,7 @@ These scripts default to **Intel (CPU) +  Intel Integrated GPU + Nvidia (GPU)**
 ### Dual Booting
 
 - Compatible with Windows or other Linux distros.
-    
+
 - **Bootloader:** Defaults to `systemd-boot` for UEFI (boots up to 5s faster). Defaults to `GRUB` for BIOS.
 
 
@@ -91,7 +91,7 @@ These scripts default to **Intel (CPU) +  Intel Integrated GPU + Nvidia (GPU)**
 # Installation 💿
 ## 📦 Method 1: Existing Arch Install (Recommended)
 
-**Best for:** Users who already have Arch + Hyprland installed via `archinstall` or manual installation.
+**Best for:** Users who already have a fresh and unconfigured Arch + Hyprland installed via `archinstall scritp` or manual installation. (Do so with the arch iso if you haven't already, make sure to choose btrfs for file system format and hyprland for window manager)
 
 ### Step 1: Clone Dotfiles (Bare Repo Method)
 
