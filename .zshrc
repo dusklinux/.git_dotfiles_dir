@@ -242,6 +242,9 @@ waydroid_bind() {
     fi
 }
 
+# ===
+# use `command sudo nvim ...` to escape the funtion if you ever dont want sudoedit to be used.
+# ===
 # sudo edit nvim sudoedit
 # Function to intercept 'sudo nvim' and convert it to 'sudoedit'
 sudo() {
