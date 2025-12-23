@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-#  Title:        iPhone Headless Link (v4.2 - Keyboard Friendly)
+#  Title:        iPhone Headless Link (v4.3 - User Configurable)
 #  Description:  Connects iPhone via USB Tethering + VNC to a headless output.
-#                Features: Half-Height Res (for Keyboard), 3x Default Scale.
-#  Author:       Gemini (DevOps Edition)
 #  Usage:        iphone_link.sh [--log] [--help]
 # ==============================================================================
 
@@ -13,19 +11,41 @@ set -o nounset      # Error on unset variables
 set -o pipefail     # Pipe fails on first error
 shopt -s nullglob   # Empty glob returns empty
 
-# --- Configuration (Overridable via ENV) ---
-# Resolution: 1080x960 (Half-height of 1080x1920) to leave room for keyboard.
-declare VIRT_RES="${IPHONE_RES:-1080x960}" 
-# VNC Port: Standard default
-declare VNC_PORT="${IPHONE_PORT:-5900}"
-# Max FPS: Conservative default (30 is safe for Hybrid GPUs)
-declare -i MAX_FPS="${IPHONE_FPS:-30}" 
-# Scale: Default to empty (will ask user if not set)
-declare SCALE="${IPHONE_SCALE:-}"
+# ==============================================================================
+#  USER CONFIGURATION (EDIT ME)
+# ==============================================================================
+
+# Default Resolution (WxH). 
+# 1080x960 is approx half-height of standard 1080p, leaving room for keyboard.
+declare DEFAULT_RES="1080x960"
+
+# Default UI Scale.
+# 3.0 makes UI elements large and touch-friendly on phone screens.
+declare DEFAULT_SCALE="1.0"
+
+# VNC Port
+declare DEFAULT_PORT="5900"
+
+# Max FPS (Keep at 30 to prevent Hybrid GPU crashes)
+declare -i DEFAULT_FPS=30
+
 # DHCP Timeout in seconds
-declare -i DHCP_TIMEOUT="${IPHONE_DHCP_TIMEOUT:-30}"
+declare -i DEFAULT_DHCP_TIMEOUT=30
+
 # Main loop check interval in seconds
-declare -i CHECK_INTERVAL="${IPHONE_CHECK_INTERVAL:-2}"
+declare -i DEFAULT_CHECK_INTERVAL=2
+
+# ==============================================================================
+#  INTERNAL CONFIGURATION (DO NOT EDIT BELOW)
+# ==============================================================================
+
+# Apply Environment Variable Overrides or fall back to User Config
+declare VIRT_RES="${IPHONE_RES:-$DEFAULT_RES}"
+declare SCALE="${IPHONE_SCALE:-}"  # If empty, we ask interactively (or use default fallback)
+declare VNC_PORT="${IPHONE_PORT:-$DEFAULT_PORT}"
+declare -i MAX_FPS="${IPHONE_FPS:-$DEFAULT_FPS}"
+declare -i DHCP_TIMEOUT="${IPHONE_DHCP_TIMEOUT:-$DEFAULT_DHCP_TIMEOUT}"
+declare -i CHECK_INTERVAL="${IPHONE_CHECK_INTERVAL:-$DEFAULT_CHECK_INTERVAL}"
 
 # --- Constants ---
 declare -r SCRIPT_NAME="${0##*/}"
@@ -55,18 +75,24 @@ Options:
     --log           Enable verbose debug logging
     -h, --help      Show this help message
 
-Environment Variables:
-    IPHONE_RES      Resolution (Default: 1080x960 for Keyboard space)
-    IPHONE_SCALE    UI Scale (e.g. 1, 2, 3). If unset, asks interactively.
-    IPHONE_PORT     VNC Port (Default: 5900)
-    IPHONE_FPS      Max FPS (Default: 30)
+Configuration Defaults (Edit script top to change):
+    Resolution:     $DEFAULT_RES
+    Scale:          $DEFAULT_SCALE
+    Port:           $DEFAULT_PORT
+    FPS:            $DEFAULT_FPS
+
+Environment Variables (Override defaults):
+    IPHONE_RES      Resolution
+    IPHONE_SCALE    UI Scale
+    IPHONE_PORT     VNC Port
+    IPHONE_FPS      Max FPS
 
 Examples:
-    # Interactive mode (asks for scale)
+    # Use defaults
     ./${SCRIPT_NAME}
     
-    # Pre-set 3x scale (no questions)
-    IPHONE_SCALE=3 ./${SCRIPT_NAME}
+    # Override resolution just for this run
+    IPHONE_RES=1920x1080 ./${SCRIPT_NAME}
 EOF
     exit 0
 }
@@ -108,16 +134,16 @@ select_scale() {
         return 0
     fi
 
-    # 2. Non-interactive fallback (CRITICAL FIX)
+    # 2. Non-interactive fallback
     if [[ ! -t 0 ]]; then
-        warn "Non-interactive session detected. Defaulting scale to 3.0"
-        SCALE="3.0"
+        warn "Non-interactive session detected. Defaulting scale to $DEFAULT_SCALE"
+        SCALE="$DEFAULT_SCALE"
         return 0
     fi
 
     # 3. Interactive Menu with Timeout
     echo ""
-    log "Select UI Scale Factor (Auto-selects 3.0 in 10s):"
+    log "Select UI Scale Factor (Auto-selects $DEFAULT_SCALE in 10s):"
     echo "  1) 1.0  (Tiny UI)"
     echo "  2) 2.0  (Standard Retina)"
     echo "  3) 3.0  (Large/Accessibility) [Default]"
@@ -127,8 +153,8 @@ select_scale() {
     # Use -t 10 to timeout after 10 seconds if no input
     if ! read -t 10 -r -p "Enter choice [1-4]: " choice; then
         echo ""
-        log "Timeout reached. Defaulting to Scale: 3.0"
-        SCALE="3.0"
+        log "Timeout reached. Defaulting to Scale: $DEFAULT_SCALE"
+        SCALE="$DEFAULT_SCALE"
         return 0
     fi
     
@@ -139,13 +165,13 @@ select_scale() {
         4) 
             read -r -p "Enter custom scale (e.g. 1.5): " SCALE
             if [[ ! "$SCALE" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-                warn "Invalid scale format. Reverting to 3.0"
-                SCALE="3.0"
+                warn "Invalid scale format. Reverting to $DEFAULT_SCALE"
+                SCALE="$DEFAULT_SCALE"
             fi
             ;;
         *) 
-            log "Invalid choice. Defaulting to 3.0"
-            SCALE="3.0" 
+            log "Using Default Scale: $DEFAULT_SCALE"
+            SCALE="$DEFAULT_SCALE" 
             ;;
     esac
     log "Selected Scale: $SCALE"
