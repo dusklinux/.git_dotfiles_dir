@@ -207,6 +207,49 @@ trim() {
     printf '%s' "$var"
 }
 
+# [NEW] Helper to get script description from file header
+get_script_description() {
+    local filename="$1"
+    local desc
+    # Try to get first comment line after shebang (line 2)
+    # Using SCRIPT_DIR explicitly to be safe regardless of current working directory
+    desc=$(sed -n '2s/^#[[:space:]]*//p' "${SCRIPT_DIR}/${filename}" 2>/dev/null)
+    if [[ -z "$desc" ]]; then
+        # Try line 3 if line 2 was empty or not a comment
+        desc=$(sed -n '3s/^#[[:space:]]*//p' "${SCRIPT_DIR}/${filename}" 2>/dev/null)
+    fi
+    printf "%s" "${desc:-No description available}"
+}
+
+# [NEW] Pre-flight check to validate all scripts exist before starting
+preflight_check() {
+    local missing=0
+    log "INFO" "Performing pre-flight validation..."
+    
+    for entry in "${INSTALL_SEQUENCE[@]}"; do
+        local rest="${entry#*|}"
+        rest=$(trim "$rest")
+        local filename args
+        read -r filename args <<< "$rest"
+        
+        if [[ ! -f "${SCRIPT_DIR}/${filename}" ]]; then
+            log "ERROR" "Missing file: ${filename}"
+            ((++missing))
+        fi
+    done
+    
+    if ((missing > 0)); then
+        echo -e "${RED}CRITICAL:${RESET} $missing script(s) are missing from $SCRIPT_DIR."
+        read -r -p "Continue anyway? [y/N]: " _choice
+        if [[ "${_choice,,}" != "y" ]]; then
+            log "ERROR" "Aborting execution."
+            exit 1
+        fi
+    else
+        log "SUCCESS" "All sequence files verified."
+    fi
+}
+
 show_help() {
     cat << EOF
 Arch Linux Master Orchestrator
@@ -308,6 +351,9 @@ main() {
 
     setup_logging
     
+    # [NEW] Pre-flight Validation Check
+    preflight_check
+    
     # FIX: Start timer
     local start_ts=$SECONDS
 
@@ -404,7 +450,13 @@ main() {
 
         # --- USER CONFIRMATION PROMPT (CONDITIONAL) ---
         if [[ $interactive_mode -eq 1 ]]; then
+            # [NEW] Get description for better UX
+            local desc
+            desc=$(get_script_description "$filename")
+            
             echo -e "\n${YELLOW}>>> NEXT SCRIPT [${current_index}/${total_scripts}]:${RESET} $filename ${args:+ $args} ($mode)"
+            echo -e "    ${BOLD}Description:${RESET} $desc"
+            
             read -r -p "Do you want to [P]roceed, [S]kip, or [Q]uit? (p/s/q): " _user_confirm
             case "${_user_confirm,,}" in
                 s|skip)
