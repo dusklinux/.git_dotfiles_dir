@@ -90,6 +90,7 @@ INSTALL_SEQUENCE=(
     "U | 077_mpv_setup.sh"
 #    "U | 078_kokoro_gpu_setup.sh" #requires nvidia gpu with at least 4gb vram
 #    "U | 079_parakeet_gpu_setup.sh" #requires nvidia gpu with at least 4gb vram
+#    "S | 080_btrfs_zstd_compression_stats.sh"
 )
 
 # ==============================================================================
