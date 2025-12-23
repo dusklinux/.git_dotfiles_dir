@@ -3,10 +3,10 @@
 #  ARCH CHROOT ORCHESTRATOR (UPDATED)
 #  Context: Run INSIDE 'arch-chroot /mnt'
 #  Instructions: Edit 'INSTALL_SEQUENCE' to define your order.
+#  Usage: ./script.sh [--auto|-a] [--dry-run|-d] [--help|-h]
 # ==============================================================================
 
 # --- 1. CONFIGURATION: EDIT THIS LIST ---
-# The script will look for these files in the SAME directory as this master script.
 declare -ra INSTALL_SEQUENCE=(
     "002_etc_skel.sh"
     "003_post_chroot.sh"
@@ -21,20 +21,30 @@ declare -ra INSTALL_SEQUENCE=(
 )
 
 # --- 2. SETUP & SAFETY ---
-set -o errexit   # Exit on error
-set -o nounset   # Abort on unbound variable
-set -o pipefail  # Catch pipe errors
-set -o errtrace  # Inherited ERR traps
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
 
 # FORCE SCRIPT TO RUN IN ITS OWN DIRECTORY
 cd "$(dirname "$(readlink -f "$0")")"
 
-# --- 3. STATE TRACKING ---
+# --- 3. LOG FILE SETUP ---
+LOG_FILE="/var/log/arch-orchestrator-$(date +%Y%m%d-%H%M%S).log"
+if ! touch "$LOG_FILE" 2>/dev/null; then
+    LOG_FILE="/tmp/arch-orchestrator-$(date +%Y%m%d-%H%M%S).log"
+fi
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+# --- 4. STATE TRACKING ---
 declare -a EXECUTED_SCRIPTS=()
 declare -a SKIPPED_SCRIPTS=()
 declare -a FAILED_SCRIPTS=()
+declare -i TOTAL_START_TIME=0
+declare -i DRY_RUN=0
+declare -i AUTO_MODE=0
 
-# --- 4. VISUALS ---
+# --- 5. VISUALS ---
 if [[ -t 1 ]]; then
     readonly R=$'\e[31m' G=$'\e[32m' B=$'\e[34m' Y=$'\e[33m' HL=$'\e[1m' RS=$'\e[0m'
 else
@@ -53,7 +63,7 @@ log() {
     esac
 }
 
-# --- 5. SUMMARY FUNCTION ---
+# --- 6. SUMMARY FUNCTION ---
 print_summary() {
     printf "\n%s%s=== EXECUTION SUMMARY ===%s\n" "$B" "$HL" "$RS"
     
@@ -72,37 +82,140 @@ print_summary() {
         for s in "${FAILED_SCRIPTS[@]}"; do printf " %s" "$s"; done
         printf "\n"
     fi
+    
+    # Total execution time
+    if (( TOTAL_START_TIME > 0 )); then
+        local end_time duration_total
+        end_time=$(date +%s)
+        duration_total=$((end_time - TOTAL_START_TIME))
+        printf "\n%sTotal time:%s %dm %ds\n" "$B" "$RS" $((duration_total/60)) $((duration_total%60))
+    fi
+    
+    printf "%sLog file:%s  %s\n" "$B" "$RS" "$LOG_FILE"
 }
 
-# --- 6. ROOT CHECK ---
+# --- 7. CTRL+C TRAP (GRACEFUL EXIT) ---
+cleanup() {
+    printf "\n"
+    log WARN "Installation interrupted by user!"
+    print_summary
+    exit 130
+}
+trap cleanup SIGINT SIGTERM
+
+# --- 8. CLI ARGUMENT PARSING ---
+parse_args() {
+    while (( $# > 0 )); do
+        case "$1" in
+            -a|--auto)
+                AUTO_MODE=1
+                shift
+                ;;
+            -d|--dry-run)
+                DRY_RUN=1
+                shift
+                ;;
+            -h|--help)
+                printf "Usage: %s [OPTIONS]\n\n" "${0##*/}"
+                printf "Options:\n"
+                printf "  -a, --auto      Run fully autonomous (no initial prompt)\n"
+                printf "  -d, --dry-run   Preview execution without running scripts\n"
+                printf "  -h, --help      Show this help message\n\n"
+                printf "Scripts in sequence:\n"
+                for s in "${INSTALL_SEQUENCE[@]}"; do
+                    printf "  • %s\n" "$s"
+                done
+                exit 0
+                ;;
+            *)
+                log WARN "Unknown option: $1"
+                shift
+                ;;
+        esac
+    done
+}
+
+# --- 9. PRE-FLIGHT VALIDATION ---
+preflight_check() {
+    local missing=0
+    log INFO "Validating script files..."
+    
+    for script in "${INSTALL_SEQUENCE[@]}"; do
+        if [[ ! -f "$script" ]]; then
+            log ERR "Missing: $script"
+            ((missing++))
+        fi
+    done
+    
+    if ((missing > 0)); then
+        log ERR "$missing script(s) missing."
+        printf "%sAction Required:%s\n" "$Y" "$RS"
+        read -r -p "Continue anyway? [y/N]: " _preflight_choice
+        if [[ "${_preflight_choice,,}" != "y" && "${_preflight_choice,,}" != "yes" ]]; then
+            log ERR "Aborting due to missing scripts."
+            exit 1
+        fi
+        log WARN "Continuing despite missing scripts..."
+    else
+        log OK "All ${#INSTALL_SEQUENCE[@]} scripts found."
+    fi
+}
+
+# --- 10. SCRIPT DESCRIPTION HELPER ---
+get_script_description() {
+    local script="$1"
+    local desc
+    # Try to get first comment line after shebang (line 2)
+    desc=$(sed -n '2s/^#[[:space:]]*//p' "$script" 2>/dev/null)
+    if [[ -z "$desc" ]]; then
+        # Try line 3 if line 2 was empty or not a comment
+        desc=$(sed -n '3s/^#[[:space:]]*//p' "$script" 2>/dev/null)
+    fi
+    printf "%s" "${desc:-No description available}"
+}
+
+# --- 11. ROOT CHECK ---
 if (( EUID != 0 )); then
     log ERR "This script must be run as root (inside chroot)."
     exit 1
 fi
 
-# --- 7. EXECUTION ENGINE ---
+# --- 12. EXECUTION ENGINE ---
 execute_script() {
     local script_name="$1"
+    local current="$2"
+    local total="$3"
+    local start_time end_time duration
 
     # Retry Loop
     while true; do
-        log INFO "Executing: ${HL}$script_name${RS}"
+        log INFO "[$current/$total] Executing: ${HL}$script_name${RS}"
+        
+        # Dry-run mode: skip actual execution
+        if ((DRY_RUN)); then
+            log INFO "[DRY-RUN] Would execute: $script_name"
+            EXECUTED_SCRIPTS+=("$script_name")
+            sleep 0.5
+            return 0
+        fi
         
         chmod +x "$script_name"
 
+        start_time=$(date +%s)
         set +e
         bash "$script_name"
         local exit_code=$?
         set -e
+        end_time=$(date +%s)
+        duration=$((end_time - start_time))
 
         if (( exit_code == 0 )); then
-            log OK "Finished: $script_name"
+            log OK "Finished: $script_name (${duration}s)"
             EXECUTED_SCRIPTS+=("$script_name")
-            # PAUSE FOR 1 SECOND as requested
             sleep 1
             return 0
         else
-            log ERR "Failed: $script_name (Exit Code: $exit_code)"
+            log ERR "Failed: $script_name (Exit Code: $exit_code, after ${duration}s)"
             FAILED_SCRIPTS+=("$script_name")
             
             printf "%s>>> EXECUTION FAILED <<<%s\n" "$Y" "$RS"
@@ -128,27 +241,53 @@ execute_script() {
     done
 }
 
+# --- 13. MAIN FUNCTION ---
 main() {
+    # Parse command line arguments first
+    parse_args "$@"
+    
+    # Start total timer
+    TOTAL_START_TIME=$(date +%s)
+    
     printf "\n%s%s=== ARCH CHROOT ORCHESTRATOR ===%s\n\n" "$B" "$HL" "$RS"
     log INFO "Working Directory: $(pwd)"
+    log INFO "Log file: $LOG_FILE"
+    log INFO "Scripts to execute: ${#INSTALL_SEQUENCE[@]}"
+    
+    if ((DRY_RUN)); then
+        log WARN "DRY-RUN MODE: No scripts will actually be executed."
+    fi
 
-    # --- EXECUTION MODE SELECTION (From ORCHESTRA.sh) ---
+    # Pre-flight validation
+    preflight_check
+
+    # --- EXECUTION MODE SELECTION ---
     local interactive_mode=1
-    printf "\n%s>>> EXECUTION MODE <<<%s\n" "$Y" "$RS"
-    read -r -p "Do you want to run autonomously (no prompts)? [y/N]: " _mode_choice
-    if [[ "${_mode_choice,,}" == "y" || "${_mode_choice,,}" == "yes" ]]; then
+    
+    if ((AUTO_MODE)); then
         interactive_mode=0
-        log INFO "Autonomous mode selected. Running all scripts without confirmation."
+        log INFO "Autonomous mode (--auto flag). Running all scripts without confirmation."
     else
-        log INFO "Interactive mode selected. You will be asked before each script."
+        printf "\n%s>>> EXECUTION MODE <<<%s\n" "$Y" "$RS"
+        read -r -p "Do you want to run autonomously (no prompts)? [y/N]: " _mode_choice
+        if [[ "${_mode_choice,,}" == "y" || "${_mode_choice,,}" == "yes" ]]; then
+            interactive_mode=0
+            log INFO "Autonomous mode selected. Running all scripts without confirmation."
+        else
+            log INFO "Interactive mode selected. You will be asked before each script."
+        fi
     fi
 
     # --- MAIN LOOP ---
+    local total=${#INSTALL_SEQUENCE[@]}
+    local current=0
+    
     for script in "${INSTALL_SEQUENCE[@]}"; do
+        ((current++))
         
-        # Check if file exists before anything else
+        # Check if file exists (backup check after preflight)
         if [[ ! -f "$script" ]]; then
-            log ERR "File not found: $script"
+            log ERR "[$current/$total] File not found: $script"
             printf "%sAction Required:%s\n" "$Y" "$RS"
             read -r -p "Script missing. [S]kip to next or [A]bort? (s/a): " missing_choice
             if [[ "${missing_choice,,}" == "s" ]]; then
@@ -160,9 +299,13 @@ main() {
             fi
         fi
 
-        # --- SHOW NEXT SCRIPT PREVIEW (From ORCHESTRA.sh) ---
+        # --- SHOW NEXT SCRIPT PREVIEW (Interactive Mode) ---
         if [[ $interactive_mode -eq 1 ]]; then
-            printf "\n%s>>> NEXT SCRIPT:%s %s\n" "$Y" "$RS" "$script"
+            local description
+            description=$(get_script_description "$script")
+            
+            printf "\n%s>>> NEXT SCRIPT [%d/%d]:%s %s\n" "$Y" "$current" "$total" "$RS" "$script"
+            printf "    %sDescription:%s %s\n" "$B" "$RS" "$description"
             read -r -p "Do you want to [P]roceed, [S]kip, or [Q]uit? (p/s/q): " _user_confirm
             case "${_user_confirm,,}" in
                 s|skip)
@@ -181,7 +324,7 @@ main() {
             esac
         fi
 
-        execute_script "$script"
+        execute_script "$script" "$current" "$total"
     done
 
     printf "\n%s%s=== ORCHESTRATION COMPLETE ===%s\n" "$G" "$HL" "$RS"
@@ -191,4 +334,4 @@ main() {
     (( ${#FAILED_SCRIPTS[@]} == 0 ))
 }
 
-main
+main "$@"
