@@ -7,7 +7,7 @@
 
 # --- 1. CONFIGURATION: EDIT THIS LIST ---
 # The script will look for these files in the SAME directory as this master script.
-declare -ra INSTALL_SEQUENCE=(
+INSTALL_SEQUENCE=(
     "002_etc_skel.sh"
     "003_post_chroot.sh"
     "004_mkintcpip_optimizer.sh"
@@ -24,17 +24,11 @@ declare -ra INSTALL_SEQUENCE=(
 set -o errexit   # Exit on error
 set -o nounset   # Abort on unbound variable
 set -o pipefail  # Catch pipe errors
-set -o errtrace  # Inherited ERR traps
 
 # FORCE SCRIPT TO RUN IN ITS OWN DIRECTORY
 cd "$(dirname "$(readlink -f "$0")")"
 
-# --- 3. STATE TRACKING ---
-declare -a EXECUTED_SCRIPTS=()
-declare -a SKIPPED_SCRIPTS=()
-declare -a FAILED_SCRIPTS=()
-
-# --- 4. VISUALS ---
+# --- 3. VISUALS ---
 if [[ -t 1 ]]; then
     readonly R=$'\e[31m' G=$'\e[32m' B=$'\e[34m' Y=$'\e[33m' HL=$'\e[1m' RS=$'\e[0m'
 else
@@ -45,42 +39,21 @@ log() {
     local type="$1"
     local msg="$2"
     case "$type" in
-        INFO) printf "%s[INFO]%s  %s\n" "$B" "$RS" "$msg" ;;
-        OK)   printf "%s[OK]%s    %s\n" "$G" "$RS" "$msg" ;;
-        WARN) printf "%s[WARN]%s  %s\n" "$Y" "$RS" "$msg" >&2 ;;
-        ERR)  printf "%s[ERR]%s   %s\n" "$R" "$RS" "$msg" >&2 ;;
+        INFO) printf "${B}[INFO]${RS}  %s\n" "$msg" ;;
+        OK)   printf "${G}[OK]${RS}    %s\n" "$msg" ;;
+        WARN) printf "${Y}[WARN]${RS}  %s\n" "$msg" ;;
+        ERR)  printf "${R}[ERR]${RS}   %s\n" "$msg" ;;
         *)    printf "%s\n" "$msg" ;;
     esac
 }
 
-# --- 5. SUMMARY FUNCTION ---
-print_summary() {
-    printf "\n%s%s=== EXECUTION SUMMARY ===%s\n" "$B" "$HL" "$RS"
-    
-    if (( ${#EXECUTED_SCRIPTS[@]} > 0 )); then
-        printf "%s[Executed]%s %d script(s)\n" "$G" "$RS" "${#EXECUTED_SCRIPTS[@]}"
-    fi
-    
-    if (( ${#SKIPPED_SCRIPTS[@]} > 0 )); then
-        printf "%s[Skipped]%s  %d script(s):" "$Y" "$RS" "${#SKIPPED_SCRIPTS[@]}"
-        for s in "${SKIPPED_SCRIPTS[@]}"; do printf " %s" "$s"; done
-        printf "\n"
-    fi
-    
-    if (( ${#FAILED_SCRIPTS[@]} > 0 )); then
-        printf "%s[Failed]%s   %d script(s):" "$R" "$RS" "${#FAILED_SCRIPTS[@]}"
-        for s in "${FAILED_SCRIPTS[@]}"; do printf " %s" "$s"; done
-        printf "\n"
-    fi
-}
-
-# --- 6. ROOT CHECK ---
+# --- 4. ROOT CHECK ---
 if (( EUID != 0 )); then
     log ERR "This script must be run as root (inside chroot)."
     exit 1
 fi
 
-# --- 7. EXECUTION ENGINE ---
+# --- 5. EXECUTION ENGINE ---
 execute_script() {
     local script_name="$1"
 
@@ -97,44 +70,30 @@ execute_script() {
 
         if (( exit_code == 0 )); then
             log OK "Finished: $script_name"
-            EXECUTED_SCRIPTS+=("$script_name")
             # PAUSE FOR 1 SECOND as requested
             sleep 1
             return 0
         else
             log ERR "Failed: $script_name (Exit Code: $exit_code)"
-            FAILED_SCRIPTS+=("$script_name")
             
-            printf "%s>>> EXECUTION FAILED <<<%s\n" "$Y" "$RS"
+            echo -e "${Y}>>> EXECUTION FAILED <<<${RS}"
             read -r -p "[R]etry, [S]kip, or [A]bort? (r/s/a): " action
             case "${action,,}" in
-                r|retry)
-                    unset 'FAILED_SCRIPTS[-1]'
-                    continue
-                    ;;
-                s|skip)
-                    log WARN "Skipping $script_name."
-                    unset 'FAILED_SCRIPTS[-1]'
-                    SKIPPED_SCRIPTS+=("$script_name")
-                    return 0
-                    ;;
-                *)
-                    log ERR "Aborting."
-                    print_summary
-                    exit "$exit_code"
-                    ;;
+                r|retry) continue ;;
+                s|skip)  log WARN "Skipping $script_name."; return 0 ;;
+                *)       log ERR "Aborting."; exit "$exit_code" ;;
             esac
         fi
     done
 }
 
 main() {
-    printf "\n%s%s=== ARCH CHROOT ORCHESTRATOR ===%s\n\n" "$B" "$HL" "$RS"
+    echo -e "\n${B}${HL}=== ARCH CHROOT ORCHESTRATOR ===${RS}\n"
     log INFO "Working Directory: $(pwd)"
 
     # --- EXECUTION MODE SELECTION (From ORCHESTRA.sh) ---
     local interactive_mode=1
-    printf "\n%s>>> EXECUTION MODE <<<%s\n" "$Y" "$RS"
+    echo -e "\n${Y}>>> EXECUTION MODE <<<${RS}"
     read -r -p "Do you want to run autonomously (no prompts)? [y/N]: " _mode_choice
     if [[ "${_mode_choice,,}" == "y" || "${_mode_choice,,}" == "yes" ]]; then
         interactive_mode=0
@@ -149,30 +108,22 @@ main() {
         # Check if file exists before anything else
         if [[ ! -f "$script" ]]; then
             log ERR "File not found: $script"
-            printf "%sAction Required:%s\n" "$Y" "$RS"
+            echo -e "${Y}Action Required:${RS}"
             read -r -p "Script missing. [S]kip to next or [A]bort? (s/a): " missing_choice
-            if [[ "${missing_choice,,}" == "s" ]]; then
-                SKIPPED_SCRIPTS+=("$script")
-                continue
-            else
-                print_summary
-                exit 1
-            fi
+            if [[ "${missing_choice,,}" == "s" ]]; then continue; else exit 1; fi
         fi
 
         # --- SHOW NEXT SCRIPT PREVIEW (From ORCHESTRA.sh) ---
         if [[ $interactive_mode -eq 1 ]]; then
-            printf "\n%s>>> NEXT SCRIPT:%s %s\n" "$Y" "$RS" "$script"
+            echo -e "\n${Y}>>> NEXT SCRIPT:${RS} $script"
             read -r -p "Do you want to [P]roceed, [S]kip, or [Q]uit? (p/s/q): " _user_confirm
             case "${_user_confirm,,}" in
                 s|skip)
                     log WARN "Skipping $script (User Selection)"
-                    SKIPPED_SCRIPTS+=("$script")
                     continue
                     ;;
                 q|quit)
                     log INFO "User requested exit."
-                    print_summary
                     exit 0
                     ;;
                 *)
@@ -184,11 +135,7 @@ main() {
         execute_script "$script"
     done
 
-    printf "\n%s%s=== ORCHESTRATION COMPLETE ===%s\n" "$G" "$HL" "$RS"
-    print_summary
-    
-    # Exit with appropriate code based on execution state
-    (( ${#FAILED_SCRIPTS[@]} == 0 ))
+    echo -e "\n${G}${HL}=== ORCHESTRATION COMPLETE ===${RS}"
 }
 
 main
