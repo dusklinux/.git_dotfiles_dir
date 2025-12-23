@@ -155,6 +155,9 @@ alias ln='ln -v'
 alias disk_usage='sudo btrfs filesystem usage /' # The TRUTH about BTRFS space
 alias df='df -hT'                           # Show filesystem types
 
+# VNC iphone daemon.
+alias iphone_vnc='~/user_scripts/networking/iphone_vnc.sh'
+
 #Theme Switcher
 alias darkmode='~/user_scripts/theme_matugen/matugen_config.sh --mode dark'
 alias lightmode='~/user_scripts/theme_matugen/matugen_config.sh --mode light'
