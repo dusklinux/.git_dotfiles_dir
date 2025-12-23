@@ -63,7 +63,7 @@ log_info "FTP Root:    $FTP_ROOT"
 
 # 5. Package Installation
 log_info "Updating system and installing dependencies (vsftpd, firewalld)..."
-pacman -Sy --needed --noconfirm vsftpd firewalld
+pacman -Syu --needed --noconfirm vsftpd firewalld
 
 # 6. Firewall Configuration
 log_info "Configuring Firewalld..."

@@ -79,7 +79,7 @@ swww_transition_fps = 60
 mpvpaper_sound = False
 mpvpaper_options = 
 use_xdg_state = False
-stylesheet = /home/dusk/.config/waypaper/style.css
+stylesheet = ~/.config/waypaper/style.css
 EOF
 
     log_success "New configuration generated at: $CONFIG_FILE"

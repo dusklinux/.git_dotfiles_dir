@@ -219,11 +219,11 @@ main() {
   local fail_count=0
   local failed_pkgs=()
 
-  log_task "Synchronizing Repositories (${AUR_HELPER} -Sy)..."
-  if ! "$AUR_HELPER" -Sy; then
-    log_err "Failed to synchronize repositories. Aborting."
+log_task "System Update & Sync (${AUR_HELPER} -Syu)..."
+if ! "$AUR_HELPER" -Syu --noconfirm; then
+    log_err "System update failed. Aborting to protect system integrity."
     exit 1
-  fi
+fi
 
   for pkg in "${TARGET_PACKAGES[@]}"; do
     [[ -z "$pkg" ]] && continue
