@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Script Name:   btrfs_compression_stats.sh (v3.0 - Hardened Architect Edition)
+# Script Name:   btrfs_compression_stats.sh (v3.1 - Auto-Install Edition)
 # Description:   Calculates ZSTD compression savings on Arch Linux.
+#                - CRITICAL FIX: Prevents silent exit on grep failures (set -e).
+#                - CRITICAL FIX: Robust sudo re-execution using realpath.
+#                - AUTO-INSTALL: Installs missing deps via pacman automatically.
+#                - Dynamic Discovery: Finds Btrfs mounts automatically.
+#                - Atomic Execution: Runs compsize ONCE to prevent double-counting.
 # ==============================================================================
 
 set -euo pipefail
@@ -39,14 +44,27 @@ if [[ $EUID -ne 0 ]]; then
     fi
 fi
 
-# --- 3. Dependency Check ---
-# Check for both compsize and findmnt
-for cmd in compsize findmnt awk grep; do
-    if ! command -v "$cmd" &>/dev/null; then
-        printf "%b[ERR]%b Required command '%s' is missing.\n" "$C_RED" "$C_RESET" "$cmd" >&2
+# --- 3. Dependency Check & Auto-Install ---
+declare -a missing_pkgs=()
+
+# Map commands to their Arch package names
+if ! command -v compsize &>/dev/null; then missing_pkgs+=("compsize"); fi
+if ! command -v findmnt &>/dev/null;  then missing_pkgs+=("util-linux"); fi
+if ! command -v awk &>/dev/null;      then missing_pkgs+=("gawk"); fi
+if ! command -v grep &>/dev/null;     then missing_pkgs+=("grep"); fi
+
+if [[ ${#missing_pkgs[@]} -gt 0 ]]; then
+    printf "%b[DEPS]%b Missing packages detected: %b%s%b\n" "$C_YELLOW" "$C_RESET" "$C_BOLD" "${missing_pkgs[*]}" "$C_RESET"
+    printf "       Installing via pacman...\n"
+    
+    # Install missing dependencies using the requested flags
+    if pacman -S --needed --noconfirm "${missing_pkgs[@]}"; then
+        printf "%b[OK]%b Dependencies installed successfully.\n" "$C_GREEN" "$C_RESET"
+    else
+        printf "%b[ERR]%b Failed to install dependencies. Aborting.\n" "$C_RED" "$C_RESET" >&2
         exit 1
     fi
-done
+fi
 
 # --- 4. Dynamic Target Discovery ---
 # "|| true" prevents grep returning 1 (exit) if no mounts are found or all are filtered.
