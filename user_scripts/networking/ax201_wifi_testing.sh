@@ -4,7 +4,7 @@
 # Description: Automated WiFi Security Auditing Tool for Arch/Hyprland
 # Hardware:    Hardware Agnostic (Auto-detects Intel/Atheros/Realtek)
 # Author:      Elite DevOps
-# Version:     2.1.2 (v2.1 Back to Client + v2.2 Back to Target)
+# Version:     2.2.0 (Rescan Added)
 # Requires:    Bash 5.0+
 # -----------------------------------------------------------------------------
 
@@ -1053,7 +1053,8 @@ main() {
         printf 'Select Attack Vector:\n'
         printf '1) WPA Handshake Capture + Crack\n'
         printf '2) WPS Attack (Bully)\n'
-        printf '3) Exit\n'
+        printf '3) Rescan Targets\n'
+        printf '4) Exit\n'
 
         local attack_choice
         read -r -p "Choice [1]: " attack_choice
@@ -1077,6 +1078,10 @@ main() {
                 break
                 ;;
             3)
+                log_info "Restarting scan..."
+                continue
+                ;;
+            4)
                 log_info "Exiting."
                 exit 0
                 ;;
