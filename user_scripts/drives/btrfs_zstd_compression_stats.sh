@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Script Name:   btrfs_compression_stats.sh (v3.1 - Auto-Install Edition)
+# Script Name:   btrfs_compression_stats.sh (v3.2 - Absolute Savings)
 # Description:   Calculates ZSTD compression savings on Arch Linux.
 #                - CRITICAL FIX: Prevents silent exit on grep failures (set -e).
 #                - CRITICAL FIX: Robust sudo re-execution using realpath.
 #                - AUTO-INSTALL: Installs missing deps via pacman automatically.
+#                - NEW: Calculates absolute space saved (e.g., "14GB").
 #                - Dynamic Discovery: Finds Btrfs mounts automatically.
 #                - Atomic Execution: Runs compsize ONCE to prevent double-counting.
 # ==============================================================================
@@ -48,6 +49,7 @@ fi
 declare -a missing_pkgs=()
 
 # Map commands to their Arch package names
+# Note: numfmt is part of coreutils (base), so usually present.
 if ! command -v compsize &>/dev/null; then missing_pkgs+=("compsize"); fi
 if ! command -v findmnt &>/dev/null;  then missing_pkgs+=("util-linux"); fi
 if ! command -v awk &>/dev/null;      then missing_pkgs+=("gawk"); fi
@@ -121,7 +123,19 @@ if [[ -n "$total_line" ]]; then
         exit 0
     fi
 
-    # Calculate savings
+    # 4. Calculate Absolute Space Saved
+    # Use numfmt to convert human-readable (10G, 500M) to bytes, subtract, then convert back.
+    # We suppress stderr in case compsize gives a weird value, defaulting to 0.
+    bytes_disk=$(numfmt --from=iec "$disk_str" 2>/dev/null || echo 0)
+    bytes_uncomp=$(numfmt --from=iec "$uncomp_str" 2>/dev/null || echo 0)
+    bytes_saved=$(( bytes_uncomp - bytes_disk ))
+    
+    # Handle negative savings (rare expansion edge case)
+    if [[ $bytes_saved -lt 0 ]]; then bytes_saved=0; fi
+
+    human_saved=$(numfmt --to=iec "$bytes_saved" 2>/dev/null || echo "N/A")
+
+    # Calculate savings percentage
     saved_val=$((100 - ratio_val))
 
     # Color logic
@@ -132,6 +146,7 @@ if [[ -n "$total_line" ]]; then
     printf "  Total Data Size:      %s\n" "$uncomp_str"
     printf "  Physical Disk Used:   %s\n" "$disk_str"
     printf "  Compression Ratio:    %s\n" "$ratio_str"
+    printf "  Total Space Saved:    %b%s%b\n" "$save_color" "$human_saved" "$C_RESET"
     printf "  Space Reclaimed:      %b~%s%% of your drive%b\n" "$save_color" "$saved_val" "$C_RESET"
     printf "\n"
 else
