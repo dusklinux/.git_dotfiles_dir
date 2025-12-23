@@ -143,7 +143,7 @@ preflight_check() {
     for script in "${INSTALL_SEQUENCE[@]}"; do
         if [[ ! -f "$script" ]]; then
             log ERR "Missing: $script"
-            ((missing++))
+            ((++missing))
         fi
     done
     
@@ -283,7 +283,7 @@ main() {
     local current=0
     
     for script in "${INSTALL_SEQUENCE[@]}"; do
-        ((current++))
+        ((++current))
         
         # Check if file exists (backup check after preflight)
         if [[ ! -f "$script" ]]; then
