@@ -28,6 +28,7 @@ readonly BOX_H="-" BOX_TL="+" BOX_TR="+" BOX_BL="+" BOX_BR="+" BOX_V="|"
 declare MODE="" TARGET_DIR="." THRESHOLD="0.5" SORT_ORDER="ascending"
 declare DRY_RUN=false USE_PARALLEL="auto" INTERACTIVE=false
 declare -i PROCESSED=0 FAILED=0
+declare tmp_list=""
 
 # =============================================================================
 # LOGGING (always to stderr for safety)
@@ -42,6 +43,8 @@ die() { log_error "$1"; exit "${2:-1}"; }
 cleanup() {
     local exit_code=$?
     printf '\e[?25h' 2>/dev/null || true
+    # Fix: Cleanup temp file if it exists
+    [[ -n "${tmp_list:-}" && -f "$tmp_list" ]] && rm -f "$tmp_list"
     # Kill any background xargs jobs if interrupted
     jobs -p | xargs -r kill 2>/dev/null || true
     exit $exit_code
@@ -386,9 +389,15 @@ sort_brightness_worker() {
         category="DARK"
     fi
 
-    # 4. Action (CRITICAL FIX: Check if move failed)
+    # 4. Action (Fix: Collision Check & mv -n)
     if [[ "$dry_run" == "false" ]]; then
-        if ! mv -- "$file" "$dest_dir/" 2>/dev/null; then
+        # Check for collision first
+        if [[ -e "$dest_dir/${file##*/}" ]]; then
+             printf "COLLISION|%s|%s|%s\n" "$category" "$brightness" "$file"
+             return
+        fi
+
+        if ! mv -n -- "$file" "$dest_dir/" 2>/dev/null; then
              printf "ERR|%s\n" "$file"
              return
         fi
@@ -413,13 +422,15 @@ sort_by_brightness() {
         mkdir -p "$dark_dir" "$light_dir"
     fi
     
-    # Discovery: Use find directly to temp file for xargs efficiency
-    local tmp_list
+    # Discovery: Single-pass find for efficiency (Optimization A)
     tmp_list=$(mktemp)
     
+    local -a find_args=()
     for ext in "${IMAGE_EXTENSIONS[@]}"; do
-        find "$dir" -maxdepth 1 -type f -iname "*.$ext" -print0 >> "$tmp_list"
+        [[ ${#find_args[@]} -gt 0 ]] && find_args+=("-o")
+        find_args+=("-iname" "*.$ext")
     done
+    find "$dir" -maxdepth 1 -type f \( "${find_args[@]}" \) -print0 > "$tmp_list"
     
     local total_files
     total_files=$(tr -cd '\0' < "$tmp_list" | wc -c)
@@ -430,8 +441,8 @@ sort_by_brightness() {
         return 0
     fi
     
-    # Ensure standard decimal formatting for the worker subshells
-    export LC_ALL=C
+    # Fix: LC_NUMERIC allows float math without breaking UTF-8 filenames
+    export LC_NUMERIC=C
 
     # Producer-Consumer Loop
     while IFS='|' read -r status category val file; do
@@ -439,6 +450,14 @@ sort_by_brightness() {
             # In ERR case, category is actually the filename (2nd arg)
             local filename="${category##*/}"
             printf '  %s!%s %s (failed to analyze or move)\n' "$C_YELLOW" "$C_RESET" "$filename" >&2
+            (( ++FAILED ))
+            continue
+        fi
+        
+        # Fix: Handle collision status
+        if [[ "$status" == "COLLISION" ]]; then
+            local filename="${file##*/}"
+            printf '  %s!%s %s (collision - skipped)\n' "$C_YELLOW" "$C_RESET" "$filename" >&2
             (( ++FAILED ))
             continue
         fi
@@ -588,7 +607,12 @@ parse_args() {
             -i|--interactive) INTERACTIVE=true; shift ;;
             -b|--brightness) MODE="brightness"; shift ;;
             -s|--size) MODE="size"; shift ;;
-            -t|--threshold) THRESHOLD="$2"; shift 2 ;;
+            -t|--threshold)
+                # Fix: Smart validation for threshold
+                if [[ ! "$2" =~ ^(0?\.[0-9]+|[01](\.0*)?)$ ]]; then
+                    die "Invalid threshold: $2. Must be 0.0-1.0"
+                fi
+                THRESHOLD="$2"; shift 2 ;;
             -d|--directory) TARGET_DIR="$2"; shift 2 ;;
             -n|--dry-run) DRY_RUN=true; shift ;;
             --ascending) SORT_ORDER="ascending"; shift ;;
