@@ -7,5 +7,5 @@ Exec=uwsm-app -- /home/dusk/user_scripts/rofi/rofi_wallpaper_selctor.sh
 Terminal=false
 Categories=Settings;Theme;
 Keywords=wallpaper;theme;picture;color;
-Icon=preferences-desktop-appearance
+Icon=preferences-desktop-wallpaper
 StartupNotify=true

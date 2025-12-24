@@ -7,5 +7,5 @@ Exec=uwsm-app -- /home/dusk/user_scripts/waybar/waybar_swap_config.sh
 Terminal=false
 Categories=Settings;DesktopSettings;
 Keywords=waybar;panel;bar;toggle;switch;
-Icon=preferences-desktop-panel
+Icon=image-x-generic
 StartupNotify=true

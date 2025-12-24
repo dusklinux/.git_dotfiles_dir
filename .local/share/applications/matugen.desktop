@@ -8,5 +8,5 @@ Exec=uwsm-app -- /home/dusk/user_scripts/theme_matugen/matugen_config.sh
 Terminal=false
 Categories=Settings;Theme;
 Keywords=theme;color;wallpaper;material;
-Icon=preferences-desktop-appearance
+Icon=preferences-desktop-theme
 StartupNotify=true

@@ -7,5 +7,5 @@ Exec=uwsm-app -- /home/dusk/user_scripts/rofi/emoji.sh
 Terminal=false
 Categories=Settings;Theme;
 Keywords=expressive;symbols;icons;emoji;
-Icon=preferences-desktop-appearance
+Icon=face-smile
 StartupNotify=true

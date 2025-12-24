@@ -7,5 +7,5 @@ Exec=uwsm-app -- /home/dusk/user_scripts/rofi/calculator.sh
 Terminal=false
 Categories=Settings;Theme;
 Keywords=numbers;math;calculations;calculator;
-Icon=preferences-desktop-appearance
+Icon=calc
 StartupNotify=true
