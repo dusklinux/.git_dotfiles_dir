@@ -185,11 +185,12 @@ show_ai_menu() {
 
 show_visuals_menu() {
     local choice
-    choice=$(menu "Visuals" "󰸌  Cycle Matugen Theme\n󰸌  Matugen Config\n  Wallpaper App\n󱐋  Animations\n  Shaders\n  Hyprsunset Slider")
+    choice=$(menu "Visuals" "󰸌  Cycle Matugen Theme\n󰸌  Matugen Config\n  Wallpaper App\n  Rofi Wallpaper\n󱐋  Animations\n  Shaders\n  Hyprsunset Slider")
     
     case "${choice,,}" in
         *cycle*)     run_app "$SCRIPTS_DIR/theme_matugen/random_theme.sh" ;;
         *matugen*)   run_app "$SCRIPTS_DIR/theme_matugen/matugen_config.sh" ;;
+        *rofi*wallpaper*) run_app "$SCRIPTS_DIR/rofi/rofi_wallpaper_selctor.sh" ;;
         *wallpaper*) run_app waypaper ;;
         *animation*) run_app rofi -show animations -modi "animations:$SCRIPTS_DIR/rofi/hypr_anim.sh" ;;
         *shader*)    run_app "$SCRIPTS_DIR/rofi/shader_menu.sh" ;;

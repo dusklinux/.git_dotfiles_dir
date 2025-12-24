@@ -1,0 +1,100 @@
+/* 🖼️ ROFI WALLPAPER GRID THEME */
+/* Compact 4x2 Grid Layout */
+
+@import "~/.config/rofi/config.rasi"
+
+/* ---- Configuration ---- */
+configuration {
+    modi: "drun";
+    show-icons: true;
+    drun-display-format: "{name}";
+}
+
+/* ---- Window ---- */
+window {
+    width: 60%;
+    /* Adjusted to 45% to ensure the bottom row icons fit comfortably */
+    height: 74%;
+    border: 2px;
+    border-radius: 12px;
+}
+
+/* ---- Mainbox ---- */
+mainbox {
+    children: ["inputbar", "listview"];
+    spacing: 10px;
+    padding: 20px;
+}
+
+/* ---- Inputbar ---- */
+inputbar {
+    enabled: true;
+    padding: 10px;
+    border-radius: 10px;
+    children: ["prompt", "entry"];
+}
+
+prompt {
+    enabled: true;
+    padding: 0px 10px 0px 0px;
+    background-color: transparent;
+    text-color: inherit;
+}
+
+entry {
+    placeholder: "Search Wallpapers...";
+    background-color: transparent;
+    text-color: inherit;
+}
+
+/* ---- Listview ---- */
+listview {
+    /* Grid Layout: 4 columns x 2 rows = 8 images */
+    columns: 4;
+    lines: 2;
+    fixed-height: false;
+    scrollbar: true;
+    spacing: 15px;
+    padding: 10px;
+    cycle: false;
+    dynamic: true;
+    
+    /* Flow */
+    layout: vertical;
+    reverse: false;
+}
+
+/* ---- Elements ---- */
+element {
+    orientation: vertical;
+    padding: 10px;
+    spacing: 5px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+element normal.normal {
+    background-color: transparent;
+    text-color: inherit;
+}
+
+element selected.normal {
+    background-color: @selected-normal-background;
+    text-color: @selected-normal-foreground;
+    border: 2px;
+    border-color: @primary;
+}
+
+element-icon {
+    /* Large Thumbnail Size */
+    size: 6em;
+    horizontal-align: 0.5;
+    background-color: transparent;
+}
+
+element-text {
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+    background-color: transparent;
+    text-color: inherit;
+}
