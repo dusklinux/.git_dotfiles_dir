@@ -127,24 +127,25 @@ fi
 # 5. Sound Files Check
 check_sounds() {
     [[ -d "$CONFIG_DIR" ]] || return 1
-    for f in enter.wav space.wav key1.wav key3.wav key4.wav; do
-        [[ -f "${CONFIG_DIR}/${f}" ]] || return 1
-    done
+    # Check for config.json only. 
+    # We trust config.json to point to files that exist.
+    # Python will handle missing WAVs gracefully (by skipping them).
+    [[ -f "${CONFIG_DIR}/config.json" ]] || return 1
     return 0
 }
 
 if ! check_sounds; then
     if $INTERACTIVE; then
         while ! check_sounds; do
-            printf "\n%b[ACTION REQUIRED]%b Missing sound files in: %s\n" "${C_YELLOW}" "${C_RESET}" "${CONFIG_DIR}"
+            printf "\n%b[ACTION REQUIRED]%b Missing config.json in: %s\n" "${C_YELLOW}" "${C_RESET}" "${CONFIG_DIR}"
             [[ -d "$CONFIG_DIR" ]] || mkdir -p "$CONFIG_DIR"
-            printf "       Need: enter.wav, space.wav, key1.wav, key3.wav, key4.wav\n"
+            printf "       Please ensure 'config.json' exists in this folder.\n"
             printf "       %bPress Enter to re-scan...%b" "${C_DIM}" "${C_RESET}"
             read -r
         done
-        printf "%b[CHECK]%b Sound files verified.\n" "${C_GREEN}" "${C_RESET}"
+        printf "%b[CHECK]%b Configuration found.\n" "${C_GREEN}" "${C_RESET}"
     else
-        notify_user "Missing sound files in ~/.config/wayclick. Run in terminal."
+        notify_user "Missing config.json in ~/.config/wayclick. Run in terminal."
         exit 1
     fi
 fi
@@ -207,6 +208,7 @@ import os
 import sys
 import signal
 import random
+import json
 
 # === PERFORMANCE FLAGS ===
 # Clean startup
@@ -223,6 +225,7 @@ from evdev import ecodes
 C_GREEN = "\033[1;32m"
 C_YELLOW = "\033[1;33m"
 C_BLUE = "\033[1;34m"
+C_RED = "\033[1;31m"
 C_RESET = "\033[0m"
 
 ASSET_DIR = sys.argv[1]
@@ -237,33 +240,27 @@ except pygame.error as e:
     print(f"\033[1;31m[AUDIO ERROR]\033[0m {e}")
     sys.exit(1)
 
-# === MAPPING ===
-# We define the map, but we will convert it to a flat list for O(1) access speed
-RAW_KEY_MAP = {
-    # Number Row
-    1: "key1.wav", 2: "key4.wav", 3: "key3.wav", 4: "key4.wav", 5: "key1.wav", 
-    6: "key4.wav", 7: "key3.wav", 8: "key4.wav", 9: "key1.wav", 10: "key4.wav", 
-    11: "key3.wav", 12: "key4.wav", 13: "key4.wav", 14: "key1.wav",
-    # QWERTY Row
-    16: "key4.wav", 17: "key1.wav", 18: "key4.wav", 19: "key3.wav", 20: "key4.wav",
-    21: "key1.wav", 22: "key4.wav", 23: "key3.wav", 24: "key4.wav", 25: "key1.wav",
-    26: "key4.wav", 27: "key3.wav", 43: "enter.wav",
-    # ASDF Row
-    30: "key4.wav", 31: "key3.wav", 32: "key4.wav", 33: "key1.wav", 34: "key4.wav",
-    35: "key3.wav", 36: "key4.wav", 37: "key1.wav", 38: "key4.wav", 39: "key3.wav",
-    40: "enter.wav",
-    # ZXCV Row
-    44: "key4.wav", 45: "key1.wav", 46: "key4.wav", 47: "key3.wav", 48: "key4.wav",
-    49: "key1.wav", 50: "key4.wav",
-    # Modifiers
-    57: "space.wav", 28: "enter.wav", 29: "key1.wav", 42: "key1.wav", 56: "key1.wav"
-}
-
-SOUND_FILES = ["key1.wav", "key3.wav", "key4.wav", "enter.wav", "space.wav"]
-DEFAULTS = ["key1.wav", "key3.wav", "key4.wav"]
-SOUNDS = {}
-
+# === CONFIG LOADING ===
+CONFIG_FILE = os.path.join(ASSET_DIR, "config.json")
 print(f"{C_BLUE}[INFO]{C_RESET} Loading assets from {ASSET_DIR}...")
+
+try:
+    with open(CONFIG_FILE, 'r') as f:
+        config_data = json.load(f)
+        
+        # JSON keys are strings, but evdev expects integers.
+        # We assume the config file uses string representation of integers (e.g. "1": "file.wav")
+        RAW_KEY_MAP = {int(k): v for k, v in config_data.get("mappings", {}).items()}
+        DEFAULTS = config_data.get("defaults", [])
+        
+except Exception as e:
+    print(f"{C_RED}[CONFIG ERROR]{C_RESET} Failed to load {CONFIG_FILE}: {e}")
+    sys.exit(1)
+
+# Dynamically determine which files to load based on the config
+# This allows the user to add new wav files to config.json without editing script
+SOUND_FILES = list(set(list(RAW_KEY_MAP.values()) + DEFAULTS))
+SOUNDS = {}
 
 # Load Sounds
 for filename in SOUND_FILES:
@@ -272,16 +269,20 @@ for filename in SOUND_FILES:
         try:
             SOUNDS[filename] = pygame.mixer.Sound(path)
         except pygame.error:
-            pass
+            # File exists but is corrupt or invalid
+            print(f"{C_YELLOW}[WARN]{C_RESET} Failed to load wav: {filename}")
+    else:
+        # Warn about missing files (non-blocking)
+        print(f"{C_YELLOW}[WARN]{C_RESET} File not found: {filename}")
 
 if not SOUNDS:
-    sys.exit("ERROR: No sounds loaded!")
+    sys.exit("ERROR: No sounds loaded! Check your config.json and .wav files.")
 
 # === OPTIMIZATION: CACHED LIST LOOKUP ===
 # Convert Dictionary Map -> Array Index for O(1) access
-# Max standard evdev keycode is usually < 256 for standard keyboards, 
-# but we allocate enough to be safe.
-MAX_KEYCODE = 512 
+# Standard evdev keycodes are usually small, but user configs may use higher scan codes.
+# We allocate 64k to cover virtually all possibilities (consumes ~0.5MB RAM).
+MAX_KEYCODE = 65536
 SOUND_CACHE = [None] * MAX_KEYCODE
 DEFAULT_SOUND_OBJS = [SOUNDS[f] for f in DEFAULTS if f in SOUNDS]
 
@@ -301,7 +302,7 @@ def play_sound(code):
             sound.play()
             return
 
-    # Fallback (unmapped keys)
+    # Fallback (unmapped keys or missing sound files)
     if DEFAULT_SOUND_OBJS:
         _random_choice(DEFAULT_SOUND_OBJS).play()
 
