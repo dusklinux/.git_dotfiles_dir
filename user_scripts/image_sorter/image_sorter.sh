@@ -9,7 +9,8 @@ IFS=$'\n\t'
 
 readonly VERSION="2.0.4"
 readonly SCRIPT_NAME="${0##*/}"
-readonly IMAGE_EXTENSIONS=("jpg" "jpeg" "png" "gif" "webp" "avif" "jxl" "bmp" "tiff")
+readonly BYTES_MB=1048576
+readonly IMAGE_EXTENSIONS=("jpg" "jpeg" "png" "gif" "webp" "avif" "jxl" "bmp" "tiff" "heif" "heic")
 
 # Colors
 if [[ -z "${NO_COLOR:-}" && -t 1 ]]; then
@@ -391,14 +392,17 @@ sort_brightness_worker() {
 
     # 4. Action (Fix: Collision Check & mv -n)
     if [[ "$dry_run" == "false" ]]; then
-        # Check for collision first
-        if [[ -e "$dest_dir/${file##*/}" ]]; then
-             printf "COLLISION|%s|%s|%s\n" "$category" "$brightness" "$file"
-             return
-        fi
-
-        if ! mv -n -- "$file" "$dest_dir/" 2>/dev/null; then
-             printf "ERR|%s\n" "$file"
+        # Atomic move attempt
+        mv -n -- "$file" "$dest_dir/" 2>/dev/null
+        
+        # If source file still exists, it failed (Collision or Error)
+        if [[ -e "$file" ]]; then
+             # Check destination to distinguish collision from other errors
+             if [[ -e "$dest_dir/${file##*/}" ]]; then
+                 printf "COLLISION|%s|%s|%s\n" "$category" "$brightness" "$file"
+             else
+                 printf "ERR|%s\n" "$file"
+             fi
              return
         fi
     fi
@@ -478,7 +482,9 @@ sort_by_brightness() {
                 "$C_MAGENTA" "$C_RESET" "$color" "$category" "$C_RESET" \
                 "$filename" "$C_DIM" "$val" "$C_RESET" >&2
         else
-            printf '  %s%-5s%s %s\n' "$color" "$category" "$C_RESET" "$filename" >&2
+            printf '  %s%-5s%s %s %s[%.3f]%s\n' \
+                "$color" "$category" "$C_RESET" \
+                "$filename" "$C_DIM" "$val" "$C_RESET" >&2
         fi
         (( ++PROCESSED ))
         
@@ -543,8 +549,8 @@ sort_by_size() {
         printf -v new_name '%0*d.%s' "$digits" "$count" "${ext,,}"
         size_bytes=$(stat -c%s "$file_path")
         
-        if (( size_bytes >= 1048576 )); then
-            printf -v size_h '%.1fM' "$(bc -l <<< "$size_bytes/1048576")"
+        if (( size_bytes >= BYTES_MB )); then
+            printf -v size_h '%.1fM' "$(bc -l <<< "$size_bytes/$BYTES_MB")"
         elif (( size_bytes >= 1024 )); then
             printf -v size_h '%.0fK' "$(bc -l <<< "$size_bytes/1024")"
         else
@@ -637,8 +643,20 @@ main() {
     fi
     
     # Check dependencies
-    if [[ "$MODE" == "brightness" ]] && ! command -v magick &>/dev/null; then
-        die "ImageMagick required. Install: sudo pacman -S imagemagick"
+    if ! command -v bc &>/dev/null; then
+        die "bc required. Install: sudo pacman -S --needed bc"
+    fi
+
+    if [[ "$MODE" == "brightness" ]]; then 
+        if ! command -v magick &>/dev/null; then
+            die "ImageMagick required. Install: sudo pacman -S --needed imagemagick"
+        fi
+        
+        # Check for libheif (Arch specific as user requested pacman checks)
+        # Using pacman -Q because command -v cannot check for libraries/delegates easily
+        if command -v pacman &>/dev/null && ! pacman -Q libheif &>/dev/null; then
+            die "libheif required for HEIF/HEIC. Install: sudo pacman -S --needed libheif"
+        fi
     fi
     
     case "$MODE" in
