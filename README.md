@@ -1,6 +1,6 @@
 # Updated demo Video coming soon.
 
-## If you're here just for the wallpapers, you can get all of them (+1050 wallpapers) them from my [images repo][images].
+## If you're here just for the wallpapers, you can get all of them (+1050 wallpapers) from my [images repo][images].
 
 [images]: https://github.com/dusklinux/images
 
