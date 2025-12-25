@@ -29,13 +29,13 @@
   transition: 200ms ease-in-out;
 }
 
-.blank-window {  
-  background: transparent;  
+.blank-window {
+  background: transparent;
 }
-  
+
 /* --- CONTROL CENTER (Main Window) --- */
 .control-center {
-  background: alpha(@background-color, 0.95);
+  background: alpha(@background-color, 0.90);
   border-radius: 24px;
   /* FIXED: Border is now 2px thick and uses the Accent Color */
   border: 1px solid @accent-color;
