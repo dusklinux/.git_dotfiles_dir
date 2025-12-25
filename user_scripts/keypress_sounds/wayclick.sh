@@ -11,6 +11,7 @@ trap cleanup EXIT INT TERM
 
 # --- CONFIGURATION ---
 readonly APP_NAME="wayclick"
+readonly CONFIG_ENABLE_TRACKPADS="false"  # Set to "true" to enable trackpad clicks, "false" to ignore them
 readonly BASE_DIR="$HOME/contained_apps/uv/$APP_NAME"
 readonly VENV_DIR="$BASE_DIR/.venv"
 readonly RUNNER_SCRIPT="$BASE_DIR/runner.py"
@@ -214,7 +215,6 @@ import json
 # Clean startup
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 # Low latency audio drivers
-os.environ['SDL_AUDIODRIVER'] = 'pulseaudio' 
 os.environ['SDL_BUFFER_CHUNK_SIZE'] = '256' 
 
 import pygame
@@ -229,6 +229,7 @@ C_RED = "\033[1;31m"
 C_RESET = "\033[0m"
 
 ASSET_DIR = sys.argv[1]
+ENABLE_TRACKPADS = os.environ.get('ENABLE_TRACKPADS', 'false').lower() == 'true'
 
 # === AUDIO INIT ===
 # 44100Hz, 16-bit, 2 channels, 256 sample buffer
@@ -351,6 +352,14 @@ async def main():
                 
                 try:
                     dev = evdev.InputDevice(path)
+                    
+                    # Trackpad Filtering (User Toggle)
+                    if not ENABLE_TRACKPADS:
+                        name_lower = dev.name.lower()
+                        if 'touchpad' in name_lower or 'trackpad' in name_lower:
+                            dev.close()
+                            continue
+
                     caps = dev.capabilities()
                     # Check for EV_KEY (1)
                     if 1 in caps:
@@ -399,6 +408,7 @@ if ! $INTERACTIVE; then
 fi
 
 # Execute using the VENV python directly, with -O to remove assertions
-"$VENV_DIR/bin/python" -O "$RUNNER_SCRIPT" "$CONFIG_DIR"
+# We pass the trackpad toggle as an environment variable
+ENABLE_TRACKPADS="$CONFIG_ENABLE_TRACKPADS" "$VENV_DIR/bin/python" -O "$RUNNER_SCRIPT" "$CONFIG_DIR"
 
 printf "\n%b[INFO]%b WayClick stopped.\n" "${C_BLUE}" "${C_RESET}"
