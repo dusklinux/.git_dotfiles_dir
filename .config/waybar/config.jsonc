@@ -233,6 +233,6 @@
         "format": "",
         "tooltip": true,
         "tooltip-format": "Power Menu",
-        "on-click": "uwsm-app -- wlogout"
+        "on-click": "uwsm-app -- ~/user_scripts/wlogout/wlogout_scale.sh"
     }
 }

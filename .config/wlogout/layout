@@ -1,36 +1,36 @@
 {
-    "label" : "shutdown",
-    "action" : "systemctl poweroff",
-    "text" : "Shutdown",
-    "keybind" : "s"
+    "label": "lock",
+    "action": "hyprlock",
+    "text": "Lock",
+    "keybind": "l"
 }
 {
-    "label" : "suspend",
-    "action" : "systemctl suspend",
-    "text" : "Suspend",
-    "keybind" : "u"
+    "label": "logout",
+    "action": "uwsm stop",
+    "text": "Logout",
+    "keybind": "e"
 }
 {
-    "label" : "reboot",
-    "action" : "systemctl reboot",
-    "text" : "Reboot",
-    "keybind" : "r"
+    "label": "suspend",
+    "action": "systemctl suspend",
+    "text": "Suspend",
+    "keybind": "u"
 }
 {
-    "label" : "soft_reboot",
-    "action" : "systemctl soft-reboot",
-    "text" : "Soft Reboot",
-    "keybind" : "q"
+    "label": "shutdown",
+    "action": "systemctl poweroff",
+    "text": "Shutdown",
+    "keybind": "s"
 }
 {
-    "label" : "logout",
-    "action" : "uwsm stop",
-    "text" : "Logout",
-    "keybind" : "e"
+    "label": "soft-reboot",
+    "action": "systemctl soft-reboot",
+    "text": "Soft-Reboot",
+    "keybind": "q"
 }
 {
-    "label" : "lock",
-    "action" : "hyprlock -q",
-    "text" : "Lock",
-    "keybind" : "l"
+    "label": "reboot",
+    "action": "systemctl reboot",
+    "text": "Reboot",
+    "keybind": "r"
 }

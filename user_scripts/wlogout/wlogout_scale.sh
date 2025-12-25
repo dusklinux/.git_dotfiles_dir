@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# wlogout-launch - Dynamic scaling wrapper for wlogout
-# Calculates appropriate UI sizes based on current monitor configuration
+# wlogout-launch - Dynamic scaling wrapper with Matugen Integration
 #
 
 set -euo pipefail
@@ -17,30 +16,26 @@ fi
 # ──────────────────────────────────────────────────────────────
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/wlogout"
 LAYOUT_FILE="${CONFIG_DIR}/layout"
+ICON_DIR="${CONFIG_DIR}/icons"
+MATUGEN_COLORS="$HOME/.config/matugen/generated/wlogout-colors.css"
 TMP_CSS="/tmp/wlogout-${UID}-$$.css"
 
-# Reference: Your setup looks good at 1080p with 1.6 scale
-# Logical height at that config = 1080 / 1.6 = 675
+# Reference: 1080p @ 1.6 scale (Logical height ~675px)
 REF_HEIGHT=675
 
 # Base sizes (tuned for reference resolution)
-BASE_FONT=28
-BASE_MARGIN=10
-BASE_RADIUS=12
-BASE_PADDING=16
-BASE_HOVER_RADIUS=16
+BASE_FONT=20        
+BASE_MARGIN=6       # Gap between the bar and the screen edge
+BASE_HOVER_MOVE=4   # How much the button "pops" up
+BASE_RADIUS=20      # Corner roundness
+BASE_ACTIVE_RAD=20  
 
 # ──────────────────────────────────────────────────────────────
-# Cleanup on exit
+# Cleanup & Dependency Check
 # ──────────────────────────────────────────────────────────────
-cleanup() {
-    rm -f "$TMP_CSS" 2>/dev/null || true
-}
+cleanup() { rm -f "$TMP_CSS" 2>/dev/null || true; }
 trap cleanup EXIT INT TERM
 
-# ──────────────────────────────────────────────────────────────
-# Dependency check
-# ──────────────────────────────────────────────────────────────
 for cmd in hyprctl jq wlogout; do
     if ! command -v "$cmd" &>/dev/null; then
         echo "Error: Required command '$cmd' not found" >&2
@@ -49,175 +44,159 @@ for cmd in hyprctl jq wlogout; do
 done
 
 # ──────────────────────────────────────────────────────────────
-# Get focused monitor information
+# Get Monitor & Calculate Scale
 # ──────────────────────────────────────────────────────────────
-MONITOR_JSON=$(hyprctl monitors -j 2>/dev/null | jq -r '
-    (.[] | select(.focused == true)) // .[0] // empty
-')
+MONITOR_JSON=$(hyprctl monitors -j 2>/dev/null | jq -r '(.[] | select(.focused == true)) // .[0] // empty')
 
 if [[ -z "$MONITOR_JSON" || "$MONITOR_JSON" == "null" ]]; then
-    echo "Warning: Could not get monitor info, using defaults" >&2
-    SCALE=1.6
-    HEIGHT=1080
-    WIDTH=1920
+    SCALE=1; HEIGHT=1080; WIDTH=1920
 else
     SCALE=$(echo "$MONITOR_JSON" | jq -r '.scale // 1')
     HEIGHT=$(echo "$MONITOR_JSON" | jq -r '.height // 1080')
     WIDTH=$(echo "$MONITOR_JSON" | jq -r '.width // 1920')
 fi
 
-# ──────────────────────────────────────────────────────────────
-# Calculate effective (logical) resolution
-# ──────────────────────────────────────────────────────────────
+# Calculate Logical Resolution & Ratio
 EFF_WIDTH=$(awk "BEGIN {printf \"%.0f\", $WIDTH / $SCALE}")
 EFF_HEIGHT=$(awk "BEGIN {printf \"%.0f\", $HEIGHT / $SCALE}")
-
-# Scaling ratio relative to reference
 RATIO=$(awk "BEGIN {printf \"%.4f\", $EFF_HEIGHT / $REF_HEIGHT}")
 
-# Clamp ratio to prevent extreme values
-RATIO=$(awk "BEGIN {
-    r = $RATIO
-    if (r < 0.5) r = 0.5
-    if (r > 3.0) r = 3.0
-    printf \"%.4f\", r
-}")
+# Clamp Ratio (0.5 - 3.0)
+RATIO=$(awk "BEGIN {r = $RATIO; if (r < 0.5) r = 0.5; if (r > 3.0) r = 3.0; printf \"%.4f\", r}")
 
 # ──────────────────────────────────────────────────────────────
-# Calculate scaled dimensions
+# Calculate Scaled Variables
 # ──────────────────────────────────────────────────────────────
 FONT=$(awk "BEGIN {printf \"%.0f\", $BASE_FONT * $RATIO}")
 MARGIN=$(awk "BEGIN {printf \"%.0f\", $BASE_MARGIN * $RATIO}")
+HOVER_MOVE=$(awk "BEGIN {printf \"%.0f\", $BASE_HOVER_MOVE * $RATIO}")
 RADIUS=$(awk "BEGIN {printf \"%.0f\", $BASE_RADIUS * $RATIO}")
-PADDING=$(awk "BEGIN {printf \"%.0f\", $BASE_PADDING * $RATIO}")
-HOVER_RADIUS=$(awk "BEGIN {printf \"%.0f\", $BASE_HOVER_RADIUS * $RATIO}")
+ACTIVE_RADIUS=$(awk "BEGIN {printf \"%.0f\", $BASE_ACTIVE_RAD * $RATIO}")
 
 # ──────────────────────────────────────────────────────────────
-# Calculate margins to CENTER the button grid
-# We want the button area to occupy ~60% width and ~40% height
-# ──────────────────────────────────────────────────────────────
-MARGIN_H_PCT=20   # Percentage of screen width for left/right margin
-MARGIN_V_PCT=30   # Percentage of screen height for top/bottom margin
-
-MARGIN_LEFT=$(awk "BEGIN {printf \"%.0f\", $EFF_WIDTH * $MARGIN_H_PCT / 100}")
-MARGIN_RIGHT=$MARGIN_LEFT
-MARGIN_TOP=$(awk "BEGIN {printf \"%.0f\", $EFF_HEIGHT * $MARGIN_V_PCT / 100}")
-MARGIN_BOTTOM=$MARGIN_TOP
-
-# ──────────────────────────────────────────────────────────────
-# Button layout: 3 per row = 2 rows of 3 (balanced grid)
-# ──────────────────────────────────────────────────────────────
-BUTTONS_PER_ROW=3
-
-# ──────────────────────────────────────────────────────────────
-# Generate CSS (GTK-compatible only!)
+# CSS Injection (Matugen Integrated & Glitch Fix & Blur)
 # ──────────────────────────────────────────────────────────────
 cat > "$TMP_CSS" << EOCSS
-/*
- * wlogout dynamic CSS
- * Monitor: ${WIDTH}×${HEIGHT} @ scale ${SCALE}
- * Logical: ${EFF_WIDTH}×${EFF_HEIGHT}
- * Ratio: ${RATIO}
- */
+@import url("file://${MATUGEN_COLORS}");
 
 * {
-    all: unset;
     background-image: none;
+    font-family: "JetBrainsMono Nerd Font", "Roboto", sans-serif;
+    font-size: ${FONT}px;
 }
 
 window {
-    background-color: rgba(10, 10, 14, 0.88);
+    /* Updated for Blur:
+       We use a static RGBA here because Matugen's @scrim is solid black (#000000).
+       0.5 alpha allows the background to bleed through for Hyprland's blur.
+    */
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 button {
-    font-family: "Material Symbols Outlined", "Symbols Nerd Font", monospace;
-    font-size: ${FONT}pt;
+    color: @on_surface;
+    background-color: @surface_container_highest; 
+    
+    /* Critical Fixes for Artifacts */
+    outline-style: none;
+    border: 1px solid transparent; 
+    background-clip: border-box;   
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 25%;
+    box-shadow: none;
+    text-shadow: none;
 
-    padding: ${PADDING}pt;
-    margin: ${MARGIN}pt;
+    /* Start with imperceptible radius to prime the renderer */
+    border-radius: 1px;
 
-    background-color: rgba(45, 45, 60, 0.55);
-    color: rgba(255, 255, 255, 0.85);
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: ${RADIUS}pt;
-
-    transition: 200ms ease-in-out;
+    /* Surgical transition */
+    transition: 
+        background-color 0.2s ease-in-out,
+        background-size 0.2s ease-in-out,
+        border-radius 0.2s ease-in-out,
+        margin 0.2s ease-in-out;
 }
 
 button:focus {
-    background-color: rgba(60, 60, 80, 0.65);
-    color: rgba(255, 255, 255, 0.95);
+    background-color: @secondary_container;
+    color: @on_secondary_container;
+    background-size: 30%;
 }
 
 button:hover {
-    background-color: rgba(75, 75, 100, 0.70);
-    border-radius: ${HOVER_RADIUS}pt;
-    color: #FFFFFF;
+    background-color: @primary;
+    color: @on_primary;
+    background-size: 35%;
+    border-radius: ${ACTIVE_RADIUS}px;
 }
 
-button:active {
-    background-color: rgba(95, 95, 120, 0.75);
+/* ─── Animation & Margins per button ─── */
+
+/* Lock: Left rounded corners */
+#lock {
+    background-image: image(url("${ICON_DIR}/lock_white.png"));
+    border-radius: ${RADIUS}px 1px 1px ${RADIUS}px;
+    margin : ${MARGIN}px 0px ${MARGIN}px ${MARGIN}px;
+}
+button:hover#lock {
+    margin : ${HOVER_MOVE}px 0px ${HOVER_MOVE}px ${MARGIN}px;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   Semantic Colors
-   ═══════════════════════════════════════════════════════════ */
-
-#shutdown:hover, #shutdown:focus {
-    background-color: rgba(180, 60, 60, 0.55);
-    color: #FFDDDD;
+/* Logout: Flat */
+#logout {
+    background-image: image(url("${ICON_DIR}/logout_white.png"));
+    margin : ${MARGIN}px 0px ${MARGIN}px 0px;
+}
+button:hover#logout {
+    margin : ${HOVER_MOVE}px 0px ${HOVER_MOVE}px 0px;
 }
 
-#reboot:hover, #reboot:focus,
-#soft_reboot:hover, #soft_reboot:focus {
-    background-color: rgba(180, 130, 50, 0.55);
-    color: #FFF0DD;
+/* Suspend: Flat */
+#suspend {
+    background-image: image(url("${ICON_DIR}/suspend_white.png"));
+    margin : ${MARGIN}px 0px ${MARGIN}px 0px;
+}
+button:hover#suspend {
+    margin : ${HOVER_MOVE}px 0px ${HOVER_MOVE}px 0px;
 }
 
-#suspend:hover, #suspend:focus {
-    background-color: rgba(50, 120, 180, 0.55);
-    color: #DDEEFF;
+/* Shutdown: Flat */
+#shutdown {
+    background-image: image(url("${ICON_DIR}/shutdown_white.png"));
+    margin : ${MARGIN}px 0px ${MARGIN}px 0px;
+}
+button:hover#shutdown {
+    margin : ${HOVER_MOVE}px 0px ${HOVER_MOVE}px 0px;
 }
 
-#lock:hover, #lock:focus {
-    background-color: rgba(50, 170, 150, 0.55);
-    color: #DDFFFA;
+/* Soft-reboot: Flat */
+#soft-reboot {
+    background-image: image(url("${ICON_DIR}/soft-reboot_white.png"));
+    margin : ${MARGIN}px 0px ${MARGIN}px 0px;
+}
+button:hover#soft-reboot {
+    margin : ${HOVER_MOVE}px 0px ${HOVER_MOVE}px 0px;
 }
 
-#logout:hover, #logout:focus {
-    background-color: rgba(130, 60, 180, 0.55);
-    color: #F0DDFF;
+/* Reboot: Right rounded corners */
+#reboot {
+    background-image: image(url("${ICON_DIR}/reboot_white.png"));
+    border-radius: 1px ${RADIUS}px ${RADIUS}px 1px;
+    margin : ${MARGIN}px ${MARGIN}px ${MARGIN}px 0px;
+}
+button:hover#reboot {
+    margin : ${HOVER_MOVE}px ${MARGIN}px ${HOVER_MOVE}px 0px;
 }
 EOCSS
 
 # ──────────────────────────────────────────────────────────────
-# Debug output
-# ──────────────────────────────────────────────────────────────
-if [[ "${DEBUG:-}" == "1" ]]; then
-    echo "═══════════════════════════════════════════"
-    echo "Monitor:     ${WIDTH}×${HEIGHT} @ scale ${SCALE}"
-    echo "Logical:     ${EFF_WIDTH}×${EFF_HEIGHT}"
-    echo "Ratio:       ${RATIO}"
-    echo "───────────────────────────────────────────"
-    echo "Font:        ${FONT}pt"
-    echo "Padding:     ${PADDING}pt"
-    echo "Margin:      ${MARGIN}pt"
-    echo "Radius:      ${RADIUS}pt / ${HOVER_RADIUS}pt"
-    echo "───────────────────────────────────────────"
-    echo "Layout:      ${BUTTONS_PER_ROW} per row"
-    echo "Margins:     T:${MARGIN_TOP} B:${MARGIN_BOTTOM} L:${MARGIN_LEFT} R:${MARGIN_RIGHT}"
-    echo "═══════════════════════════════════════════"
-fi
-
-# ──────────────────────────────────────────────────────────────
-# Launch wlogout with calculated parameters
+# Launch
 # ──────────────────────────────────────────────────────────────
 exec wlogout \
     --layout "$LAYOUT_FILE" \
     --css "$TMP_CSS" \
-    --buttons-per-row "$BUTTONS_PER_ROW" \
-    --margin-top "$MARGIN_TOP" \
-    --margin-bottom "$MARGIN_BOTTOM" \
-    --margin-left "$MARGIN_LEFT" \
-    --margin-right "$MARGIN_RIGHT" \
+    --buttons-per-row 6 \
+    --column-spacing 0 \
+    --row-spacing 0 \
     "$@"
