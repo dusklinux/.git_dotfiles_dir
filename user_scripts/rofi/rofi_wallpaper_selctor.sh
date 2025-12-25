@@ -166,7 +166,6 @@ if [[ -n "$selection" ]]; then
             --transition-fps 60 &
             
         setsid uwsm-app -- matugen $current_flags image "$full_path" &
-        notify-send "Wallpaper" "Applied: $selection" -i "$full_path"
     else
         # If path resolution failed, cache might be corrupted. Delete it.
         rm -f "$CACHE_FILE"
