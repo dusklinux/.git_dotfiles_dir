@@ -54,7 +54,8 @@ fi
 
 # --- 1. Root Privilege Strategy ---
 if [[ "${EUID}" -ne 0 ]]; then
-    log_error "This script must be run with root privileges. Please run: sudo $0"
+    log_info "This script requires root privileges. Elevating..."
+    exec sudo "$0" "$@"
 fi
 
 # Robustly detect the real user for AUR operations
