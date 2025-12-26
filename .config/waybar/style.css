@@ -1,198 +1,130 @@
-/*
- * ~/.config/waybar/style.css
- * Radically simplified color palette — Optimized & Organized
- */
-
-/* --- IMPORT MATUGEN PALETTE --- */
 @import url("../../.config/matugen/generated/waybar-colors.css");
-
-/* 0. COLOR PALETTE BRIDGE */
-@define-color foreground @on_surface;
-@define-color accent @primary;
-@define-color critical @error;
-
-/*
- * ===================================================================
- * I. GLOBAL STYLES & LAYOUT
- * ===================================================================
- */
 
 * {
     font-family: "JetBrainsMono Nerd Font", "Noto Sans", sans-serif;
-    font-size: 10px; 
+    font-size: 13px;
+    font-weight: bold;
+    min-height: 0;
     border: none;
     border-radius: 0;
-    min-height: 0;
-    animation: none;
-    transition-property: color;
-    transition-duration: 0.0s;
-    transition-timing-function: ease-in-out;
 }
 
 window#waybar {
-    background: alpha(@background, 0.85);
-    color: @accent;
-    margin: 1px;
-    border-radius: 4px;
-    padding: 5px 0;
+    background: transparent;
+    color: @on_surface;
 }
 
-window#waybar.hidden {
-    opacity: 0.5;
-}
-
-tooltip {
-    background: @background;
-    color: @accent;
-    border: 1px solid alpha(@accent, 0.2);
-    border-radius: 6px;
-}
-
-tooltip label {
-    padding: 8px;
-    color: @accent;
-}
-
-/*
- * ===================================================================
- * II. MODULE-SPECIFIC STYLES
- * ===================================================================
- */
-
-/* --- Shared Module Base --- */
-/* ADDED: #custom-network to the shared list */
-#workspaces, #clock, #battery, #bluetooth, #pulseaudio, #custom-app-tray, 
-#cpu, #memory, #backlight, #tray, #temperature, #custom-notification, 
-#custom-inhibit-suspend, #custom-power, #custom-theme,
+/* UNIFIED CAPSULE STYLE */
+#clock,
+#custom-notification,
+#workspaces,
+#group-stats,
+#pulseaudio,
+#battery,
 #custom-network {
-    padding-left: 0px;
-    padding-right: 0px;
-    margin: 4px 3px;
-    padding-top: 0;
-    padding-bottom: 0;
-    border-radius: 6px;
-    background-color: transparent;
+    background-color: @surface_container;
+    color: @on_surface;
+    border-radius: 10px; /* Slightly tighter radius for narrower bar */
+    
+    /* CHANGED: Reduced side margins from 2px to 1px to fit the 38px width */
+    margin: 3px 1px; 
+    
+    padding: 6px 0px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Hover Effects --- */
-/* ADDED: #custom-network:hover */
-#clock:hover, #battery:hover, #pulseaudio:hover, #bluetooth:hover, 
-#custom-app-tray:hover, #cpu:hover, #memory:hover, #backlight:hover, 
-#custom-notification:hover, #custom-power:hover, #temperature:hover, 
-#custom-inhibit-suspend:hover, #custom-theme:hover, #custom-network:hover {
-    background-color: alpha(@accent, 0.2);
-}
-
-/* --- Workspaces --- */
-#workspaces {
-    background-color: alpha(@accent, 0.1);
-}
-
-#workspaces button {
-    margin: 4px 3px;
-    padding: 0;
-    color: @foreground;
-    background-color: transparent;
-    border-radius: 6px;
-}
-
-#workspaces button:hover {
-    background-color: alpha(@accent, 0.2);
-}
-
-#workspaces button.focused,
-#workspaces button.active {
-    background-color: @accent;
-    color: @background;
-}
-
-#workspaces button.urgent {
-    background-color: @critical;
-    color: @background;
-}
-
-/* --- Text Colors & States --- */
-#clock, #battery, #pulseaudio, #custom-app-tray, #bluetooth, 
-#temperature, #cpu, #memory, #backlight {
-    color: @accent;
-}
-
+/* --- TOP SECTION --- */
 #clock {
-    font-weight: bold;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    background-color: @primary_container;
+    color: @on_primary_container;
+    /* CHANGED: 10px ensures 4 digits (e.g. 12:00) fit comfortably */
+    font-size: 10px; 
+    padding-bottom: 8px;
 }
 
-/* Battery States */
-#battery.warning { color: @critical; }
-#battery.charging, #battery.plugged { color: @accent; }
-#battery.critical:not(.charging) {
-    color: @error_container;
-    animation-name: blink-critical;
-    animation-duration: 1.0s;
-    animation-timing-function: steps(18);
-    animation-iteration-count: infinite;
-    animation-direction: alternate;
+#group-stats {
+    background-color: @surface_container_low;
+    padding: 8px 0;
 }
 
-/* Audio States */
-#pulseaudio.muted { color: @critical; }
-
-/* Bluetooth States */
-#bluetooth.disabled { color: @error; }
-#bluetooth.connected { color: @accent; }
-
-/* Temperature States */
-#temperature.critical { color: @critical; }
-
-/* Memory States */
-#memory.critical { color: @critical; }
-
-/* Inhibit Suspend States */
-#custom-inhibit-suspend.enabled { color: @accent; }
-#custom-inhibit-suspend.disabled { color: @critical; }
-
-/* Custom Power */
-#custom-power {
-    color: @critical;
-    margin-top: 0px;
+#cpu, #memory, #temperature {
+    background: transparent;
+    box-shadow: none;
+    margin: 4px 0;
+    padding: 0;
+    font-size: 10px;
+    color: @on_surface_variant;
+    
+    /* ADDED: Strong black text-shadow for visibility on light backgrounds */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 1.0);
 }
 
-/* Notifications */
-#custom-notification.dnd-none { color: @accent; }
-#custom-notification.dnd-notification,
-#custom-notification.dnd-all { color: @critical; }
-#custom-notification.notification {
-    color: @accent;
-    animation: blink-info 1s steps(1, end) infinite;
-    margin-top: 2px;
-    margin-bottom: 0px;
-}
-
-/* --- OPTIMIZED NETWORK STYLE --- */
-#custom-network {
-    /* Safe fix for tight vertical stacking without line-height crash */
-    font-size: 9px; 
-    color: @accent;
-}
-
-#custom-network.network-mb {
+/* ADDED: Critical State Coloring (Red when > 80%) */
+#cpu.critical, 
+#memory.critical, 
+#temperature.critical {
     color: @error;
 }
 
-/*
- * ===================================================================
- * III. ANIMATIONS
- * ===================================================================
- */
-@keyframes blink-critical {
-    to { background-color: transparent; color: @accent; }
+#custom-notification {
+    color: @on_surface_variant;
 }
 
-@keyframes blink-urgent {
-    to { background-color: @accent; color: @background; }
+/* --- CENTER SECTION --- */
+#workspaces {
+    background-color: @surface_container_high;
+    padding: 2px 0;
 }
 
-@keyframes blink-info {
-    to { color: @accent; opacity: 0.5; }
+#workspaces button {
+    padding: 2px 0;
+    /* CHANGED: Reduced horizontal margin */
+    margin: 1px 2px;
+    border-radius: 9px;
+    color: @on_surface_variant;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+#workspaces button.active {
+    background-color: @primary;
+    color: @on_primary;
+}
+
+#workspaces button.urgent {
+    background-color: @error;
+    color: @on_error;
+}
+
+#workspaces button:hover {
+    background-color: @surface_container_highest;
+}
+
+/* --- BOTTOM SECTION --- */
+#custom-network {
+    font-size: 10px;
+    padding: 8px 0;
+}
+
+#pulseaudio, #battery {
+    /* CHANGED: 10px guarantees '100' fits in 38px width */
+    font-size: 10px; 
+    padding: 8px 0;
+}
+
+#battery.charging { color: @tertiary; }
+#battery.warning { color: @error; }
+
+#custom-power {
+    background-color: transparent;
+    box-shadow: none;
+    color: @error;
+    font-size: 16px; /* Slightly smaller icon to match narrow width */
+    margin-top: 6px;
+    margin-bottom: 2px;
+    padding: 0;
+}
+
+#custom-power:hover {
+    color: @error_container;
 }
