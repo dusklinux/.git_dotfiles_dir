@@ -1,0 +1,15 @@
+#version 300 es
+// Pure Blue Channel Shader - OPTIMIZED
+precision highp float;
+
+in vec2 v_texcoord;
+uniform sampler2D tex;
+out vec4 fragColor;
+
+const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
+
+void main() {
+    vec4 pixColor = texture(tex, v_texcoord);
+    float gray = dot(pixColor.rgb, LUMA);
+    fragColor = vec4(0.0, 0.0, gray, pixColor.a);
+}

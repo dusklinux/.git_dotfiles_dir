@@ -1,6 +1,5 @@
 #version 300 es
 // Saturation & Contrast Shader for Hyprland
-// Author: Gemini
 // Description: Allows fine-tuning of screen vibrancy and dynamic range.
 // Efficiently applies saturation followed by contrast.
 

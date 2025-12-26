@@ -1,6 +1,5 @@
 #version 300 es
 // Vignette Shader for Hyprland
-// Author: Gemini
 // Description: Darkens the edges of the screen to draw focus to the center.
 // Uses smoothstep for a high-quality, organic falloff.
 
@@ -12,11 +11,11 @@ out vec4 fragColor;
 
 // --- CONFIGURATION ---
 // The radius where the darkening begins (0.0 is center, 0.8 is near corners)
-const float RADIUS = 0.65;
+const float RADIUS = 0.85;
 // How soft the transition is (higher = smoother gradient)
-const float SOFTNESS = 0.65;
+const float SOFTNESS = 0.85;
 // The strength of the darkness (0.0 = no vignette, 1.0 = pitch black corners)
-const float STRENGTH = 0.5;
+const float STRENGTH = 0.8;
 
 void main() {
     // 1. Sample the original screen color
