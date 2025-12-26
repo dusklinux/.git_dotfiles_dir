@@ -9,7 +9,7 @@
 # --- 1. CONFIGURATION: EDIT THIS LIST ---
 declare -ra INSTALL_SEQUENCE=(
   "002_environment_prep.sh"
-  "003_formatting.sh"
+  "003_partitioning.sh"
   "004_disk_mount.sh"
   "005_mirrorlist.sh"
   "006_console_fix.sh"
