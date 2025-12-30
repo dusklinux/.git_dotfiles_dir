@@ -29,3 +29,12 @@ Reload Hyprland configuration:
 all monitors
 
 	hyprctl monitors
+
+clients/windows
+
+	hyprctl clients
+
+layers 
+
+	hyprctl layers
+	
