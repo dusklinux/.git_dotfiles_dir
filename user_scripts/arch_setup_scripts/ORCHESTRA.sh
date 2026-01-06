@@ -59,7 +59,7 @@ INSTALL_SEQUENCE=(
     "U | 045_mouse_button_reverse.sh"
     "U | 046_neovim_clean.sh"
     "U | 047_neovim_lazy_sync.sh"
-    "U | 048_dusk_clipboard_errands_delete.sh"
+    "U | 048_dusk_clipboard_errands_delete.sh --auto"
     "S | 049_tty_autologin.sh"
     "S | 050_system_services.sh"
     "S | 051_initramfs_optimization.sh"
