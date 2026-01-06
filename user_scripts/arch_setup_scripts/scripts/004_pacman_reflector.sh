@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#  Updates mirrorlist using Reflector with manual fallback.
 # ==============================================================================
 #  003_pacman_reflector.sh
 #  Context: Arch Linux OS (Post-Install)

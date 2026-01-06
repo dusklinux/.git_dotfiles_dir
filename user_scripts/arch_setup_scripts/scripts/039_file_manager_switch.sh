@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#
+# Choose default File Manager between Thunar (GUI) and Yazi (Tui)
 # Script: fm-switcher.sh
 # Description: Toggles Hyprland file manager between Thunar (GUI) and Yazi (TUI)
 #              Respects UWSM and Arch Linux standards.

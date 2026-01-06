@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#
+# systemd drop-in to force SwayNC to iGPU for power saving
 # toggle-swaync-gpu
 # Purpose: Toggles systemd drop-in to force SwayNC to iGPU for power saving.
 # Context: Arch Linux / Hyprland / UWSM
@@ -32,6 +32,14 @@ log_info()    { printf "${BLUE}[INFO]${RESET} %s\n" "$1"; }
 log_success() { printf "${GREEN}[OK]${RESET} %s\n" "$1"; }
 log_err()     { printf "${RED}[ERROR]${RESET} %s\n" "$1" >&2; }
 
+# --- Argument Parsing ---
+AUTO_MODE=false
+for arg in "$@"; do
+  if [[ "$arg" == "--auto" ]]; then
+    AUTO_MODE=true
+  fi
+done
+
 # --- Logic ---
 
 # 1. Validation: Ensure the directory exists
@@ -55,12 +63,17 @@ else
 fi
 
 # 3. User Interaction
-printf "${BOLD}Current SwayNC GPU Fix State:${RESET} ${BLUE}%s${RESET}\n" "$CURRENT_STATE"
-read -r -p "$(printf "Do you want to ${BOLD}%s${RESET} the power saving fix? [y/N] " "$TARGET_ACTION")" CONFIRM
+if [[ "$AUTO_MODE" == "true" ]]; then
+    printf "${BOLD}Current SwayNC GPU Fix State:${RESET} ${BLUE}%s${RESET}\n" "$CURRENT_STATE"
+    log_info "Auto mode detected. Proceeding to $TARGET_ACTION fix..."
+else
+    printf "${BOLD}Current SwayNC GPU Fix State:${RESET} ${BLUE}%s${RESET}\n" "$CURRENT_STATE"
+    read -r -p "$(printf "Do you want to ${BOLD}%s${RESET} the power saving fix? [y/N] " "$TARGET_ACTION")" CONFIRM
 
-if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
-    log_info "Operation cancelled by user."
-    exit 0
+    if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
+        log_info "Operation cancelled by user."
+        exit 0
+    fi
 fi
 
 # 4. Execution
