@@ -11,6 +11,7 @@
 # --- USER CONFIGURATION AREA ---
 
 INSTALL_SEQUENCE=(
+    "U | 000_configure_uwsm_gpu.sh"
     "U | 001_long_sleep_timeout.sh"
 #    "S | 002_battery_limiter.sh"
     "S | 003_pacman_config.sh"
