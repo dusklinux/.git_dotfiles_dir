@@ -1,0 +1,115 @@
+#!/bin/sh
+# Universal Wayland Session Manager (UWSM) - General Environment
+
+# 1. System Locale and Performance
+export LANG=en_US.UTF-8
+
+# Intel Core i7-12700H: 14 cores (6P + 8E) -> 20 threads.
+# $(nproc) is valid here as UWSM processes this via shell.
+export OMP_NUM_THREADS=$(nproc)
+
+# 2. GUI Toolkit Configuration
+
+# --- Qt Configuration ---
+# CRITICAL FIX: The separator IS a semicolon, but it must be quoted to avoid shell parsing errors.
+# This tells Qt: "Try Wayland; if that fails, fall back to XCB (XWayland)".
+export QT_QPA_PLATFORM="wayland;xcb"
+
+export QT_QPA_PLATFORMTHEME=qt6ct
+# export QT_QPA_PLATFORMTHEME=qt5ct # Uncomment if you use qt5ct instead for Qt5 apps.
+export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+export QT_AUTO_SCREEN_SCALE_FACTOR=1
+
+# --- GTK Configuration ---
+export GDK_BACKEND="wayland,x11"
+export QT_QUICK_CONTROLS_STYLE=Fusion
+
+# 3. Cursor and Default Applications
+export XCURSOR_THEME=Bibata-Modern-Classic
+export XCURSOR_SIZE=18
+export TERMINAL=kitty
+
+# Use code editor
+export EDITOR=nvim
+export VISUAL=nvim
+
+# 4. Application-Specific Flags
+export MOZ_ENABLE_WAYLAND=1
+export SDL_VIDEODRIVER=wayland
+export CLUTTER_BACKEND=wayland
+
+#commentout for persistant clipboard through reboots, uncomment for ephimeral clipboard that resets on reboot (with the exception of pinned clip units)
+export CLIPHIST_DB_PATH="${XDG_RUNTIME_DIR}/cliphist.db"
+
+# Modern Electron apps (VSCode, Discord, Obsidian) support this auto-negotiation now.
+export ELECTRON_OZONE_PLATFORM_HINT=auto
+# Fix for Java AWT apps in tiling WMs
+export _JAVA_AWT_WM_NONREPARENTING=1
+
+# 5. Hardware Acceleration (Intel iGPU priority)
+# We force the Intel driver for the desktop session to save battery.
+# For specific apps (gaming), use 'prime-run' or 'env LIBVA_DRIVER_NAME=nvidia'.
+export LIBVA_DRIVER_NAME=iHD
+
+
+# 6. KVM virtualization VIRT Manager 
+# libvirt client libraries/tools (e.g. virsh, virt-install, GUI frontends) which hypervisor URI to connect to by default.
+# qemu:///system means "connect to the system-wide libvirt daemon (system instance of libvirtd/virtqemud)" — requires 
+# the libvirt service and appropriate permissions (root or membership in the libvirt group).
+export LIBVIRT_DEFAULT_URI='qemu:///system'
+
+#-------------------------NVIDIA-------------------------------
+#COMMENT OUT ANY SET ENVIRONMENT VARIABLE IF YOU DONT HAVE NVIDIA
+#--------------------------------------------------------------
+
+#VDPAU_DRIVER=nvidia
+#MOZ_DISABLE_RDD_SANDBOX=1
+
+# The following line is for using the nvidia-vaapi-driver. It directly CONFLICTS
+# with the Intel driver above. Do not uncomment both. Only use this if you
+# have a specific reason to force video decoding on the dGPU.
+# export LIBVA_DRIVER_NAME=nvidia
+
+# --- Vulkan ICD Loader ---
+# For a hybrid graphics system, you should NOT set this variable globally.
+# Doing so would restrict all Vulkan applications to a single GPU, defeating the
+# purpose of PRIME offloading. Let the Vulkan loader detect both drivers.
+# export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/intel_icd.x86_64.json
+
+# --- NVIDIA PRIME Render Offload & Driver Settings ---
+# These variables are essential for making the NVIDIA dGPU available on demand.
+
+# Enables PRIME Render Offload, allowing you to run specific applications
+# on the NVIDIA GPU while the desktop session runs on the Intel iGPU.
+#export __NV_PRIME_RENDER_OFFLOAD=1
+
+# Specifies the NVIDIA driver as the vendor library for GLX-based applications
+# when offloading. This is necessary for compatibility with many games and apps.
+#export __GLX_VENDOR_LIBRARY_NAME=nvidia
+
+# A common workaround for cursor glitches (disappearance, artifacts) when using
+# the proprietary NVIDIA driver. Uncomment if you experience such issues.
+# export WLR_NO_HARDWARE_CURSORS=1
+
+# The GBM (Generic Buffer Management) backend to use. The proprietary NVIDIA driver
+# provides its own. This is often required for Wayland compositors.
+#export GBM_BACKEND=nvidia-drm
+
+# This can force the NVIDIA GPU to be used for Vulkan applications. It's generally
+# better to use `prime-run vkcube` or other explicit launch commands for control.
+# Uncommenting this may cause all Vulkan apps to use the dGPU, increasing power draw.
+# export __VK_LAYER_NV_optimus=NVIDIA_only
+
+# Enables a disk cache for compiled GL shaders. This is highly recommended as it
+# can drastically reduce stuttering and improve load times in games.
+# export __GL_SHADER_DISK_CACHE=1
+# export __GL_SHADER_DISK_CACHE_PATH=$HOME/.cache/nv/
+
+#EXTRA STUFF NOT SURE IF THEY WORK
+#wlroot is no longer relied upon by hyprland, use aquamarine in the hyprland specific env file to achienve teh same effect, since aquamarine has replaced wlroots and is the defacto drm engine since hyprland 42
+#export WLR_DRM_DEVICES=/dev/dri/card1 #(this is to force intel gpu CHECK which card BEFORE UNCOMMENTING (intel is card1 and nvidia is card 2 for me might be diffrent for you))
+# In hyprland.conf or UWSM env file
+
+#export __GL_VRR_ALLOWED=0 # Set to 0 if you have issues with Adaptive Sync in games
+#export NVD_BACKEND=direct # May be needed for nvidia-vaapi-driver with some apps
+#export QT_STYLE_OVERRIDE = #override theme systemwide

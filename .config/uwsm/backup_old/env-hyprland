@@ -1,0 +1,29 @@
+#!/bin/sh
+# Universal Wayland Session Manager (UWSM) - Hyprland Environment
+
+# 1. Session Identification
+export DESKTOP_SESSION=hyprland-uwsm
+
+# 2. Cursor Configuration
+# Hyprland native cursor size (affects the desktop itself)
+export HYPRCURSOR_SIZE=18
+
+# 3. XDG Variables
+# UWSM handles XDG_CURRENT_DESKTOP, XDG_SESSION_TYPE, and XDG_SESSION_DESKTOP automatically.
+
+# 4. Aquamarine (Renderer) Configuration
+# Hyprland v0.45+ uses Aquamarine, not wlroots.
+
+# --- GPU Selection ---
+# CRITICAL: Verify your card index with `ls -l /dev/dri/by-path`
+# Ideally, you want the INTEGRATED (Intel) card here for the desktop session.
+# If card1 is definitely Intel, this is correct. If card0 is Intel, change this.
+export AQ_DRM_DEVICES=/dev/dri/card1
+
+# Install other terminals via Install > Terminal
+export TERMINAL=xdg-terminal-exec
+
+# 5. Path
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+
+export PATH="$HOME/.local/bin:$PATH"

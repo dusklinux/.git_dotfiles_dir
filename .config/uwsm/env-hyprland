@@ -1,29 +1,50 @@
 #!/bin/sh
-# Universal Wayland Session Manager (UWSM) - Hyprland Environment
+# Universal Wayland Session Manager (UWSM) - Hyprland Specifics
+# These variables override global settings specifically for Hyprland sessions.
 
-# 1. Session Identification
+# -----------------------------------------------------------------------------
+# 1. SESSION IDENTIFICATION
+# -----------------------------------------------------------------------------
 export DESKTOP_SESSION=hyprland-uwsm
 
-# 2. Cursor Configuration
-# Hyprland native cursor size (affects the desktop itself)
+# UWSM automatically handles:
+# XDG_CURRENT_DESKTOP, XDG_SESSION_TYPE, XDG_SESSION_DESKTOP
+
+# -----------------------------------------------------------------------------
+# 2. HYPRLAND VISUALS
+# -----------------------------------------------------------------------------
+# Cursor size specifically for Hyprland's internal rendering
 export HYPRCURSOR_SIZE=18
 
-# 3. XDG Variables
-# UWSM handles XDG_CURRENT_DESKTOP, XDG_SESSION_TYPE, and XDG_SESSION_DESKTOP automatically.
+# -----------------------------------------------------------------------------
+# 3. RENDERING ENGINE (AQUAMARINE)
+# -----------------------------------------------------------------------------
+# Hyprland v0.42+ uses Aquamarine (AQ) instead of WLROOTS.
 
-# 4. Aquamarine (Renderer) Configuration
-# Hyprland v0.45+ uses Aquamarine, not wlroots.
+# !!! CRITICAL GPU SELECTION !!!
+# This forces Hyprland to run on a specific card.
+# Hardcoding 'card1' will CRASH single-GPU systems (which use card0).
 
-# --- GPU Selection ---
-# CRITICAL: Verify your card index with `ls -l /dev/dri/by-path`
-# Ideally, you want the INTEGRATED (Intel) card here for the desktop session.
-# If card1 is definitely Intel, this is correct. If card0 is Intel, change this.
+# Your script should detect the iGPU (Integrated) and dGPU (Discrete).
+# For laptops: Usually iGPU is the best choice for the compositor (window manager),
+# allowing the dGPU to sleep.
+#
 export AQ_DRM_DEVICES=/dev/dri/card1
 
-# Install other terminals via Install > Terminal
-export TERMINAL=xdg-terminal-exec
+# Legacy/Backup variable (Restored from your config)
+# This is the old wlroots equivalent of AQ_DRM_DEVICES.
+# export WLR_DRM_DEVICES=/dev/dri/card1
 
-# 5. Path
+# -----------------------------------------------------------------------------
+# 4. PATH & UTILITIES
+# -----------------------------------------------------------------------------
+# Organized to prevent duplicates.
+# Priority: Local Bin -> Cargo Bin -> System Path
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
 export PATH="$HOME/.local/bin:$PATH"
+# -----------------------------------------------------------------------------
+# 5. TERMINAL OVERRIDE
+# -----------------------------------------------------------------------------
+# While 'env' sets kitty, Hyprland prefers xdg-terminal-exec for standard integration.
+export TERMINAL=xdg-terminal-exec
