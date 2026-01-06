@@ -42,7 +42,7 @@ fi
 if ! command -v reflector &> /dev/null; then
     echo -e "${Y}:: Reflector not found. Installing...${NC}"
     # Using --needed to skip if already up to date, --noconfirm for automation
-    sudo pacman -S --needed --noconfirm reflector
+    sudo pacman -Syu --needed --noconfirm reflector
 fi
 
 # --- MAIN LOGIC ---
