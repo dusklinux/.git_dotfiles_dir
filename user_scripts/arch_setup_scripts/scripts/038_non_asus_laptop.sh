@@ -138,7 +138,7 @@ main() {
     setup_rules
 
     # CLI Flags for non-interactive use
-    if [[ "${1:-}" == "--disable" ]]; then
+    if [[ "${1:-}" == "--auto" ]]; then
         apply_tweaks
         exit 0
     elif [[ "${1:-}" == "--restore" ]] || [[ "${1:-}" == "--reset" ]]; then

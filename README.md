@@ -1,4 +1,5 @@
-# Updated demo Video coming soon.
+# Updated demo Video now out on Youtube with all major Features covered.
+[watch now]: https://youtu.be/JmgvSdEIK8c
 
 ## If you're here just for the wallpapers, you can get all of them (+1050 wallpapers) from my [images repo][images].
 
