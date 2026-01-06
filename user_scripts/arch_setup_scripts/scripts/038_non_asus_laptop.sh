@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Configures hardware for non asus devices
 # ==============================================================================
 # ARCH LINUX / HYPRLAND / UWSM - HARDWARE CONFIGURATION TWEAKER
 # ==============================================================================

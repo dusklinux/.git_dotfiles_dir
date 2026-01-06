@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# Installation of Gnome Keyring components
 # ==============================================================================
 # Script Name: setup_gnome_keyring.sh
 # Description: Automates the installation of Gnome Keyring components and 

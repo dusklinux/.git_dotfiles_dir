@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Atomic overwrite of /etc/pacman.conf for Arch/Hyprland systems
 # -----------------------------------------------------------------------------
 # Description: Atomic overwrite of /etc/pacman.conf for Arch/Hyprland systems
 # Author:      DevOps/System Architect

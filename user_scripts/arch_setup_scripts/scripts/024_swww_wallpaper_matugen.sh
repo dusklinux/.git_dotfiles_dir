@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#
+# Invokes Matugen for the first time to generate colors.
 # set_dusk.sh
 #
 # Hardcoded wallpaper application for Hyprland/UWSM.

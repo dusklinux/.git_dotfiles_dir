@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# creates mount directories at /mnt/
 # -----------------------------------------------------------------------------
 # Script: 016_create_mount_directories.sh
 # Description: Pre-creates stable mount points in /mnt

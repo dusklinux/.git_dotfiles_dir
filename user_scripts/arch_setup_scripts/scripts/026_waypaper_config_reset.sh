@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Atomically resets Waypaper configuration because of the github restore permission bug
 # -----------------------------------------------------------------------------
 # Script: reset_waypaper.sh
 # Description: Atomically resets Waypaper configuration for Arch/Hyprland/UWSM.

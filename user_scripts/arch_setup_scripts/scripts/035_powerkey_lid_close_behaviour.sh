@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# powerkey and lid behaviour. 
 # -----------------------------------------------------------------------------
 # Script: setup_logind_power.sh
 # Description: Configures systemd-logind for Hyprland/UWSM power management.

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Symlinks and enables the battery_notify service.
 # -----------------------------------------------------------------------------
 # Script: install_battery_notify.sh
 # Description: Symlinks and enables the battery_notify service.

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Enables user services
 # ==============================================================================
 # Script Name: enable_hyprland_services_v2.sh
 # Description: Fixed logic for enabling Arch/Hyprland user services.

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Create configuration directories for Matugen for theming
 # -----------------------------------------------------------------------------
 # Description:  Bootstrap configuration directories for Hyprland/UWSM environment
 # Target:       Arch Linux / Bash 5+

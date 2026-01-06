@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Symlinks and enables the network_meter service for Waybar.
 # -----------------------------------------------------------------------------
 # Script: install_network_meter.sh
 # Description: Symlinks and enables the network_meter service for Waybar.

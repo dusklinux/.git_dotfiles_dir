@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Optional Aur Packages you can add more packeges to this script if you'd like.
 # ==============================================================================
 # Script Name: 012_paru_packages_optional.sh
 # Description: Autonomous AUR/Repo package installer with interactive selection.

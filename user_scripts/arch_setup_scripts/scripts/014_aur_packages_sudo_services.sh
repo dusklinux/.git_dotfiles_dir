@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Enables Root services for Aur packages
 # ==============================================================================
 # ARCH LINUX SYSTEM SERVICE ENABLER (Arch/Hyprland/UWSM Context)
 # ==============================================================================

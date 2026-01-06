@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Downloads and installs Dusk wallpapers ~ 1.7 GB in size
 # -----------------------------------------------------------------------------
 # Script: get-wallpapers.sh
 # Description: Downloads and installs Dusk wallpapers for Arch/Hyprland.

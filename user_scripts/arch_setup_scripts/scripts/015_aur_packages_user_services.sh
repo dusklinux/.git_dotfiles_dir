@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Enables user services for AUR packages
 # ==============================================================================
 # ARCH LINUX USER SERVICE ENABLER (Arch/Hyprland/UWSM Context)
 # ==============================================================================

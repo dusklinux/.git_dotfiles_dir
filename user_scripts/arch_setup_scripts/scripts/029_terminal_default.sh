@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# sets the default terminal to kitty
 set -euo pipefail
 
 # ─────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# Firefox Data Migration Utility for browser directory, so data is encrypted
+#
 # ==============================================================================
 # Firefox Data Migration Utility
 # ==============================================================================

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# This script installs ALL PACKAGEES, you can inspect this script manually to remove/add anything you might want.
 # --------------------------------------------------------------------------
 # Arch Linux / Hyprland / UWSM - Elite System Installer (v3.1 - Smart Fallback)
 # --------------------------------------------------------------------------

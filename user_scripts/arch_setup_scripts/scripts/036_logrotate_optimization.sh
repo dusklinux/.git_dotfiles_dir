@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Enforces a standard Arch Linux logrotate configuration.
 # ==============================================================================
 # Script: update_logrotate.sh
 # Description: Enforces a standard Arch Linux logrotate configuration.

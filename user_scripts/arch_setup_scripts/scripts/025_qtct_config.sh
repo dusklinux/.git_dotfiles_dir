@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Enforces specific [Appearance] settings in qt5ct and qt6ct
 # ==============================================================================
 # Script: setup_qt_theme.sh
 # Description: Enforces specific [Appearance] settings in qt5ct and qt6ct.

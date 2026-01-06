@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# To install AUR packages
 # ==============================================================================
 # Script Name: install_pkg_manifest.sh
 # Description: Autonomous AUR/Repo package installer with failure intervention.

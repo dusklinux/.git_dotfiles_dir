@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# This is to limit the battery to 60% for current boot to maximum battery health. If you want to set it permanently, set it later manually
 # -----------------------------------------------------------------------------
 # Battery Charge Limiter
 # Context: Arch Linux / Hyprland / UWSM

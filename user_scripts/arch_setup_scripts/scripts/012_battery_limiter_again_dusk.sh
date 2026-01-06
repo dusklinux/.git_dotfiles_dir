@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# this is a personal script to reenable battery limiter after installing asusctl from the aur
 # -----------------------------------------------------------------------------
 # Battery Charge Limiter
 # Context: Arch Linux / Hyprland / UWSM

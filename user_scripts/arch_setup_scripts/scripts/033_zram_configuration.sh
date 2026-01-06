@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Zram Configuration
 # -----------------------------------------------------------------------------
 # Elite Arch Linux ZRAM Configurator
 # Context: Hyprland / UWSM Environment

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# Changes shell to ZSH from bash
 # ==============================================================================
 # Script: switch_to_zsh.sh
 # Description: Safely switches the user's shell to Zsh (Sudo-aware).

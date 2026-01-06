@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# sets up USB audio cues for connecting/discconnecting usb devices
 set -euo pipefail
 
 # ─────────────────────────────────────────────────────────────

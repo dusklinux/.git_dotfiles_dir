@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Zram values for system swappiness 
 # -----------------------------------------------------------------------------
 # Description: Optimizes Kernel VM parameters for ZRAM on Arch/Hyprland
 # Author:      DevOps Engineer (Arch/UWSM)

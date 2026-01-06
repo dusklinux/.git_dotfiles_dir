@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Engages high-visibility mode by maximizing brightness and toggling visual effects script
 # -----------------------------------------------------------------------------
 # Script: max_performance_mode.sh
 # Description: Engages high-visibility mode by maximizing brightness and 

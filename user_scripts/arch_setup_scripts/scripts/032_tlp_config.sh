@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# configures /etc/tlp.conf for ASUS TUF F15 (personal, dusk)
 # -----------------------------------------------------------------------------
 # Script: configure_tlp.sh
 # Description: Conditionally configures /etc/tlp.conf for ASUS TUF F15.

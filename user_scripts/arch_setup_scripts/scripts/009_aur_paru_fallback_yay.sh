@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Install AUR helper - Paru or YAY
 # -----------------------------------------------------------------------------
 # Script: 009_aur_helper_final_v3.sh
 # Description: The "Nuclear Option" AUR Helper Installer.

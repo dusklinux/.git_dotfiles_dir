@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# increase timout for wrong password attempts
 # -----------------------------------------------------------------------------
 # Description: Configures /etc/security/faillock.conf for Arch Linux
 # Author:      DevOps Architect

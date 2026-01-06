@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Appends entries to /etc/fstab (personal, only for dusk)
 # -----------------------------------------------------------------------------
 # Script: 032_fstab_append_asus_v3.sh
 # Description: Conditionally appends entries to /etc/fstab.

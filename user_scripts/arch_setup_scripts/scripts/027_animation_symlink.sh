@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Switch Hyprland animation config to dusky (Default)
 # -----------------------------------------------------------------------------
 # Purpose: Switch Hyprland animation config to 'dusky.conf'
 # Env:     Arch Linux / Hyprland / UWSM
