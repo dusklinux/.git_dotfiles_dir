@@ -64,6 +64,14 @@ fi
 
 # 3. User Interaction
 if [[ "$AUTO_MODE" == "true" ]]; then
+    # In auto mode, we strictly want to DISABLE/DELETE the fix.
+    # If it is currently ACTIVE, we proceed to disable it.
+    # If it is currently DISABLED, we do nothing and exit.
+    if [[ "$CURRENT_STATE" == "DISABLED" ]]; then
+        log_success "Auto mode: Fix is already DISABLED. No changes made."
+        exit 0
+    fi
+    
     printf "${BOLD}Current SwayNC GPU Fix State:${RESET} ${BLUE}%s${RESET}\n" "$CURRENT_STATE"
     log_info "Auto mode detected. Proceeding to $TARGET_ACTION fix..."
 else
