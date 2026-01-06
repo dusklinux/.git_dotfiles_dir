@@ -28,11 +28,19 @@ NEEDED_DEPS=""
 if ! command -v uv &>/dev/null; then NEEDED_DEPS="$NEEDED_DEPS uv"; fi
 if ! command -v notify-send &>/dev/null; then NEEDED_DEPS="$NEEDED_DEPS libnotify"; fi
 
+# [FIX] Critical headers for compiling pygame-ce from source
+# Since we use --no-binary :all:, we MUST have these system libraries present.
+for pkg in sdl2_image sdl2_mixer sdl2_ttf; do
+    if ! pacman -Qi "$pkg" &>/dev/null; then
+        NEEDED_DEPS="$NEEDED_DEPS $pkg"
+    fi
+done
+
 if [[ -n "$NEEDED_DEPS" ]]; then
     log "Installing missing dependencies: $NEEDED_DEPS"
     sudo pacman -S --needed --noconfirm $NEEDED_DEPS
 else
-    log "System dependencies (uv, libnotify) are present."
+    log "System dependencies (uv, libnotify, sdl2_*) are present."
 fi
 
 # 2. Group Permission Check (Input)
