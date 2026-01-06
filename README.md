@@ -1,7 +1,10 @@
-# Updated demo Video now out on Youtube with all major Features covered.
-[watch now]: https://youtu.be/JmgvSdEIK8c
+# Updated demo video now out on YouTube with all major features covered!
 
-## If you're here just for the wallpapers, you can get all of them (+1050 wallpapers) from my [images repo][images].
+[Watch now][video]
+
+[video]: https://youtu.be/JmgvSdEIK8c
+
+### If you're here just for the wallpapers, you can get all of them (+1050 wallpapers) from my [images repo][images].
 
 [images]: https://github.com/dusklinux/images
 

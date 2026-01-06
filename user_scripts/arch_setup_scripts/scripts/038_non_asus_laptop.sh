@@ -26,25 +26,25 @@ add_rule() {
 
 setup_rules() {
     # --- Define Paths Here for Easy Editing ---
-    local UWSM_ENV="$HOME/.config/uwsm/env"
-    local UWSM_HYPR_ENV="$HOME/.config/uwsm/env-hyprland"
     local HYPR_KEYBINDS="$HOME/.config/hypr/source/keybinds.conf"
     local HYPR_INPUT="$HOME/.config/hypr/source/input.conf"
 
-    # --- 1. UWSM Environment Variables ---
-    add_rule "$UWSM_ENV" 'export LIBVA_DRIVER_NAME=iHD'
-    add_rule "$UWSM_HYPR_ENV" 'export AQ_DRM_DEVICES=/dev/dri/card1'
+    # --- 1. Hyprland Keybindings (ASUS Specifics & AI Tools) ---
+    
+    # ASUS Control (bindd)
+    add_rule "$HYPR_KEYBINDS" 'bindd = , XF86Launch3, ASUS Control, exec, uwsm-app -- $terminal --class asusctl.sh -e sudo $scripts/asus/asusctl.sh'
+    
+    # Refresh Rate Toggles (bindld)
+    add_rule "$HYPR_KEYBINDS" 'bindld = ALT, 7, Set Refresh rate to 48Hz Asus Tuf, exec, hyprctl keyword monitor eDP-1,1920x1080@48,0x0,1.6 && sleep 2 && hyprctl keyword misc:vrr 0'
+    add_rule "$HYPR_KEYBINDS" 'bindld = ALT, 8, Set Refresh rate to 144Hz Asus Tuf, exec, hyprctl keyword monitor eDP-1,1920x1080@144,0x0,1.6 && sleep 2 && hyprctl keyword misc:vrr 1'
+    
+    # AI / TTS Tools (Updated paths)
+    add_rule "$HYPR_KEYBINDS" 'bindd = $mainMod, O, TTS Kokoro GPU, exec, wl-copy "$(wl-paste -p)" && uwsm-app -- $scripts/tts_stt/kokoro_gpu/speak.sh'
+    add_rule "$HYPR_KEYBINDS" 'bindd = $mainMod SHIFT, O, TTS Kokoro CPU, exec, wl-copy "$(wl-paste -p)" && uwsm-app -- $scripts/tts_stt/kokoro_cpu/kokoro.sh'
+    add_rule "$HYPR_KEYBINDS" 'bindd = $mainMod SHIFT, I, STT Whisper CPU, exec, uwsm-app -- $scripts/tts_stt/faster_whisper/faster_whisper_sst.sh'
+    add_rule "$HYPR_KEYBINDS" 'bindd = $mainMod, I, STT Parakeet GPU, exec, uwsm-app -- $scripts/tts_stt/parakeet/parakeet.sh'
 
-    # --- 2. Hyprland Keybindings (ASUS Specifics & AI Tools) ---
-    add_rule "$HYPR_KEYBINDS" 'binddl = , XF86Launch3, ASUS Control, exec, uwsm-app -- $terminal --class asusctl.sh -e sudo $scripts/asus/asusctl.sh'
-    add_rule "$HYPR_KEYBINDS" 'bindd = ALT, 7, Set Refresh rate to 48Hz Asus Tuf, exec, hyprctl keyword monitor eDP-1,1920x1080@48,0x0,1.6 && sleep 2 && hyprctl keyword misc:vrr 0'
-    add_rule "$HYPR_KEYBINDS" 'bindd = ALT, 8, Set Refresh rate to 144Hz Asus Tuf, exec, hyprctl keyword monitor eDP-1,1920x1080@144,0x0,1.6 && sleep 2 && hyprctl keyword misc:vrr 1'
-    add_rule "$HYPR_KEYBINDS" 'bindd = $mainMod, O, TTS Kokoro GPU, exec, wl-copy "$(wl-paste -p)" && uwsm-app -- $scripts/kokoro_gpu/speak.sh'
-    add_rule "$HYPR_KEYBINDS" 'bindd = $mainMod SHIFT, O, TTS Kokoro CPU, exec, wl-copy "$(wl-paste -p)" && uwsm-app -- $scripts/kokoro_cpu/kokoro.sh'
-    add_rule "$HYPR_KEYBINDS" 'bindd = $mainMod SHIFT, I, STT Whisper CPU, exec, uwsm-app -- $scripts/faster_whisper/faster_whisper_sst.sh'
-    add_rule "$HYPR_KEYBINDS" 'bindd = $mainMod, I, STT Parakeet GPU, exec, uwsm-app -- $scripts/parakeet/parakeet.sh'
-
-    # --- 3. Input Configuration ---
+    # --- 2. Input Configuration ---
     add_rule "$HYPR_INPUT" 'left_handed = true'
 }
 
