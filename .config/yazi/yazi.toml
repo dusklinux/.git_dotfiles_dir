@@ -30,9 +30,9 @@ ueberzug_offset = [ 0, 0, 0, 0 ]
 
 [opener]
 edit = [
-	{ run = '${EDITOR:-vi} "$@"', desc = "$EDITOR", block = true, for = "unix" },
-	{ run = 'code %*',    orphan = true, desc = "code",           for = "windows" },
-	{ run = 'code -w %*', block = true,  desc = "code (block)",   for = "windows" },
+  { run = 'nvim "$@"', block = true, for = "unix" },
+  { run = 'code %*',    orphan = true, desc = "code",           for = "windows" },
+  { run = 'code -w %*', block = true,  desc = "code (block)",   for = "windows" },
 ]
 open = [
 	{ run = 'xdg-open "$1"',                desc = "Open", for = "linux" },
@@ -59,23 +59,39 @@ play = [
 
 [open]
 rules = [
-	# Folder
-	{ name = "*/", use = [ "edit", "open", "reveal" ] },
-	# Text
-	{ mime = "text/*", use = [ "edit", "reveal" ] },
-	# Image
-	{ mime = "image/*", use = [ "open", "reveal" ] },
-	# Media
-	{ mime = "{audio,video}/*", use = [ "play", "reveal" ] },
-	# Archive
-	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", use = [ "extract", "reveal" ] },
-	# JSON
-	{ mime = "application/{json,ndjson}", use = [ "edit", "reveal" ] },
-	{ mime = "*/javascript", use = [ "edit", "reveal" ] },
-	# Empty file
-	{ mime = "inode/empty", use = [ "edit", "reveal" ] },
-	# Fallback
-	{ name = "*", use = [ "open", "reveal" ] },
+    # Folder
+    { name = "*/", use = [ "edit", "open", "reveal" ] },
+
+    # --- FIX START: Specific Mime Types for Nvim ---
+    { mime = "application/x-shellscript", use = [ "edit", "reveal" ] },
+    { mime = "application/toml", use = [ "edit", "reveal" ] },
+    { mime = "application/x-yaml", use = [ "edit", "reveal" ] },
+    { mime = "application/x-conf", use = [ "edit", "reveal" ] },
+    { mime = "application/json", use = [ "edit", "reveal" ] },
+    { mime = "inode/x-empty", use = [ "edit", "reveal" ] },
+    # --- FIX END ---
+
+    # Generic Text
+    { mime = "text/*", use = [ "edit", "reveal" ] },
+
+    # Image
+    { mime = "image/*", use = [ "open", "reveal" ] },
+
+    # Media
+    { mime = "{audio,video}/*", use = [ "play", "reveal" ] },
+
+    # Archive
+    { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", use = [ "extract", "reveal" ] },
+
+    # JSON Variants (ndjson)
+    { mime = "application/ndjson", use = [ "edit", "reveal" ] },
+    { mime = "*/javascript", use = [ "edit", "reveal" ] },
+
+    # Empty file (Legacy fallback)
+    { mime = "inode/empty", use = [ "edit", "reveal" ] },
+
+    # Fallback
+    { name = "*", use = [ "open", "reveal" ] },
 ]
 
 [tasks]
