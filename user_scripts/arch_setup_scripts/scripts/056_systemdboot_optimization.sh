@@ -13,7 +13,6 @@ IFS=$'\n\t'
 trap 'printf "\n\033[1;31m[!] Script interrupted or failed.\033[0m\n"; exit 1' ERR SIGINT SIGTERM
 
 # --- 2. Styling (ANSI $ Syntax) ---
-# Using $'...' format as requested for robust interpretation
 readonly C_RESET=$'\033[0m'
 readonly C_BOLD=$'\033[1m'
 readonly C_GREEN=$'\033[1;32m'
@@ -48,10 +47,8 @@ ask_confirm() {
     local prompt="$1"
     local choice
     while true; do
-        # Visual cue: (Y/n) implies Y is default
         printf "${C_CYAN}[?]${C_RESET} %s ${C_BOLD}(Y/n)${C_RESET}: " "$prompt"
         read -r choice
-        # Logic: Empty string (Enter key) defaults to "yes"
         case "${choice,,}" in 
             y|yes|"") return 0 ;;
             n|no)     return 1 ;;
@@ -66,8 +63,9 @@ clear
 printf "${C_BOLD}:: Arch Linux Systemd-boot Optimizer${C_RESET}\n"
 
 # A. Find the default entry
-# We grab the value after 'default' (ignoring whitespace).
-default_entry_name=$(grep "^default" "$LOADER_CONF" | awk '{print $2}' | tr -d '[:space:]')
+# FIX APPLIED: Added '|| true' to prevent 'set -e' from crashing script if grep finds nothing.
+# OPTIMIZATION: Changed regex to '^[[:space:]]*default' to handle potential indentation.
+default_entry_name=$(grep "^[[:space:]]*default" "$LOADER_CONF" | awk '{print $2}' | tr -d '[:space:]' || true)
 
 if [[ -z "$default_entry_name" ]]; then
     log_warn "No 'default' line found in loader.conf. Cannot safely optimize kernel options."
@@ -81,10 +79,15 @@ else
     elif [[ -f "${ENTRIES_DIR}/${default_entry_name}.conf" ]]; then
         target_entry_file="${ENTRIES_DIR}/${default_entry_name}.conf"
     else
-        log_error "Default entry '${default_entry_name}' specified in loader.conf, but file not found in ${ENTRIES_DIR}."
+        # If we can't find the file, we treat it as if we have no target to avoid partial errors later
+        log_warn "Default entry '${default_entry_name}' specified, but file not found in ${ENTRIES_DIR}."
+        target_entry_file=""
     fi
-    printf "   Target Config: %s\n" "$LOADER_CONF"
-    printf "   Target Entry:  %s\n\n" "$target_entry_file"
+    
+    if [[ -n "$target_entry_file" ]]; then
+        printf "   Target Config: %s\n" "$LOADER_CONF"
+        printf "   Target Entry:  %s\n\n" "$target_entry_file"
+    fi
 fi
 
 # --- 7. Interactive Prompts ---
@@ -106,16 +109,20 @@ fi
 
 # --- 8. Execution ---
 
+if [[ "$do_timeout" == false && "$do_quiet" == false ]]; then
+    printf "\n"
+    log_info "No changes requested. Exiting."
+    exit 0
+fi
+
 printf "\n${C_BOLD}:: Applying Configuration...${C_RESET}\n"
 
 # A. Apply Timeout (loader.conf)
 if [[ "$do_timeout" == true ]]; then
     if grep -q "^timeout" "$LOADER_CONF"; then
-        # Replace existing timeout
         sed -i 's/^timeout.*/timeout  0/' "$LOADER_CONF"
         log_success "Boot menu disabled (timeout set to 0)."
     else
-        # Append timeout if missing
         echo "timeout 0" >> "$LOADER_CONF"
         log_success "Boot menu disabled (timeout 0 added)."
     fi
@@ -128,17 +135,22 @@ if [[ "$do_quiet" == true && -n "$target_entry_file" ]]; then
     # 2. If 'loglevel' is NOT found, check if 'quiet' is already there.
     # 3. If neither, append 'quiet' to the options line.
     
-    # Check current content of options line
-    current_options=$(grep "^options" "$target_entry_file")
+    # We use '|| true' here too just in case grep finds nothing, though less critical inside the if
+    current_options=$(grep "^options" "$target_entry_file" || true)
     
     if [[ "$current_options" =~ loglevel=[0-9]+ ]]; then
         # Replace loglevel=X with quiet
         sed -i -E 's/loglevel=[0-9]+/quiet/g' "$target_entry_file"
-        log_success "Replaced 'loglevel' with 'quiet' in ${default_entry_name}."
+        log_success "Replaced 'loglevel' with 'quiet' in $(basename "$target_entry_file")."
     elif [[ "$current_options" != *"quiet"* ]]; then
         # Append quiet to end of options line
-        sed -i '/^options/ s/$/ quiet/' "$target_entry_file"
-        log_success "Appended 'quiet' to kernel options in ${default_entry_name}."
+        # We need to ensure 'options' line actually exists. If not, we don't touch it to avoid breaking config.
+        if [[ -n "$current_options" ]]; then
+            sed -i '/^options/ s/$/ quiet/' "$target_entry_file"
+            log_success "Appended 'quiet' to kernel options in $(basename "$target_entry_file")."
+        else
+             log_warn "No 'options' line found in entry file. Skipping kernel params."
+        fi
     else
         log_info "'quiet' is already present. No changes needed."
     fi
@@ -146,14 +158,9 @@ fi
 
 # --- 9. Completion ---
 
-if [[ "$do_timeout" == true || "$do_quiet" == true ]]; then
-    printf "\n"
-    log_success "Systemd-boot configuration updated."
-    printf "${C_BOLD}   Changes will take effect on the next reboot.${C_RESET}\n"
-else
-    printf "\n"
-    log_info "No changes applied."
-fi
+printf "\n"
+log_success "Systemd-boot configuration updated."
+printf "${C_BOLD}   Changes will take effect on the next reboot.${C_RESET}\n"
 
 # Cleanup trap
 trap - ERR SIGINT SIGTERM
