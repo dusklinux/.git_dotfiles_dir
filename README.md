@@ -1,4 +1,4 @@
-# Updated demo video now out on YouTube with all major features covered!
+## Updated demo video now out on YouTube with all major features covered!
 
 [Watch now][video]
 
@@ -8,56 +8,9 @@
 
 [images]: https://github.com/dusklinux/images
 
-# 🎻 Dusky: The Ultimate Arch Hyprland Experience
 
-> This repository is the result of 8 months of tinkering, breaking, fixing, and polishing. It is a labor of love designed to feel as easy to install as a "standard" distribution, but with the raw power and minimalism of Arch Linux.
-> 
-> Since I build and maintain this alone, **please consider starring ⭐ this repo** as a token of support.
-
-## 🚀 Overview
-
-**Great News!** The installation process is 99% automated.
-
-While these dotfiles are extremely powerful, you don't need to be a wizard to install them. You only need to run a few commands to clone the repo and trigger the "Orchestra" scripts.
-
-### ✨ Key Features
-
-**Performance & System**
-
-- **Ultra Lightweight:** ~900MB RAM usage and ~5GB disk usage (fully configured).
-    
-- **ZSTD & ZRAM:** Compression enabled by default to save storage and triple your effective RAM (great for low-spec machines).
-    
-- **Native Optimization:** AUR helpers configured to build with CPU-native flags (up to 20% performance boost).
-    
-- **Space Efficient:** Vertical Waybar saves vertical screen real estate.
-    
-- **UWSM Environment:** Optimized specifically for Hyprland.
-    
-
-**Graphics & Gaming**
-
-- **Fluid Animations:** Tuned physics and momentum for a "liquid" feel, I've spent days fine tuning this.
-    
-- **GPU Passthrough Guide:** Zero latency (native performance) for dual-GPU setups using Looking Glass.
-    
-- **Instant Shaders:** Switch visual shaders instantly via Rofi.
-    
-- **Android Support:** Automated Waydroid installer script.
-    
-
-**Usability & Theming**
-
-- **Universal Theming:** `Matugen` powers a unified Light/Dark mode across the system.
-    
-- **Dual Workflow:** Designed for both GUI-centric (mouse) and Terminal-centric (keyboard) users.
-    
-- **Rofi System Menu:** A resource-efficient one-stop-shop for settings.
-    
-- **Accessibility:** Text-to-Speech (TTS) and Speech-to-Text (STT) capabilities (hardware dependent).
-    
-- **Keybind Cheatsheet:** Press `CTRL` + `SHIFT` + `SPACE` anytime to see your controls.
-    
+This repository is the result of 8 months of tinkering, breaking, fixing, and polishing. It is a labor of love designed to feel as easy to install as a "standard" distribution, but with the raw power and minimalism of Arch Linux.
+Since I build and maintain this all by myself, **please consider starring ⭐ this repo** as a token of support.
 
 ## ⚠️ Prerequisites & Hardware
 
@@ -271,6 +224,123 @@ If a script fails (which can happen on a rolling release distro):
 4. **AI Help.** Copy the script content and the error message into ChatGPT/Gemini. It can usually pinpoint the exact issue (missing dependency, changed package name, etc.).
     
 
+## overview
+
+**utilities**
+
+- airmon wifi script for wifi testing/password cracking
+    (only use on access points that you own, i'm not legally responsible if you use it for nefarious purposes)
+- live disk i/o monitoring, to allow you to see live read/write disk speed during copying and infer if copying has actually finsihed, useful for flashdrives, external drives. 
+
+- quick audio input/output switch with a keybind, eg if you have bluetooth headphones connected, you can quicly switch to speakers without disconnecting. 
+
+- mono/sterio audio toggling. 
+
+- battery notifier for laptops, you can customize it to show notifications at certain levels.
+
+- power saver mode, that only changes things for the current boot, so you can revert to default by rebooting. 
+
+- system clean up (cache purge)- removes unwanted files to reclaim storage. 
+
+- github repo integration so you can easily create your own repo to backup all files, this uses bare repo so your specific existing files, listed in ~/.git_dusky_list will backup to github, you can add more files/remove existing ones from this text file.
+
+- btrfs system compression ratio - scans your os files to see how much space zstd compression is saving you. 
+
+- drive manager, easily lock/unlock encrypted drives from the terminal using "unlock media or lock media", it automaticlaly mounts your drives at a specified path, also unmounts when you lock it. This requires you to first configure the ~/user_scripts/drives/drive_manager.sh script with your drives' uuid. 
+
+- ntfs drives have a tendency to not unlock if the drive had previously been disconnected without unmounting first, because of corrupted metadata, i've a script that fixes this. ntfs_fix.sh
+
+- usb sounds , get notified when usb devices are plugged/unplugged.
+
+- FTP server auto setup. 
+
+- Tailscale auto setup. 
+
+- Openssh auto setup. with or without tailscale.
+
+- auto warp- cloudflaire setup and toggleale right from rofi. 
+
+- Vnc setup for iphones (wired)
+
+- dynamic frantional scalling script so you can scale your display with a keybind. 
+
+- toggle window transparancy, blur and shadow with a single keybind. 
+
+- hypridle tui configuration.
+
+- wifi connecting script for setup at ~/user_scripts/network_manager/nmcli_wifi.sh
+
+- Sysbench benchmarking script. 
+
+RoFI menus. 
+
+- Emoji
+- Calculator
+- Matugen Theme switcher. 
+- Animation switcher. 
+- Power menu. 
+- Clipboard
+- Wallpaper selector
+- Shader menu.
+- System menu. 
+
+and a lot more that would take forever to list, trust me these dotfiles are the shit! try em out. 
+
+GUI keybind invokable sliders for:
+- Volume control 
+- Brightness control 
+- Nightlight/hyprsunset intensity. 
+
+
+Speech to text 
+- Whisper - for cpu 
+or 
+- Parakeet - for nvidia gpus. might also work on Amd (not sure)
+
+text to speech 
+- kokoro for both cpu and gpu
+
+- mechanical keypress sounds
+togglalble with a keybind or from rofi. 
+
+- Wlogout is drawn using a dynamic script that respects your frational scaling. 
+
+
+**performance and system**
+
+- **light weight**, ~900MB RAM usage and ~5GB disk usage (fully configured).
+    
+- **ZSTD & ZRAM:** Compression enabled by default to save storage and triple your effective RAM (great for low-spec machines).
+    
+- **Native Optimization:** AUR helpers configured to build with CPU-native flags (up to 20% performance boost).
+    
+- **Space Efficient:** Vertical Waybar saves vertical screen real estate. (horizontal waybar comming soon as an option during setup)
+    
+- **UWSM Environment:** Optimized specifically for Hyprland.
+    
+
+**Graphics & Gaming**
+
+- **Fluid Animations:** Tuned physics and momentum for a "liquid" feel, I've spent days fine tuning this.
+    
+- **GPU Passthrough Guide:** Zero latency (native performance) for dual-GPU setups using Looking Glass.
+    
+- **Instant Shaders:** Switch visual shaders instantly via Rofi.
+    
+- **Android Support:** Automated Waydroid installer script.
+    
+
+**Usability & Theming**
+
+- **Universal Theming:** `Matugen` powers a unified Light/Dark mode across the system.
+    
+- **Dual Workflow:** Designed for both GUI-centric (mouse) and Terminal-centric (keyboard) users.
+    
+- **Accessibility:** Text-to-Speech (TTS) and Speech-to-Text (STT) capabilities (hardware dependent).
+    
+- **Keybind Cheatsheet:** Press `CTRL` + `SHIFT` + `SPACE` anytime to see your controls.
+    
+
 
 <div align="center">
 
@@ -279,3 +349,6 @@ Enjoy the experience!
 If you run into issues, check the detailed Obsidian notes included in the repo (~2MB).
 
 </div>
+
+
+

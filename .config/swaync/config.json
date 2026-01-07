@@ -52,7 +52,7 @@
                 },
                 {
                     "label": "",
-                    "command": "uwsm-app -- kitty -e $HOME/user_scripts/network_manager/nmcli_wifi.sh"
+                    "command": "uwsm-app -- kitty --class nmcli_wifi.sh -e $HOME/user_scripts/network_manager/nmcli_wifi.sh"
                 },
                 {
                     "label": "󰂯",
@@ -64,15 +64,15 @@
                 },
                 {
                     "label": "",
-                    "command": "uwsm-app -- $HOME/user_scripts/swww/swww_random_standalone.sh"
+                    "command": "uwsm-app -- $HOME/user_scripts/theme_matugen/random_theme.sh"
                 },
                 {
                     "label": "󰓅",
-                    "command": "uwsm-app -- kitty -e $HOME/user_scripts/performance/services_and_process_terminator.sh"
+                    "command": "uwsm-app -- kitty -e --class performance.sh $HOME/user_scripts/performance/services_and_process_terminator.sh"
                 },
                 {
                     "label": "󱫓",
-                    "command": "uwsm-app -- kitty -e $HOME/user_scripts/hypridle/timeout.sh"
+                    "command": "uwsm-app -- kitty -e --class timeout.sh $HOME/user_scripts/hypridle/timeout.sh"
                 }
             ]
         }
