@@ -1,246 +1,388 @@
 #!/usr/bin/env bash
+
 # -----------------------------------------------------------------------------
-# Script: waybar_swap_config.sh
-# Description: Atomically swaps Waybar config/style with a 'pill' variant.
-#              Includes rollback safety, pure bash parsing, and UWSM support.
-# Author: Elite DevOps (AI)
-# Version: 2.1.0
+# Script: Waybar Theme Manager (wtm)
+# Description: Live preview, smart configuration, and symlinking for Waybar themes.
+# Environment: Arch Linux / Hyprland / UWSM
+# Author: Elite DevOps Engineer
 # -----------------------------------------------------------------------------
 
-# 1. Strict Error Handling & Shell Options
-set -u              # Error on unset variables
-set -o pipefail     # Piped commands fail if any part fails
-shopt -s extglob    # Enable extended globbing for string trimming
+set -euo pipefail
 
-# 2. Constants
-readonly BASE_DIR="${HOME}/.config/waybar"
-readonly PILL_DIR="${BASE_DIR}/pill"
-readonly TARGET_FILES=("config.jsonc" "style.css")
-readonly APP_NAME="waybar"
-readonly NOTIFY_TIMEOUT=4000
+# --- Configuration & Constants ---
+readonly CONFIG_ROOT="${HOME}/.config/waybar"
+declare -ra UWSM_CMD=(uwsm-app --)
+declare -i PREVIEW_PID=0
+declare TOGGLE_MODE=false
+declare TUI_ACTIVE=false
 
-# 3. Aesthetics (TTY-Aware)
-# Only use colors if connected to a terminal and NO_COLOR is unused
-if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
-    readonly C_RESET=$'\033[0m'
-    readonly C_INFO=$'\033[1;34m'
-    readonly C_SUCCESS=$'\033[1;32m'
-    readonly C_WARN=$'\033[1;33m'
-    readonly C_ERR=$'\033[1;31m'
-    readonly C_BOLD=$'\033[1m'
-    readonly C_DIM=$'\033[2m'
-else
-    readonly C_RESET='' C_INFO='' C_SUCCESS='' C_WARN='' C_ERR='' C_BOLD='' C_DIM=''
+# Original state - populated after CONFIG_ROOT validation
+declare ORIG_CONFIG=""
+declare ORIG_STYLE=""
+
+# --- Colors (ANSI-C Quoting) ---
+readonly R=$'\033[0;31m'
+readonly G=$'\033[0;32m'
+readonly B=$'\033[0;34m'
+readonly Y=$'\033[1;33m'
+readonly C=$'\033[0;36m'
+readonly NC=$'\033[0m'
+readonly BOLD=$'\033[1m'
+
+# --- Helper Functions ---
+log_info()    { printf '%s[INFO]%s %s\n' "$B" "$NC" "$*"; }
+log_success() { printf '%s[SUCCESS]%s %s\n' "$G" "$NC" "$*"; }
+log_warn()    { printf '%s[WARN]%s %s\n' "$Y" "$NC" "$*" >&2; }
+log_err()     { printf '%s[ERROR]%s %s\n' "$R" "$NC" "$*" >&2; }
+
+usage() {
+    cat <<EOF
+Usage: ${0##*/} [OPTIONS]
+
+A TUI theme manager for Waybar with live preview.
+
+Options:
+  --toggle      Cycle to the next theme alphabetically without TUI
+  -h, --help    Show this help message and exit
+
+Themes are discovered from: $CONFIG_ROOT/<theme>/config.jsonc
+EOF
+}
+
+# --- Argument Parsing ---
+while (( $# > 0 )); do
+    case "$1" in
+        --toggle)
+            TOGGLE_MODE=true
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            log_err "Unknown option: $1"
+            usage
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+# --- Pre-flight Checks ---
+if (( EUID == 0 )); then
+    log_err "This script modifies user configurations and must not be run as root."
+    exit 1
 fi
 
-# 4. Global State
-TMP_DIR=""
+if [[ -z "${WAYLAND_DISPLAY:-}" ]]; then
+    log_err "No Wayland display detected. This script requires an active Wayland session."
+    exit 1
+fi
 
-# 5. Helper Functions
+# --- Dependency Check ---
+check_deps() {
+    # Added readlink and corrected uwsm-app check
+    local -a deps=(waybar uwsm-app sed grep tput pkill pgrep readlink)
+    local -a missing=()
 
-log_info()    { printf "%s[INFO]%s %s\n" "$C_INFO" "$C_RESET" "${1:-}"; }
-log_success() { printf "%s[OK]%s %s\n" "$C_SUCCESS" "$C_RESET" "${1:-}"; }
-log_warn()    { printf "%s[WARN]%s %s\n" "$C_WARN" "$C_RESET" "${1:-}"; }
-log_err()     { printf "%s[ERROR]%s %s\n" "$C_ERR" "$C_RESET" "${1:-}" >&2; }
+    for cmd in "${deps[@]}"; do
+        command -v "$cmd" &>/dev/null || missing+=("$cmd")
+    done
 
-# Graceful exit handler
-cleanup() {
-    # Only remove TMP_DIR if it was actually created
-    if [[ -n "${TMP_DIR}" && -d "${TMP_DIR}" ]]; then
-        rm -rf "${TMP_DIR}"
+    if (( ${#missing[@]} > 0 )); then
+        log_err "Missing dependencies: ${missing[*]}"
+        exit 1
     fi
+}
+check_deps
+
+# --- Utility: Kill Waybar with Timeout ---
+# Prevents infinite loops if waybar becomes a zombie or refuses to die
+kill_waybar() {
+    pkill -x waybar 2>/dev/null || true
+    local -i retries=0
+    while pgrep -x waybar &>/dev/null; do
+        sleep 0.1
+        (( ++retries ))
+        if (( retries > 20 )); then
+            log_warn "Waybar refused to close gracefully, forcing kill..."
+            pkill -9 -x waybar 2>/dev/null || true
+            sleep 0.1
+            break
+        fi
+    done
+}
+
+# --- Cleanup Trap ---
+cleanup() {
+    local -i exit_code=$?
+
+    # Kill preview wrapper if running
+    if (( PREVIEW_PID > 0 )) && kill -0 "$PREVIEW_PID" 2>/dev/null; then
+        kill "$PREVIEW_PID" 2>/dev/null || true
+        wait "$PREVIEW_PID" 2>/dev/null || true
+    fi
+
+    # Ensure waybar is definitely gone on exit
+    pkill -x waybar 2>/dev/null || true
+
+    # Restore original symlinks only if TUI was active (implies user cancelled preview)
+    # This prevents restoring old configs if an error occurs during a valid toggle
+    if [[ "$TUI_ACTIVE" == "true" && -n "$ORIG_CONFIG" ]]; then
+        rm -f "${CONFIG_ROOT}/config.jsonc" "${CONFIG_ROOT}/style.css"
+        ln -snf "$ORIG_CONFIG" "${CONFIG_ROOT}/config.jsonc"
+        [[ -n "$ORIG_STYLE" ]] && ln -snf "$ORIG_STYLE" "${CONFIG_ROOT}/style.css"
+    fi
+
+    # Restore cursor visibility
+    tput cnorm 2>/dev/null || true
+
+    exit "$exit_code"
 }
 trap cleanup EXIT INT TERM
 
-# Pure Bash config name extractor (No external binaries)
-# Usage: get_config_name "path/to/file" "Fallback Name"
-get_config_name() {
-    local file="${1:-}"
-    local fallback="${2:-Unknown}"
-    local first_line
+# --- Discovery Phase ---
+if [[ ! -d "$CONFIG_ROOT" ]]; then
+    log_err "Directory $CONFIG_ROOT does not exist."
+    exit 1
+fi
 
-    if [[ -r "$file" ]]; then
-        # Read first line without spawning a subprocess
-        read -r first_line < "$file" || true
-        # Check if line starts with //
-        if [[ "$first_line" =~ ^[[:space:]]*//[[:space:]]*(.+)$ ]]; then
-            local name="${BASH_REMATCH[1]}"
-            # Trim trailing whitespace using extglob
-            echo "${name%%+([[:space:]])}"
-            return
-        fi
+# Capture original symlinks only after we know the root exists
+if [[ -L "${CONFIG_ROOT}/config.jsonc" ]]; then
+    ORIG_CONFIG=$(readlink "${CONFIG_ROOT}/config.jsonc")
+fi
+if [[ -L "${CONFIG_ROOT}/style.css" ]]; then
+    ORIG_STYLE=$(readlink "${CONFIG_ROOT}/style.css")
+fi
+
+shopt -s nullglob
+theme_dirs=("$CONFIG_ROOT"/*/)
+shopt -u nullglob
+
+declare -a themes=()
+declare -a theme_names=()
+
+for dir in "${theme_dirs[@]}"; do
+    dir="${dir%/}"
+    if [[ -f "${dir}/config.jsonc" ]]; then
+        themes+=("$dir")
+        theme_names+=("${dir##*/}")
     fi
-    echo "$fallback"
-}
+done
 
-notify_user() {
-    local config_name="${1:-Config}"
-    if command -v notify-send >/dev/null 2>&1; then
-        notify-send \
-            --app-name="Waybar Manager" \
-            --icon="preferences-desktop-display" \
-            --expire-time="$NOTIFY_TIMEOUT" \
-            "Waybar Config Applied" \
-            "${config_name}"
+if (( ${#themes[@]} == 0 )); then
+    log_err "No valid theme directories found in $CONFIG_ROOT (must contain config.jsonc)."
+    exit 1
+fi
+
+declare -ir total=${#themes[@]}
+declare -i selected_idx=0
+
+# --- Logic Fork: Toggle vs TUI ---
+if [[ "$TOGGLE_MODE" == "true" ]]; then
+    # 1. Resolve current config directory
+    current_real_path=""
+    if [[ -L "${CONFIG_ROOT}/config.jsonc" ]]; then
+        current_real_path=$(readlink -f "${CONFIG_ROOT}/config.jsonc")
+    elif [[ -f "${CONFIG_ROOT}/config.jsonc" ]]; then
+        current_real_path=$(readlink -f "${CONFIG_ROOT}/config.jsonc")
     fi
-}
 
-# 6. Core Logic
+    current_dir=""
+    current_name="unknown"
 
-reload_waybar() {
-    # Check if Waybar is running
-    if pgrep -x "${APP_NAME}" > /dev/null; then
-        log_info "Reloading Waybar..."
-        # We don't use set -e here to avoid crashing if process vanishes in race condition
-        if ! pkill -SIGUSR2 -x "${APP_NAME}"; then
-            log_warn "Failed to signal Waybar. It may have crashed."
-        fi
-    else
-        log_info "Waybar not running. Starting..."
-        
-        # Smart UWSM detection
-        if command -v uwsm >/dev/null 2>&1; then
-            # New UWSM syntax preferred, fallback to uwsm-app binary if needed
-            if uwsm check >/dev/null 2>&1; then
-                 uwsm app -- "${APP_NAME}" >/dev/null 2>&1 &
-            else
-                 # Older versions or if 'check' isn't supported
-                 uwsm-app -- "${APP_NAME}" >/dev/null 2>&1 &
+    if [[ -n "$current_real_path" && -e "$current_real_path" ]]; then
+        current_dir=$(dirname "$current_real_path")
+    fi
+
+    # 2. Find index of current theme
+    declare -i current_idx=-1
+    if [[ -n "$current_dir" ]]; then
+        for (( i = 0; i < total; i++ )); do
+            theme_real_path=$(readlink -f "${themes[i]}")
+            if [[ "$theme_real_path" == "$current_dir" ]]; then
+                current_idx=$i
+                current_name="${theme_names[i]}"
+                break
             fi
-        else
-            "${APP_NAME}" > /dev/null 2>&1 &
+        done
+    fi
+
+    # 3. Calculate next index
+    if (( current_idx == -1 )); then
+        # If current config doesn't match a known theme, start at 0
+        selected_idx=0
+    else
+        selected_idx=$(( (current_idx + 1) % total ))
+    fi
+
+    log_info "Toggle mode: Switching from '${current_name}' to '${theme_names[selected_idx]}'"
+
+else
+    # --- TUI Mode ---
+    TUI_ACTIVE=true
+
+    # Preview Function
+    start_preview() {
+        local theme_path="$1"
+
+        # Symlink First Strategy for relative imports
+        rm -f "${CONFIG_ROOT}/config.jsonc" "${CONFIG_ROOT}/style.css"
+        ln -snf "${theme_path}/config.jsonc" "${CONFIG_ROOT}/config.jsonc"
+        [[ -f "${theme_path}/style.css" ]] && \
+            ln -snf "${theme_path}/style.css" "${CONFIG_ROOT}/style.css"
+
+        # Kill previous preview wrapper/process
+        if (( PREVIEW_PID > 0 )) && kill -0 "$PREVIEW_PID" 2>/dev/null; then
+            kill "$PREVIEW_PID" 2>/dev/null || true
+            wait "$PREVIEW_PID" 2>/dev/null || true
         fi
-        disown
-    fi
-}
 
-# The Swap Operation with Rollback Capability
-perform_swap() {
-    log_info "Initiating swap transaction..."
+        # Kill actual Waybar binary
+        kill_waybar
 
-    # 1. Validation
-    if [[ ! -d "${BASE_DIR}" ]] || [[ ! -d "${PILL_DIR}" ]]; then
-        log_err "Directory structure mismatch."
-        log_err "Expected: ${BASE_DIR} and ${PILL_DIR}"
-        exit 1
-    fi
-
-    for file in "${TARGET_FILES[@]}"; do
-        [[ -f "${BASE_DIR}/${file}" ]] || { log_err "Missing source: $file"; exit 1; }
-        [[ -f "${PILL_DIR}/${file}" ]] || { log_err "Missing target: $file"; exit 1; }
-    done
-
-    # 2. Lazy Temp Directory Creation
-    TMP_DIR=$(mktemp -d) || { log_err "Failed to create temp dir"; exit 1; }
-
-    # 3. Transactional Swap
-    local -a step_1_done=()
-    local -a step_2_done=()
-    local file
-
-    # Internal function to rollback changes on failure
-    rollback() {
-        log_err "Swap failed. Rolling back changes..."
-        local r_file
-        
-        # Undo Step 2 (Pill -> Base)
-        for r_file in "${step_2_done[@]}"; do
-            # Move back from Base to Pill
-            mv -f "${BASE_DIR}/${r_file}" "${PILL_DIR}/${r_file}"
-        done
-
-        # Undo Step 1 (Base -> Temp)
-        for r_file in "${step_1_done[@]}"; do
-            # Move back from Temp to Base
-            mv -f "${TMP_DIR}/${r_file}" "${BASE_DIR}/${r_file}"
-        done
-        log_info "Rollback complete. State restored."
+        # Start waybar
+        "${UWSM_CMD[@]}" waybar &>/dev/null &
+        PREVIEW_PID=$!
+        sleep 0.3
     }
 
-    # Execute Swap
-    for file in "${TARGET_FILES[@]}"; do
-        # Step 1: Base -> Temp
-        if mv "${BASE_DIR}/${file}" "${TMP_DIR}/${file}"; then
-            step_1_done+=("$file")
-        else
-            rollback; exit 1
+    tput civis 2>/dev/null || true
+    start_preview "${themes[selected_idx]}"
+
+    while true; do
+        printf '\033[H\033[2J'
+        printf '%sWaybar Theme Selector%s (Use %sArrows/jk%s to browse, %sEnter%s to select, %sq%s to quit)\n\n' \
+            "$BOLD" "$NC" "$Y" "$NC" "$G" "$NC" "$R" "$NC"
+
+        for (( i = 0; i < total; i++ )); do
+            if (( i == selected_idx )); then
+                printf '%s> %s%s%s\n' "$C" "$BOLD" "${theme_names[i]}" "$NC"
+            else
+                printf '  %s\n' "${theme_names[i]}"
+            fi
+        done
+
+        IFS= read -rsn1 key || true
+        if [[ "$key" == $'\x1b' ]]; then
+            IFS= read -rsn2 -t 0.1 rest || true
+            key+="${rest:-}"
         fi
 
-        # Step 2: Pill -> Base
-        if mv "${PILL_DIR}/${file}" "${BASE_DIR}/${file}"; then
-            step_2_done+=("$file")
-        else
-            rollback; exit 1
-        fi
-
-        # Step 3: Temp -> Pill (Finalize)
-        if ! mv "${TMP_DIR}/${file}" "${PILL_DIR}/${file}"; then
-            # If this fails, we actually have a partial state (Base is new, Pill is empty)
-            # We treat this as a failure and revert everything
-            rollback; exit 1
-        fi
+        case "$key" in
+            $'\x1b[A'|k)
+                selected_idx=$(( (selected_idx - 1 + total) % total ))
+                start_preview "${themes[selected_idx]}"
+                ;;
+            $'\x1b[B'|j)
+                selected_idx=$(( (selected_idx + 1) % total ))
+                start_preview "${themes[selected_idx]}"
+                ;;
+            '')
+                # Enter pressed - confirm selection
+                TUI_ACTIVE=false
+                break
+                ;;
+            q|Q)
+                log_info "Selection cancelled."
+                exit 0
+                ;;
+        esac
     done
+    tput cnorm 2>/dev/null || true
+fi
 
-    # 4. Success Handling
-    local new_config_name
-    new_config_name=$(get_config_name "${BASE_DIR}/config.jsonc" "Option 1")
+# --- Finalization Phase (Common) ---
 
-    log_success "Swapped to: ${C_BOLD}${new_config_name}${C_RESET}"
-    notify_user "${new_config_name}"
-    
-    reload_waybar
-}
+# Cleanup preview PID if it exists (from TUI mode)
+if (( PREVIEW_PID > 0 )) && kill -0 "$PREVIEW_PID" 2>/dev/null; then
+    kill "$PREVIEW_PID" 2>/dev/null || true
+    wait "$PREVIEW_PID" 2>/dev/null || true
+fi
 
-# Interactive Menu
-interactive_choose() {
-    printf "\n%s:: Waybar UI Manager ::%s\n" "$C_BOLD" "$C_RESET"
+# Ensure Waybar is closed before applying final settings
+kill_waybar
 
-    local current_name pill_name
-    current_name=$(get_config_name "${BASE_DIR}/config.jsonc" "Option 1")
-    pill_name=$(get_config_name "${PILL_DIR}/config.jsonc" "Option 2")
+readonly FINAL_THEME_DIR="${themes[selected_idx]}"
+readonly FINAL_NAME="${theme_names[selected_idx]}"
+readonly CONFIG_FILE="${FINAL_THEME_DIR}/config.jsonc"
 
-    printf "\n%sCurrent:%s   %s\n" "$C_INFO" "$C_RESET" "$current_name"
-    printf "%sAvailable:%s %s\n\n" "$C_INFO" "$C_RESET" "$pill_name"
+if [[ "$TOGGLE_MODE" == "false" ]]; then
+    printf '\n%sSelected Theme:%s %s\n' "$B" "$NC" "$FINAL_NAME"
+fi
 
-    echo "1) Keep '${current_name}' (Default)"
-    echo "2) Apply '${pill_name}'"
-    
-    local choice
-    # -r prevents backslash escaping, -p prompt is standard
-    read -r -p "Select option [1]: " choice
-    choice=${choice:-1}
-
-    if [[ "$choice" == "2" ]]; then
-        perform_swap
-        
-        printf "\n"
-        read -r -p "Do you want to keep this configuration? [Y/n] " confirm
-        confirm=${confirm:-y}
-
-        if [[ "$confirm" =~ ^[Nn] ]]; then
-            log_warn "Reverting configuration..."
-            perform_swap
-        else
-            log_success "Configuration kept."
-        fi
-    else
-        log_info "No changes made."
+# --- Smart Position Detection & Adjustment ---
+# Only run interactive adjustment if NOT in toggle mode
+if [[ "$TOGGLE_MODE" == "false" ]]; then
+    current_pos=""
+    # Optimized grep: -m1 stops after first match
+    if current_pos_line=$(grep -m1 -E '"position"[[:space:]]*:[[:space:]]*"(top|bottom|left|right)"' "$CONFIG_FILE" 2>/dev/null); then
+        # Optimized sed: removed redundant head -n1
+        current_pos=$(sed -E 's/.*"position"[[:space:]]*:[[:space:]]*"([a-z]+)".*/\1/' <<< "$current_pos_line")
     fi
-}
 
-# 7. Main
-main() {
-    case "${1:-}" in
-        --choose|-c)
-            interactive_choose
-            ;;
-        --help|-h)
-            echo "Usage: $(basename "$0") [--choose]"
-            ;;
-        *)
-            perform_swap
-            ;;
-    esac
-}
+    target_pos=""
+    if [[ -z "$current_pos" ]]; then
+        log_warn "Could not detect 'position' in config.jsonc. Skipping position adjustment."
+    else
+        case "$current_pos" in
+            top|bottom)
+                printf 'Detected %sHorizontal%s bar (currently: %s).\n' "$Y" "$NC" "$current_pos"
+                printf 'Where do you want it? [t]op / [b]ottom (Enter to keep): '
+                IFS= read -rn1 choice || choice=""
+                printf '\n'
+                case "${choice}" in
+                    t|T) target_pos="top" ;;
+                    b|B) target_pos="bottom" ;;
+                    *)   log_info "Keeping original position." ;;
+                esac
+                ;;
+            left|right)
+                printf 'Detected %sVertical%s bar (currently: %s).\n' "$Y" "$NC" "$current_pos"
+                printf 'Where do you want it? [l]eft / [r]ight (Enter to keep): '
+                IFS= read -rn1 choice || choice=""
+                printf '\n'
+                case "${choice}" in
+                    l|L) target_pos="left" ;;
+                    r|R) target_pos="right" ;;
+                    *)   log_info "Keeping original position." ;;
+                esac
+                ;;
+        esac
+    fi
 
-main "$@"
+    if [[ -n "$target_pos" && "$target_pos" != "$current_pos" ]]; then
+        log_info "Updating config position to '$target_pos'..."
+        sed -i -E "s/(\"position\"[[:space:]]*:[[:space:]]*)\"[^\"]+\"/\1\"${target_pos}\"/" "$CONFIG_FILE"
+        log_success "Position updated."
+    fi
+fi
+
+# --- Create Symlinks ---
+[[ "$TOGGLE_MODE" == "false" ]] && log_info "Creating symlinks..."
+
+rm -f "${CONFIG_ROOT}/config.jsonc" "${CONFIG_ROOT}/style.css"
+
+ln -snf "${FINAL_THEME_DIR}/config.jsonc" "${CONFIG_ROOT}/config.jsonc"
+[[ "$TOGGLE_MODE" == "false" ]] && \
+    log_success "Symlink: config.jsonc -> ${FINAL_THEME_DIR}/config.jsonc"
+
+if [[ -f "${FINAL_THEME_DIR}/style.css" ]]; then
+    ln -snf "${FINAL_THEME_DIR}/style.css" "${CONFIG_ROOT}/style.css"
+    [[ "$TOGGLE_MODE" == "false" ]] && \
+        log_success "Symlink: style.css -> ${FINAL_THEME_DIR}/style.css"
+elif [[ "$TOGGLE_MODE" == "false" ]]; then
+    log_warn "No style.css found. Only config.jsonc was linked."
+fi
+
+# --- Start Final Waybar ---
+[[ "$TOGGLE_MODE" == "false" ]] && log_info "Starting Waybar via UWSM..."
+
+"${UWSM_CMD[@]}" waybar &>/dev/null &
+disown
+
+[[ "$TOGGLE_MODE" == "false" ]] && log_success "Done. Enjoy your new setup!"
+
+# Disable cleanup trap on success
+trap - EXIT
+exit 0

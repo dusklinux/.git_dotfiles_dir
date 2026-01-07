@@ -1,7 +1,7 @@
 //Modern Vertical
 {
     "layer": "top",
-    "position": "left",
+    "position": "right",
     "spacing": 0,
     "width": 30, // Slightly wider to fit the numbers comfortably
     "margin-top": 5,
