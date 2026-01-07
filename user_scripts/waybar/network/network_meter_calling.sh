@@ -39,7 +39,8 @@ fi
 
 # Output
 case "${1:-}" in
-    vertical)   TEXT="${D_UP}\\n${D_UNIT}\\n${D_DOWN}" ;;
+    --vertical|vertical)   TEXT="${D_UP}\\n${D_UNIT}\\n${D_DOWN}" ;;
+    --horizontal|horizontal) TEXT="${D_UP}${D_UNIT}${D_DOWN}" ;;
     unit)       TEXT="$D_UNIT" ;;
     up|upload)  TEXT="$D_UP" ;;
     down|download) TEXT="$D_DOWN" ;;

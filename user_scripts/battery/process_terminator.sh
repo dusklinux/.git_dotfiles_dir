@@ -44,7 +44,6 @@ readonly -a TARGET_USER_SERVICES=(
     "battery_notify"
     "blueman-applet"
     "hypridle"
-    "hyprpolkitagent"
     "swaync"
     "gvfs-daemon"
     "gvfs-metadata"
