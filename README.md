@@ -9,8 +9,9 @@
 [images]: https://github.com/dusklinux/images
 
 
-This repository is the result of 8 months of tinkering, breaking, fixing, and polishing. It is a labor of love designed to feel as easy to install as a "standard" distribution, but with the raw power and minimalism of Arch Linux.
-Since I build and maintain this all by myself, **please consider starring ⭐ this repo** as a token of support.
+this repository is the result of 8 months of tinkering/breaking/fixing and polishing. Its a labor of love designed to feel as easy to install as a "standard" distribution but with the raw power and minimalism of arch. 
+
+Since i build and maintain this all by myself, **please consider starring ⭐ this repo** as a token of support.
 
 ## ⚠️ Prerequisites & Hardware
 
@@ -23,18 +24,16 @@ This setup is strictly optimized for **BTRFS**.
 
 ### Hardware Config (Intel/Nvidia/AMD)
 
-These scripts default to **Intel (CPU) +  Intel Integrated GPU + Nvidia (GPU)**
+The setup scripts are written to auto detect your hardware and set the appropriate environment variables but in case your hardware is not detected or has some issues, you're advised to configure the following files to set your environment variables.
 
 > [!Note]
 >
-> AMD Users: You must configure the uwsm env files to set your gpu environment variables.
+> Configure the uwsm env files to set your gpu environment variables.
 >
 > 1. Open the files at ~/.config/uwsm/env and ~/.config/uwsm/env-hyprland
 >
-> 2. Replace Intel/Nvidia-specific variables with amd with their AMD equivalents.
+> 2. Replace Intel/Nvidia/Amd -specific variables with your hardware equivalents.
 >
->4. I will automate this in the future, i don't currently have an amd system at hand to test it on.
-
 
 
 ### Dual Booting
@@ -52,11 +51,21 @@ These scripts default to **Intel (CPU) +  Intel Integrated GPU + Nvidia (GPU)**
 
 ### Step 1: Clone Dotfiles (Bare Repo Method)
 
-We use a bare git repository method to drop files exactly where they belong in your home directory.
+i use a bare git repository method to drop files exactly where they belong in your home directory.
 
+make sure your connected to the internet and git is installed, 
+
+```
+sudo pacman -Syu --needed git
+```
+
+
+clone the repo
 ```
 git clone --bare --depth 1 https://github.com/dusklinux/dusky.git $HOME/dusky
 ```
+
+deploy the files on your system.
 
 ```bash
 git --git-dir=$HOME/dusky/ --work-tree=$HOME checkout -f
@@ -64,13 +73,13 @@ git --git-dir=$HOME/dusky/ --work-tree=$HOME checkout -f
 
 ### Step 2: Run the Orchestra
 
-Run the master script to install dependencies, themes, and services.
+Run the master script to install dependencies, themes, and services, this will take a while. because it sets up everything. You'll be promted to say yes/no during setup, so dont leave it running unattended.
 
 ```bash
 ~/user_scripts/arch_setup_scripts/ORCHESTRA.sh
 ```
 
-## 🎻 The Orchestra Script
+## The Orchestra Script
 
 The `ORCHESTRA.sh` is a "conductor" that manages ~80 subscripts.
 
@@ -78,7 +87,7 @@ The `ORCHESTRA.sh` is a "conductor" that manages ~80 subscripts.
 
 - **Safe:** You can re-run it as many times as you like without breaking things.
 
-- **Time:** Expect 30–60 minutes. We use `paru` to install AUR packages, and compiling from source takes time. Grab a coffee! ☕
+- **Time:** Expect 30–60 minutes. We use `paru` to install a few AUR packages, and compiling from source takes time. Grab a coffee!
 
 
 ## ⌨️ Usage & Keybinds
@@ -89,7 +98,8 @@ The steepest learning curve will be the keybinds. I have designed them to be int
 >
 > Press CTRL + SHIFT + SPACE to open the Keybinds Cheatsheet. You can click commands in this menu to run them directly!
 
-## Method 2: The "Clean Slate" (only recommended if you have Intel or (Intel + Nvidia) hardware.
+
+## Method 2: The "Clean Slate" (only recommended if you have Intel or (Intel/Nvidia) hardware. (will make this amd compatible in the near future)
 
 Best for: New installs, Dual Booting, ensuring zero bloat.
 
