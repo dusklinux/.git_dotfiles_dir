@@ -8,8 +8,16 @@
 
 [images]: https://github.com/dusklinux/images
 
+### to get this out of the way cuz i'm getting so many questions about waybar. 
+YES YOU CAN HAVE HORIZONTAL WAYBAR. and you can will be asked which side you want it on bottom/top/left/right. 
 
-this repository is the result of 8 months of tinkering/breaking/fixing and polishing. Its a labor of love designed to feel as easy to install as a "standard" distribution but with the raw power and minimalism of arch. 
+- **waybar horizontal and vertical,:**  Take your pick during setup, easily toggleable from rofi as well. 
+here's what it looks like. 
+
+![New Nerdy Horizontal Waybar](Pictures/readme_assets/waybar_horizontal.png)
+
+
+This repository is the result of 8 months of tinkering/breaking/fixing and polishing. Its a labor of love designed to feel as easy to install as a "standard" distribution but with the raw power and minimalism of arch. 
 
 Since i build and maintain this all by myself, **please consider starring ⭐ this repo** as a token of support.
 
@@ -333,9 +341,6 @@ togglalble with a keybind or from rofi.
     
 - **Native Optimization:** AUR helpers configured to build with CPU-native flags (up to 20% performance boost).
     
-- **waybar horizontal and vertical,:**  Take your pick during setup, easily toggleable from rofi as well. also asks you which side you want it on, left/right/top/bottom
-
-![New Nerdy Horizontal Waybar](Pictures/readme_assets/waybar_horizontal.png)
 
 - **UWSM Environment:** Optimized specifically for Hyprland.
     
