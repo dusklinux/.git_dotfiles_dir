@@ -1,3 +1,9 @@
+## If you need help with installation or troubleshooting, join the Discord server.
+I'm currently overwhelmed with messages, emails, and comments. i'll get to everyone one by one, please be patient. i'm the only person behind this project.
+
+[Join Discord Server][discord]
+[discord]: https://discord.gg/Nv2a7yTBQS
+
 ## Updated demo video now out on YouTube with all major features covered!
 
 [Watch now][video]
