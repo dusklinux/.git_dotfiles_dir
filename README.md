@@ -282,6 +282,11 @@ If a script fails (which can happen on a rolling release distro):
 
 - Sysbench benchmarking script. 
 
+- color picker
+
+- neovim configured, you could also use your own later on. or install lazyvim or any another neovim rice
+
+
 RoFI menus. 
 
 - Emoji
@@ -324,8 +329,10 @@ togglalble with a keybind or from rofi.
     
 - **Native Optimization:** AUR helpers configured to build with CPU-native flags (up to 20% performance boost).
     
-- **Space Efficient:** Vertical Waybar saves vertical screen real estate. (horizontal waybar comming soon as an option during setup)
-    
+- **waybar horizontal and vertical,:**  Take your pick during setup, easily toggleable from rofi as well. also asks you which side you want it on, left/right/top/bottom
+
+![New Nerdy Horizontal Waybar](Pictures/readme_assets/waybar_horizontal.png)
+
 - **UWSM Environment:** Optimized specifically for Hyprland.
     
 
