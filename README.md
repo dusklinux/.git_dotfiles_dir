@@ -88,6 +88,11 @@ deploy the files on your system.
 git --git-dir=$HOME/dusky/ --work-tree=$HOME checkout -f
 ```
 
+> Note:
+> 
+> This will immediately list a few errors at the top, but dont worry, that's expected behaviour, the errors will later go away on there own after matugen generates colors and cycles through a wallpaper. 
+
+
 ### Step 2: Run the Orchestra
 
 Run the master script to install dependencies, themes, and services, this will take a while. because it sets up everything. You'll be promted to say yes/no during setup, so dont leave it running unattended.
