@@ -18,7 +18,9 @@
 .config/swayosd/
 .config/swappy/
 .config/uwsm/
-.config/waybar/
+.config/waybar/horizontal_nerdy_modern/
+.config/waybar/vertical_modern/
+.config/waybar/vertical_nerdy/
 .config/wayclick/
 .config/wlogout/
 .config/waypaper/
