@@ -91,7 +91,7 @@ readonly AVAILABLE_PACKAGES=(
 "## Legacy Drivers"
 "b43-firmware"
 
-"## Asus Hardware"
+"## DONT INSTALL UNLESS YOU HAVE ASUS LAPTOP; Warning!! this takes a LONG TIME TO INSTALL"
 "asusctl"
 )
 
