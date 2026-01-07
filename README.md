@@ -49,6 +49,8 @@ The setup scripts are written to auto detect your hardware and set the appropria
 
 **Best for:** Users who already have a fresh, unconfigured Arch Linux installation with Hyprland, set up either via the archinstall script or through a manual install. If you have not installed yet, use the Arch ISO and ensure you select Btrfs as the filesystem and Hyprland as the window manager.
 
+after installing arch, boot into the os and then run this in the terminal. 
+
 ### Step 1: Clone Dotfiles (Bare Repo Method)
 
 i use a bare git repository method to drop files exactly where they belong in your home directory.
@@ -246,19 +248,13 @@ If a script fails (which can happen on a rolling release distro):
 
 - mono/sterio audio toggling. 
 
+- also supports touchpad gestures for volume/brightess, locking the screen, invoking swaync, pause/play, muting.(requires a laptop or a touchpad for pc)
+
 - battery notifier for laptops, you can customize it to show notifications at certain levels.
 
 - power saver mode, that only changes things for the current boot, so you can revert to default by rebooting. 
 
 - system clean up (cache purge)- removes unwanted files to reclaim storage. 
-
-- github repo integration so you can easily create your own repo to backup all files, this uses bare repo so your specific existing files, listed in ~/.git_dusky_list will backup to github, you can add more files/remove existing ones from this text file.
-
-- btrfs system compression ratio - scans your os files to see how much space zstd compression is saving you. 
-
-- drive manager, easily lock/unlock encrypted drives from the terminal using "unlock media or lock media", it automaticlaly mounts your drives at a specified path, also unmounts when you lock it. This requires you to first configure the ~/user_scripts/drives/drive_manager.sh script with your drives' uuid. 
-
-- ntfs drives have a tendency to not unlock if the drive had previously been disconnected without unmounting first, because of corrupted metadata, i've a script that fixes this. ntfs_fix.sh
 
 - usb sounds , get notified when usb devices are plugged/unplugged.
 
@@ -286,6 +282,14 @@ If a script fails (which can happen on a rolling release distro):
 
 - neovim configured, you could also use your own later on. or install lazyvim or any another neovim rice
 
+
+- github repo integration so you can easily create your own repo to backup all files, this uses bare repo so your specific existing files, listed in ~/.git_dusky_list will backup to github, you can add more files/remove existing ones from this text file.
+
+- btrfs system compression ratio - scans your os files to see how much space zstd compression is saving you. 
+
+- drive manager, easily lock/unlock encrypted drives from the terminal using "unlock media or lock media", it automaticlaly mounts your drives at a specified path, also unmounts when you lock it. This requires you to first configure the ~/user_scripts/drives/drive_manager.sh script with your drives' uuid. 
+
+- ntfs drives have a tendency to not unlock if the drive had previously been disconnected without unmounting first, because of corrupted metadata, i've a script that fixes this. ntfs_fix.sh
 
 RoFI menus. 
 
