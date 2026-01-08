@@ -165,6 +165,9 @@ alias wifi_security='~/user_scripts/networking/ax201_wifi_testing.sh'
 alias darkmode='~/user_scripts/theme_matugen/matugen_config.sh --mode dark'
 alias lightmode='~/user_scripts/theme_matugen/matugen_config.sh --mode light'
 
+#submit logs 
+alias sendlogs='~/user_scripts/arch_setup_scripts/send_logs.sh --auto'
+
 # Check if eza is installed
 if command -v eza >/dev/null; then
     alias ls='eza --icons --group-directories-first'
