@@ -34,10 +34,15 @@ log_err()     { printf "${RED}[ERROR]${RESET} %s\n" "$1" >&2; }
 
 # --- Argument Parsing ---
 AUTO_MODE=false
+ENABLE_MODE=false
+DISABLE_MODE=false
+
 for arg in "$@"; do
-  if [[ "$arg" == "--auto" ]]; then
-    AUTO_MODE=true
-  fi
+  case "$arg" in
+    --auto)    AUTO_MODE=true ;;
+    --enable)  ENABLE_MODE=true ;;
+    --disable) DISABLE_MODE=true ;;
+  esac
 done
 
 # --- Logic ---
@@ -62,19 +67,29 @@ else
     exit 1
 fi
 
-# 3. User Interaction
+# 3. User Interaction / Flag Handling
 if [[ "$AUTO_MODE" == "true" ]]; then
-    # In auto mode, we strictly want to DISABLE/DELETE the fix.
-    # If it is currently ACTIVE, we proceed to disable it.
-    # If it is currently DISABLED, we do nothing and exit.
+    # In auto mode, we strictly want to DISABLE the fix.
     if [[ "$CURRENT_STATE" == "DISABLED" ]]; then
         log_success "Auto mode: Fix is already DISABLED. No changes made."
         exit 0
     fi
-    
     printf "${BOLD}Current SwayNC GPU Fix State:${RESET} ${BLUE}%s${RESET}\n" "$CURRENT_STATE"
-    log_info "Auto mode detected. Proceeding to $TARGET_ACTION fix..."
+    log_info "Auto mode detected. Proceeding to DISABLE fix..."
+elif [[ "$ENABLE_MODE" == "true" ]]; then
+    if [[ "$CURRENT_STATE" == "ACTIVE" ]]; then
+        log_success "Flag --enable: Fix is already ACTIVE. No changes made."
+        exit 0
+    fi
+    log_info "Enable flag detected. Proceeding to ENABLE fix..."
+elif [[ "$DISABLE_MODE" == "true" ]]; then
+    if [[ "$CURRENT_STATE" == "DISABLED" ]]; then
+        log_success "Flag --disable: Fix is already DISABLED. No changes made."
+        exit 0
+    fi
+    log_info "Disable flag detected. Proceeding to DISABLE fix..."
 else
+    # Interactive Mode
     printf "${BOLD}Current SwayNC GPU Fix State:${RESET} ${BLUE}%s${RESET}\n" "$CURRENT_STATE"
     read -r -p "$(printf "Do you want to ${BOLD}%s${RESET} the power saving fix? [y/N] " "$TARGET_ACTION")" CONFIRM
 
@@ -96,21 +111,16 @@ else
 fi
 
 # 5. Systemd Reload & Restart
-# We use --user because this is a user-session service
 log_info "Reloading systemd user daemon..."
 systemctl --user daemon-reload
 
 log_info "Restarting $SERVICE..."
-# FIX: Added '|| true' to prevent 'set -e' from killing the script if restart fails
 systemctl --user restart "$SERVICE" || true
 
 # 6. Verification
-# We check if the service is active.
-# Note: 'is-active' returns 0 if active, non-zero otherwise.
 if systemctl --user is-active --quiet "$SERVICE"; then
     log_success "$SERVICE is up and running."
     
-    # Optional: Visual confirmation of the environment (Advanced debugging)
     if [[ "$TARGET_ACTION" == "ENABLE" ]]; then
         PID=$(systemctl --user show --property MainPID --value "$SERVICE")
         if [[ "$PID" -ne 0 ]]; then
@@ -119,9 +129,6 @@ if systemctl --user is-active --quiet "$SERVICE"; then
         fi
     fi
 else
-    # FIX: Changed from 'exit 1' to 'exit 0' (and logging error).
-    # This ensures the Orchestra script sees this as a "Success" even if SwayNC isn't running,
-    # preventing the entire installation chain from aborting.
     log_err "$SERVICE failed to restart. Check 'journalctl --user -xeu $SERVICE'."
     log_info "Continuing orchestration regardless of service state."
     exit 0

@@ -51,7 +51,7 @@ INSTALL_SEQUENCE=(
     "S | 037_faillock_timeout.sh"
     "U | 038_non_asus_laptop.sh --auto"
     "U | 039_file_manager_switch.sh"
-    "U | 040_swaync_dgpu_fix.sh --auto"
+    "U | 040_swaync_dgpu_fix.sh --disable"
 #    "S | 041_asusd_service_fix.sh"
 #    "S | 042_ftp_arch.sh"
     "U | 043_tldr_update.sh"
