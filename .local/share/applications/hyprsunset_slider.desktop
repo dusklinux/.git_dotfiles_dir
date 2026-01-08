@@ -7,7 +7,7 @@ Comment=Adjust Color Temperature
 Exec=uwsm-app -- /home/dusk/user_scripts/sliders/hyprsunset_slider.sh
 Terminal=false
 Categories=Settings;
-Keywords=blue;light;filter;color;temperature;
+Keywords=blue;light;filter;color;temperature;night light;
 Icon=weather-clear-night
 StartupNotify=true
 
