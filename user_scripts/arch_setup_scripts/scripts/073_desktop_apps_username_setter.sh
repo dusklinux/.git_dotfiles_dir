@@ -82,6 +82,7 @@ readonly TARGET_FILES=(
     "volume_slider.desktop"
     "warp.desktop"
     "waybar_config_switcher.desktop"
+    "wayclick.desktop"
     "wifi_security.desktop"
 )
 
