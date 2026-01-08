@@ -76,6 +76,7 @@ readonly TARGET_FILES=(
     "rotate_screen_clockwise.desktop"
     "rotate_screen_counter_clockwise.desktop"
     "rofi_emoji.desktop"
+    "rofi_wallpaper_selector.desktop"
     "scale_down.desktop"
     "scale_up.desktop"
     "sysbench_benchmark.desktop"
