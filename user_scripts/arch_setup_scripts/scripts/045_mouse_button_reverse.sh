@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Script: 003_mouse_button_reverse.sh
+# Script: 045_mouse_button_reverse.sh
 # Purpose: Checks status and toggles mouse handedness in Hyprland
+#          Added support for --left and --right flags for autonomous mode.
 # ==============================================================================
 
 set -euo pipefail
@@ -23,31 +24,55 @@ main() {
         printf "input {\n}\n" > "$CONFIG_FILE"
     fi
 
-    # --- 1. Detect Current State ---
-    # Default assumption: Right-Handed (false)
-    local current_mode="Right-Handed (Standard)"
-    local target_val="true"
-    local prompt_action="Switch to Left-Handed (Reverse)"
+    local target_val=""
+    local prompt_action=""
+    local perform_update=false
 
-    # regex checks for 'left_handed = true' allowing for flexible whitespace
-    if grep -qE '^[[:space:]]*left_handed[[:space:]]*=[[:space:]]*true' "$CONFIG_FILE"; then
-        current_mode="Left-Handed (Reversed)"
+    # --- 1. Argument Parsing & Mode Selection ---
+    if [[ "${1:-}" == "--left" ]]; then
+        # Autonomous: Force Left
+        target_val="true"
+        prompt_action="Switch to Left-Handed"
+        perform_update=true
+    elif [[ "${1:-}" == "--right" ]]; then
+        # Autonomous: Force Right
         target_val="false"
-        prompt_action="Switch to Right-Handed (Standard)"
+        prompt_action="Switch to Right-Handed"
+        perform_update=true
+    else
+        # Interactive: Toggle based on current state
+        
+        # Default assumption: Right-Handed (false)
+        local current_mode="Right-Handed (Standard)"
+        target_val="true"
+        prompt_action="Switch to Left-Handed (Reverse)"
+
+        # regex checks for 'left_handed = true' allowing for flexible whitespace
+        if grep -qE '^[[:space:]]*left_handed[[:space:]]*=[[:space:]]*true' "$CONFIG_FILE"; then
+            current_mode="Left-Handed (Reversed)"
+            target_val="false"
+            prompt_action="Switch to Right-Handed (Standard)"
+        fi
+
+        # Prompt User
+        printf "Current Status: %s\n" "$current_mode"
+        # Changed prompt to [Y/n] to indicate Yes is default
+        printf "%s? [Y/n]: " "$prompt_action"
+        
+        # Using /dev/tty ensures we read from the user even if stdin is redirected elsewhere
+        read -r -n 1 user_input < /dev/tty
+        printf "\n"
+
+        # Check for Y, y, OR empty string (-z checks for Enter key)
+        if [[ "$user_input" =~ ^[Yy]$ ]] || [[ -z "$user_input" ]]; then
+            perform_update=true
+        else
+            printf "No changes made.\n"
+        fi
     fi
 
-    # --- 2. Prompt User ---
-    printf "Current Status: %s\n" "$current_mode"
-    # Changed prompt to [Y/n] to indicate Yes is default
-    printf "%s? [Y/n]: " "$prompt_action"
-    
-    # Using /dev/tty ensures we read from the user even if stdin is redirected elsewhere
-    read -r -n 1 user_input < /dev/tty
-    printf "\n"
-
-    # --- 3. Process Logic ---
-    # Check for Y, y, OR empty string (-z checks for Enter key)
-    if [[ "$user_input" =~ ^[Yy]$ ]] || [[ -z "$user_input" ]]; then
+    # --- 2. Process Logic ---
+    if [[ "$perform_update" == "true" ]]; then
         
         # Atomic Parse & Write
         TEMP_FILE=$(mktemp)
@@ -94,9 +119,7 @@ main() {
 
         # Output Success Message
         printf "Success: Configuration updated to %s (left_handed = %s).\n" "${prompt_action%% *}" "$target_val"
-    else
-        printf "No changes made.\n"
     fi
 }
 
-main
+main "$@"

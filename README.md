@@ -16,7 +16,7 @@ I'm currently overwhelmed with messages, emails, and comments. i'll get to every
 [images]: https://github.com/dusklinux/images
 
 ### to get this out of the way cuz i'm getting so many questions about waybar. 
-YES YOU CAN HAVE HORIZONTAL WAYBAR. and you can will be asked which side you want it on bottom/top/left/right. 
+YES YOU CAN HAVE HORIZONTAL WAYBAR. and you will be asked which side you want it on bottom/top/left/right. 
 
 - **waybar horizontal and vertical,:**  Take your pick during setup, easily toggleable from rofi as well. 
 here's what it looks like. 
