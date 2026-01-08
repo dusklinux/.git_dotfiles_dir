@@ -74,6 +74,7 @@ readonly TARGET_FILES=(
     "relink_github_repo.desktop"
     "rotate_screen_clockwise.desktop"
     "rotate_screen_counter_clockwise.desktop"
+    "rofi_emoji.desktop"
     "scale_down.desktop"
     "scale_up.desktop"
     "sysbench_benchmark.desktop"
