@@ -1,5 +1,5 @@
 ## If you need help with installation or troubleshooting, join the Discord server.
-I'm currently overwhelmed with messages, emails, and comments. i'll get to everyone one by one, please be patient. i'm the only person behind this project.
+I'm currently overwhelmed with messages, emails, and comments. i'll get to everyone one by one, please be patient. i'm only one person behind this project.
 
 [Join Discord Server][discord]
 
