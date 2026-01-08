@@ -56,6 +56,7 @@ readonly USER_SED_SAFE="${CURRENT_USER//\//\\/}"
 # ------------------------------------------------------------------------------
 readonly TARGET_FILES=(
     "asus_control.desktop"
+    "battery_notify_config.desktop"
     "brightness_slider.desktop"
     "cache_purge.desktop"
     "clipboard_persistance.desktop"

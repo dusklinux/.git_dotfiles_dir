@@ -93,6 +93,7 @@ INSTALL_SEQUENCE=(
     "U | 079_parakeet_gpu_setup.sh" #requires nvidia gpu with at least 4gb vram
     "S | 080_btrfs_zstd_compression_stats.sh"
     "U | 081_key_sound_wayclick_setup.sh"
+    "U | 082_config_bat_notify.sh"
 )
 
 # ==============================================================================
