@@ -108,7 +108,7 @@ set -o pipefail
 # We use curly braces ${HOME} to safely expand the variable.
 readonly SCRIPT_DIR="${HOME}/user_scripts/arch_setup_scripts/scripts"
 readonly STATE_FILE="${HOME}/Documents/.install_state"
-readonly LOG_FILE="${HOME}/Documents/install_$(date +%Y%m%d_%H%M%S).log"
+readonly LOG_FILE="${HOME}/Documents/logs/install_$(date +%Y%m%d_%H%M%S).log"
 
 # Constants
 readonly SUDO_REFRESH_INTERVAL=50  # Seconds between sudo refreshes
