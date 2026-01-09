@@ -42,7 +42,6 @@ if [[ -z "$REAL_USER" ]]; then
   exit 1
 fi
 
-HOME_DIR=$(getent passwd "$REAL_USER" | cut -d: -f6)
 BUILD_DIR="/tmp/warp_autonomous_build"
 
 # -----------------------------------------------------------------------------
@@ -59,7 +58,7 @@ trap cleanup EXIT
 # Helper: Run command as the Real User
 # -----------------------------------------------------------------------------
 run_as_user() {
-  sudo -u "$REAL_USER" "$@"
+  sudo -u "$REAL_USER" -- "$@"
 }
 
 # -----------------------------------------------------------------------------
@@ -87,9 +86,10 @@ install_package_manual() {
 
   log_info "Installing built package..."
   local pkg_file
-  pkg_file=$(find . -name "*.pkg.tar.zst" -print -quit)
+  # Match any compression format (zst, xz, gz)
+  pkg_file=$(find . -maxdepth 1 -name "*.pkg.tar.*" -print -quit)
 
-  if [[ -f "$pkg_file" ]]; then
+  if [[ -n "$pkg_file" && -f "$pkg_file" ]]; then
     pacman -U --noconfirm "$pkg_file"
     log_success "Package installed successfully."
   else
@@ -110,7 +110,7 @@ configure_service() {
       exit 1
     fi
     sleep 1
-    ((retries++))
+    retries=$((retries + 1))  # FIX: Avoids set -e trap when retries=0
   done
 
   # Wait for internal daemon DB
@@ -123,11 +123,9 @@ setup_warp() {
 
   # 1. Cleanup (CRITICAL FIX APPLIED HERE)
   log_info "Checking registration state..."
-  # We pipe 'y' and use --accept-tos here too, otherwise the delete fails silently
   if echo "y" | run_as_user warp-cli --accept-tos registration delete &>/dev/null; then
     log_success "Old registration deleted."
   else
-    # If it failed, we assume it's because none existed, but we print a log just in case
     log_info "No valid prior registration found (or clean slate)."
   fi
 
@@ -158,7 +156,7 @@ setup_warp() {
 
     # Polling Loop (Max 10 seconds)
     local connected=0
-    for i in {1..10}; do
+    for _ in {1..10}; do
       if run_as_user warp-cli --accept-tos status | grep -q "Connected"; then
         connected=1
         break
@@ -202,11 +200,9 @@ main() {
 if ! command -v warp-cli &> /dev/null; then
   printf "${C_YELLOW}[?]${C_RESET} Cloudflare Warp is not installed.\n"
   read -r -p "Would you like to install and activate it? [Y/n] " response
-  # Default to Yes if empty
   response=${response:-Y}
   
-  # Check if response matches n, N, no, No, etc.
-  if [[ "$response" =~ ^[nN]$ || "$response" =~ ^[nN][oO]$ ]]; then
+  if [[ "$response" =~ ^[nN]([oO])?$ ]]; then
     log_info "Installation aborted by user."
     exit 0
   fi

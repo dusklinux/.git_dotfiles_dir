@@ -21,7 +21,7 @@ INSTALL_SEQUENCE=(
     "S | 007_openssh_setup.sh"
     "U | 008_changing_shell_zsh.sh"
     "S | 009_aur_paru_fallback_yay.sh"
-#    "S | 010_warp.sh"
+    "S | 010_warp.sh"
     "U | 011_paru_packages_optional.sh"
 #    "S | 012_battery_limiter_again_dusk.sh"
     "U | 013_paru_packages.sh"
