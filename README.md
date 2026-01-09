@@ -1,5 +1,3 @@
-# There's currently an issue with the installation, Please hold on until i fix it, i'm working on it right now, will be fixed in a few hours.
-
 ## If you need help with installation or troubleshooting, join the Discord server.
 I'm currently overwhelmed with messages, emails, and comments. i'll get to everyone one by one, please be patient. i'm only one person behind this project.
 
