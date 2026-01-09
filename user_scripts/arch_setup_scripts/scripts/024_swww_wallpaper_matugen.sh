@@ -1,24 +1,16 @@
 #!/usr/bin/env bash
-# Invokes Matugen for the first time to generate colors.
-# set_dusk.sh
-#
-# Hardcoded wallpaper application for Hyprland/UWSM.
-# Executes matugen and swww in parallel for instant application.
-# Includes a 6s watchdog to prevent the script from staying open if swww hangs.
+# Applies the default wallpaper and generates a matching color scheme.
+# Runs swww and matugen in parallel with a 6-second watchdog timeout.
 
 set -euo pipefail
-
-# ══════════════════════════════════════════════════════════════════════════════
-# 0. Dependencies
-# ══════════════════════════════════════════════════════════════════════════════
-# Orchestrator handles sudo auth; this runs passwordless if parent initialized it.
-sudo pacman -S --needed --noconfirm matugen swww
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Configuration
 # ══════════════════════════════════════════════════════════════════════════════
 
 readonly WALLPAPER="${HOME}/Pictures/wallpapers/dusk_default.jpg"
+readonly DAEMON_WAIT_CYCLES=20  # 2s total (20 × 0.1s)
+readonly WATCHDOG_CYCLES=60    # 6s total (60 × 0.1s)
 
 readonly -a SWWW_OPTS=(
     --transition-type grow
@@ -27,38 +19,55 @@ readonly -a SWWW_OPTS=(
 )
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Execution
+# Dependencies
 # ══════════════════════════════════════════════════════════════════════════════
 
-# 1. Validation: Ensure the file exists before attempting anything
-[[ -f "$WALLPAPER" ]] || { printf "Error: '%s' not found.\n" "$WALLPAPER" >&2; exit 1; }
+sudo pacman -S --needed --noconfirm matugen swww
 
-# 2. Daemon Check: Ensure swww is running via UWSM if it isn't already
-if ! swww query >/dev/null 2>&1; then
-    uwsm-app -- swww-daemon >/dev/null 2>&1 &
-    # Brief pause to allow socket creation; swww client usually handles the rest
-    sleep 0.5
+# ══════════════════════════════════════════════════════════════════════════════
+# Validation
+# ══════════════════════════════════════════════════════════════════════════════
+
+[[ -f "$WALLPAPER" ]] || {
+    printf "Error: Wallpaper '%s' not found.\n" "$WALLPAPER" >&2
+    exit 1
+}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Daemon Initialization
+# ══════════════════════════════════════════════════════════════════════════════
+
+if ! swww query &>/dev/null; then
+    swww-daemon &>/dev/null &
+    
+    # Poll for daemon readiness
+    cycles=$DAEMON_WAIT_CYCLES
+    while ! swww query &>/dev/null && (( cycles-- > 0 )); do
+        sleep 0.1
+    done
+    
+    if ! swww query &>/dev/null; then
+        printf "Error: swww-daemon failed to start within 2 seconds.\n" >&2
+        exit 1
+    fi
 fi
 
-# 3. Parallel Execution: Run both tasks at once
-# We use uwsm-app to ensure environment variables (Wayland/Hyprland) are passed correctly.
+# ══════════════════════════════════════════════════════════════════════════════
+# Parallel Execution
+# ══════════════════════════════════════════════════════════════════════════════
 
-# Start Matugen (Backgrounded)
-uwsm-app -- matugen --mode dark image "$WALLPAPER" >/dev/null 2>&1 &
+matugen --mode dark image "$WALLPAPER" &>/dev/null &
 MATUGEN_PID=$!
 
-# Start SWWW (Backgrounded)
-swww img "$WALLPAPER" "${SWWW_OPTS[@]}" >/dev/null 2>&1 &
+swww img "$WALLPAPER" "${SWWW_OPTS[@]}" &>/dev/null &
 SWWW_PID=$!
 
-# 4. Watchdog: Wait up to 6 seconds, then exit cleanly
-# We poll the PIDs every 0.1s instead of using a blocking 'wait'.
-step=0
-MAX_STEPS=60 # 6 seconds / 0.1s
+# ══════════════════════════════════════════════════════════════════════════════
+# Watchdog
+# ══════════════════════════════════════════════════════════════════════════════
 
-while (( step < MAX_STEPS )); do
-    # Check if both processes are finished.
-    # We use explicit variables to avoid complex logic chains triggering set -e issues.
+step=0
+while (( step < WATCHDOG_CYCLES )); do
     matugen_running=0
     swww_running=0
     
@@ -66,18 +75,23 @@ while (( step < MAX_STEPS )); do
     if kill -0 "$SWWW_PID" 2>/dev/null; then swww_running=1; fi
 
     if [[ $matugen_running -eq 0 && $swww_running -eq 0 ]]; then
-        printf "Wallpaper applied successfully.\n"
+        matugen_status=0
+        swww_status=0
+        wait "$MATUGEN_PID" || matugen_status=$?
+        wait "$SWWW_PID" || swww_status=$?
+        
+        if (( matugen_status == 0 && swww_status == 0 )); then
+            printf "Wallpaper and color scheme applied successfully.\n"
+        else
+            printf "Warning: Task(s) failed (matugen=%d, swww=%d).\n" \
+                "$matugen_status" "$swww_status"
+        fi
         exit 0
     fi
     
     sleep 0.1
-    
-    # CRITICAL FIX: Use pre-increment (++step) or (( step+=1 ))
-    # Post-increment (step++) returns 0 on the first run, which bash set -e treats as a failure!
     ((++step))
 done
 
-# If we reached here, the loop finished without the processes dying.
-# We exit 0 anyway to ensure the script doesn't "fail".
-printf "Timeout (6s) reached - Auto-closing script.\n"
+printf "Timeout (6s) reached - script auto-closing.\n"
 exit 0
