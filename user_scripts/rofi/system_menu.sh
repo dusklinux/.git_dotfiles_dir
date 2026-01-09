@@ -4,28 +4,23 @@
 # Optimized for Bash 5+ | Dependencies: rofi-wayland, uwsm, kitty, hyprctl, fd, file
 # -----------------------------------------------------------------------------
 
-# Strict mode: Exit on error, error on unset vars, error if pipe fails
 set -uo pipefail
 
 # --- CONFIGURATION ---
 readonly SCRIPTS_DIR="${HOME}/user_scripts"
 readonly HYPR_CONF="${HOME}/.config/hypr"
 readonly HYPR_SOURCE="${HYPR_CONF}/source"
-
-# --- SEARCH CONFIGURATION ---
 readonly SEARCH_DIR="${HOME}/Documents/pensive/linux"
 
-# Applications
 readonly TERMINAL="kitty"
 readonly EDITOR="${EDITOR:-nvim}"
-readonly FILE_MANAGER="yazi" # Added explicitly for directory handling
+readonly FILE_MANAGER="yazi"
 
-# Rofi Command
 readonly ROFI_CMD=(
     rofi 
     -dmenu 
     -i 
-    -theme-str 'window {width: 25%;} listview {lines: 10;}'
+    -theme-str 'window {width: 25%;} listview {lines: 12;}'
 )
 
 # --- CORE FUNCTIONS ---
@@ -55,10 +50,17 @@ run_app() {
 }
 
 run_term() {
-    local cmd="$1"
-    local class="${2:-floating_script}"
-    
-    uwsm-app -- "$TERMINAL" --class "$class" -e bash -c "$cmd" >/dev/null 2>&1 &
+    local class="$1"
+    shift
+    uwsm-app -- "$TERMINAL" --class "$class" -e "$@" >/dev/null 2>&1 &
+    disown
+    exit 0
+}
+
+run_term_hold() {
+    local class="$1"
+    shift
+    uwsm-app -- "$TERMINAL" --hold --class "$class" -e "$@" >/dev/null 2>&1 &
     disown
     exit 0
 }
@@ -74,7 +76,7 @@ open_editor() {
 
 show_main_menu() {
     local selection
-    selection=$(menu "Main" "🔍  Search Notes\n󰀻  Apps\n󰧑  Learn/Help\n󱓞  Utils\n󱚤  AI & Voice\n  Visuals & Theme\n󰇅  Hardware & System\n  Configs\n  Power")
+    selection=$(menu "Main" "🔍  Search Notes\n󰀻  Apps\n󰧑  Learn/Help\n󱓞  Utils\n󱚤  AI & Voice\n󰹑  Visuals & Display\n󰇅  System & Drives\n󱐋  Performance\n󰂄  Power & Battery\n󰛳  Networking\n  Configs\n󰐉  Power")
     
     route_selection "$selection"
 }
@@ -83,64 +85,54 @@ route_selection() {
     local choice="${1,,}"
 
     case "$choice" in
-        *search*)    perform_global_search ;;
-        *apps*)      run_app rofi -show drun -run-command "uwsm app -- {cmd}" ;; 
-        *learn*)     show_learn_menu ;;
-        *utils*)     show_utils_menu ;;
-        *ai*)        show_ai_menu ;;
-        *visuals*)   show_visuals_menu ;;
-        *hardware*)  show_hardware_menu ;;
-        *configs*)   show_config_menu ;;
-        *power*)     run_app rofi -show power-menu -modi "power-menu:$SCRIPTS_DIR/rofi/powermenu.sh" ;;
-        *)           exit 0 ;;
+        *search*)      perform_global_search ;;
+        *apps*)        run_app rofi -show drun -run-command "uwsm app -- {cmd}" ;; 
+        *learn*)       show_learn_menu ;;
+        *utils*)       show_utils_menu ;;
+        *ai*)          show_ai_menu ;;
+        *visuals*)     show_visuals_menu ;;
+        *system*)      show_system_menu ;;
+        *performance*) show_performance_menu ;;
+        *battery*)     show_power_battery_menu ;;
+        *network*)     show_networking_menu ;;
+        *configs*)     show_config_menu ;;
+        *power*)       run_app rofi -show power-menu -modi "power-menu:$SCRIPTS_DIR/rofi/powermenu.sh" ;;
+        *)             exit 0 ;;
     esac
 }
 
-# --- SEARCH LOGIC (FIXED) ---
+# --- SEARCH LOGIC ---
 
 perform_global_search() {
     local selected_relative
     local full_path
     local search_output
 
-    # 1. Generate List (Relative Paths)
-    # We cd into the dir first so fd/find outputs relative paths
     if command -v fd >/dev/null 2>&1; then
-        # fd default is relative when no path arg is given
         search_output=$(cd "${SEARCH_DIR}" && fd --type f --hidden --exclude .git .)
     else
-        # find outputs ./file, sed strips the leading ./ for clean UI
         search_output=$(cd "${SEARCH_DIR}" && find . -type f -not -path '*/.*' | sed 's|^\./||')
     fi
 
-    # 2. Get Selection (Rofi displays clean relative paths)
     selected_relative=$(printf "%s\n" "$search_output" | "${ROFI_CMD[@]}" -theme-str 'window {width: 80%;}' -p "Search")
 
-    # 3. Handle Selection
     if [[ -n "$selected_relative" ]]; then
-        
-        # RECONSTRUCT FULL PATH for execution
         full_path="${SEARCH_DIR}/${selected_relative}"
 
-        # A. Handle Directories (Yazi)
         if [[ -d "$full_path" ]]; then
-            run_term "$FILE_MANAGER \"$full_path\"" "yazi_filemanager"
+            run_term "yazi_filemanager" "$FILE_MANAGER" "$full_path"
         fi
 
-        # B. Check MIME Type for Files
         local mime_type
         mime_type=$(file --mime-type -b "$full_path")
 
         case "$mime_type" in
-            # Text/Code -> Open in Editor (Terminal)
             text/*|application/json|application/x-shellscript|application/toml|application/x-yaml|application/xml|application/x-conf|application/x-config)
                 open_editor "$full_path"
                 ;;
-            # Empty files -> Open in Editor
             inode/x-empty)
                 open_editor "$full_path"
                 ;;
-            # Everything else -> xdg-open (GUI)
             *)
                 uwsm-app -- xdg-open "$full_path" >/dev/null 2>&1 &
                 disown
@@ -154,7 +146,7 @@ perform_global_search() {
 
 show_learn_menu() {
     local choice
-    choice=$(menu "Learn" "  Keybindings (List)\n󰣇  Arch Wiki\n  Hyprland Wiki")
+    choice=$(menu "Learn" "󰌌  Keybindings (List)\n󰣇  Arch Wiki\n  Hyprland Wiki")
     
     case "${choice,,}" in
         *keybind*) run_app "$SCRIPTS_DIR/rofi/keybindings.sh" ;;
@@ -166,7 +158,7 @@ show_learn_menu() {
 
 show_ai_menu() {
     local choice
-    choice=$(menu "AI Tools" "󰔊  TTS - Kokoro (GPU)\n󰔊  TTS - Kokoro (CPU)\n  STT - Faster Whisper\n  STT - Parakeet (GPU)\n󰍉  OCR Selection")
+    choice=$(menu "AI Tools" "󰔊  TTS - Kokoro (GPU)\n󰔊  TTS - Kokoro (CPU)\n󰍬  STT - Faster Whisper\n󰍬  STT - Parakeet (GPU)\n󰍉  OCR Selection")
 
     case "${choice,,}" in
         *kokoro*gpu*) run_app "$SCRIPTS_DIR/tts_stt/kokoro_gpu/speak.sh" ;;
@@ -183,60 +175,102 @@ show_ai_menu() {
     esac
 }
 
-show_visuals_menu() {
-    local choice
-    choice=$(menu "Visuals" "󰸌  Cycle Matugen Theme\n󰸌  Matugen Config\n  Wallpaper App\n  Rofi Wallpaper\n󱐋  Animations\n  Shaders\n  Hyprsunset Slider")
-    
-    case "${choice,,}" in
-        *cycle*)     run_app "$SCRIPTS_DIR/theme_matugen/random_theme.sh" ;;
-        *matugen*)   run_app "$SCRIPTS_DIR/theme_matugen/matugen_config.sh" ;;
-        *rofi*wallpaper*) run_app "$SCRIPTS_DIR/rofi/rofi_wallpaper_selctor.sh" ;;
-        *wallpaper*) run_app waypaper ;;
-        *animation*) run_app rofi -show animations -modi "animations:$SCRIPTS_DIR/rofi/hypr_anim.sh" ;;
-        *shader*)    run_app "$SCRIPTS_DIR/rofi/shader_menu.sh" ;;
-        *sunset*)    run_app "$SCRIPTS_DIR/sliders/hyprsunset_slider.sh" ;;
-        *)           show_main_menu ;;
-    esac
-}
-
 show_utils_menu() {
     local choice
-    choice=$(menu "Utils" "  Wi-Fi (TUI)\n󰂯  Bluetooth\n  Audio Mixer\n󰌾  Unlock Browser Drives\n  Lock Browser Drives")
+    choice=$(menu "Utils" "󰖩  Wi-Fi (TUI)\n󰂯  Bluetooth\n󰕾  Audio Mixer\n󰞅  Emoji Picker\n  Screenshot (Swappy)\n󰅇  Clipboard Persistence\n󰉋  File Manager Switch\n󰍽  Mouse Handedness\n󰌌  Wayclick (Key Sounds)")
 
     case "${choice,,}" in
-        *wi-fi*)     run_term "wifitui" "wifitui" ;;
-        *bluetooth*) run_app blueman-manager ;;
-        *audio*)     run_app pavucontrol ;;
-        *unlock*)    run_term "$SCRIPTS_DIR/drives/drive_manager.sh unlock browser" ;;
-        *lock*)      run_term "$SCRIPTS_DIR/drives/drive_manager.sh lock browser" ;;
+        *wi-fi*)       run_term "wifitui" wifitui ;;
+        *bluetooth*)   run_app blueman-manager ;;
+        *audio*)       run_app pavucontrol ;;
+        *emoji*)       run_app "$SCRIPTS_DIR/rofi/emoji.sh" ;;
+        *screenshot*)
+            sh -c "slurp | grim -g - - | uwsm-app -- swappy -f -" &
+            disown
+            exit 0
+            ;;
+        *clipboard*)   run_term_hold "clipboard_persistance.sh" "$SCRIPTS_DIR/desktop_apps/clipboard_persistance.sh" ;;
+        *file*manager*) run_term_hold "file_manager_switch.sh" "$SCRIPTS_DIR/desktop_apps/file_manager_switch.sh" ;;
+        *mouse*)       run_term_hold "mouse_button_reverse.sh" "$SCRIPTS_DIR/desktop_apps/mouse_button_reverse.sh" ;;
+        *wayclick*)    run_app "$SCRIPTS_DIR/wayclick/wayclick.sh" ;;
+        *)             show_main_menu ;;
+    esac
+}
+
+show_visuals_menu() {
+    local choice
+    choice=$(menu "Visuals & Display" "󰸌  Cycle Matugen Theme\n󰸌  Matugen Config\n󰸉  Wallpaper App\n󰸉  Rofi Wallpaper\n󱐋  Animations\n󰃜  Shaders\n󰖨  Hyprsunset Slider\n󰖳  Blur/Opacity/Shadow\n󰍜  Waybar Config\n󰶡  Rotate Screen (CW)\n󰶣  Rotate Screen (CCW)\n󰐕  Scale Up (+)\n󰐖  Scale Down (-)")
+    
+    case "${choice,,}" in
+        *cycle*)            run_app "$SCRIPTS_DIR/theme_matugen/random_theme.sh" ;;
+        *matugen*config*)   run_app "$SCRIPTS_DIR/theme_matugen/matugen_config.sh" ;;
+        *rofi*wallpaper*)   run_app "$SCRIPTS_DIR/rofi/rofi_wallpaper_selctor.sh" ;;
+        *wallpaper*app*)    run_app waypaper ;;
+        *animation*)        run_app rofi -show animations -modi "animations:$SCRIPTS_DIR/rofi/hypr_anim.sh" ;;
+        *shader*)           run_app "$SCRIPTS_DIR/rofi/shader_menu.sh" ;;
+        *sunset*)           run_app "$SCRIPTS_DIR/sliders/hyprsunset_slider.sh" ;;
+        *blur*|*opacity*)   run_app "$SCRIPTS_DIR/hypr/hypr_blur_opacity_shadow_toggle.sh" ;;
+        *waybar*)           run_term "waybar_swap_config.sh" "$SCRIPTS_DIR/waybar/waybar_swap_config.sh" ;;
+        *cw*)               run_app "$SCRIPTS_DIR/hypr/screen_rotate.sh" -90 ;;
+        *ccw*)              run_app "$SCRIPTS_DIR/hypr/screen_rotate.sh" +90 ;;
+        *up*)               run_app "$SCRIPTS_DIR/hypr/adjust_scale.sh" + ;;
+        *down*)             run_app "$SCRIPTS_DIR/hypr/adjust_scale.sh" - ;;
+        *)                  show_main_menu ;;
+    esac
+}
+
+show_system_menu() {
+    local choice
+    choice=$(menu "System & Drives" "  Fastfetch\n󰋊  Dysk (Disk Space)\n󱂵  Disk IO Monitor\n󰗮  BTRFS Compression Stats")
+
+    case "${choice,,}" in
+        *fastfetch*) run_term_hold "fastfetch" fastfetch ;;
+        *dysk*)      run_term_hold "dysk" dysk ;;
+        *io*)        run_term "io_monitor.sh" "$SCRIPTS_DIR/drives/io_monitor.sh" ;;
+        *btrfs*)     run_term_hold "btrfs_zstd_compression_stats.sh" "$SCRIPTS_DIR/drives/btrfs_zstd_compression_stats.sh" ;;
         *)           show_main_menu ;;
     esac
 }
 
-show_hardware_menu() {
+show_performance_menu() {
     local choice
-    choice=$(menu "Hardware" "󰍹  Refresh Rate: 144Hz (Gaming)\n󰍹  Refresh Rate: 48Hz (Battery)\n  ASUS Control Center\n󰍜  Toggle Waybar")
+    choice=$(menu "Performance" "󰓅  Sysbench Benchmark\n󰃢  Cache Purge\n󰿅  Process Terminator")
 
     case "${choice,,}" in
-        *144hz*)
-            hyprctl keyword monitor eDP-1,1920x1080@144,0x0,1.6 >/dev/null
-            hyprctl keyword misc:vrr 1 >/dev/null
-            exit 0
-            ;;
-        *48hz*)
-            hyprctl keyword monitor eDP-1,1920x1080@48,0x0,1.6 >/dev/null
-            hyprctl keyword misc:vrr 0 >/dev/null
-            exit 0
-            ;;
-        *asus*)   run_term "sudo $SCRIPTS_DIR/asus/asusctl.sh" "asusctl" ;; 
-        *waybar*) run_app "$SCRIPTS_DIR/waybar/toggle_timer_waybar.sh" ;;
+        *sysbench*)    run_term_hold "sysbench_benchmark.sh" "$SCRIPTS_DIR/performance/sysbench_benchmark.sh" ;;
+        *cache*)       run_term_hold "cache_purge.sh" "$SCRIPTS_DIR/desktop_apps/cache_purge.sh" ;;
+        *process*|*terminator*) run_term_hold "performance.sh" "$SCRIPTS_DIR/performance/services_and_process_terminator.sh" ;;
+        *)             show_main_menu ;;
+    esac
+}
+
+show_power_battery_menu() {
+    local choice
+    choice=$(menu "Power & Battery" "󰶐  Hypridle Timeout\n󰂄  Battery Notification Config\n  Power Saver Mode")
+
+    case "${choice,,}" in
+        *hypridle*|*timeout*) run_term "timeout.sh" "$SCRIPTS_DIR/hypridle/timeout.sh" ;;
+        *notification*)       run_term "config_bat_notify.sh" "$SCRIPTS_DIR/battery/notify/config_bat_notify.sh" ;;
+        *saver*)              run_term_hold "power_saver.sh" "$SCRIPTS_DIR/battery/power_saver.sh" ;;
+        *)                    show_main_menu ;;
+    esac
+}
+
+show_networking_menu() {
+    local choice
+    choice=$(menu "Networking" "󰖂  Warp VPN Toggle\n󰣀  OpenSSH Setup\n󰖩  WiFi Testing (Airmon)")
+
+    case "${choice,,}" in
+        *warp*)   run_app "$SCRIPTS_DIR/networking/warp_toggle.sh" ;;
+        *ssh*)    run_term_hold "wifi_testing" sudo "$SCRIPTS_DIR/networking/02_openssh_setup.sh" ;;
+        *wifi*|*airmon*) run_term_hold "wifi_testing" sudo "$SCRIPTS_DIR/networking/ax201_wifi_testing.sh" ;;
         *)        show_main_menu ;;
     esac
 }
 
 show_config_menu() {
     local choice
-    choice=$(menu "Edit Configs" "  Hyprland Main\n  Keybinds\n󱐋  Animations\n󰖲  Input\n󰍹  Monitors\n  Window Rules\n󰍜  Waybar\n  Hypridle\n  Hyprlock")
+    choice=$(menu "Edit Configs" "  Hyprland Main\n󰌌  Keybinds\n󱐋  Animations\n󰖲  Input\n󰍹  Monitors\n  Window Rules\n󰍜  Waybar\n󰒲  Hypridle\n󰌾  Hyprlock")
 
     case "${choice,,}" in
         *hyprland*)   open_editor "$HYPR_CONF/hyprland.conf" ;;
