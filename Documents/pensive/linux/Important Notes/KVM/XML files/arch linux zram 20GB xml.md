@@ -43,7 +43,7 @@
 >     </disk>
 >     <disk type="file" device="cdrom">
 >       <driver name="qemu" type="raw"/>
->       <source file="/mnt/media/Downloads/Torrents/OS/linux/archlinux-2025.12.01-x86_64.iso"/>
+>       <source file="/mnt/zram1/archlinux.iso"/>
 >       <target dev="sda" bus="sata"/>
 >       <readonly/>
 >     </disk>
