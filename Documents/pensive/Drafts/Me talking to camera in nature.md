@@ -1,5 +1,0 @@
-I'm not in the least exaggerating when i say I've been on my pc configuring arch linux every waking hour of the last 64 days, it got so bad that i was troubleshooting Linux even in my dreams, I was losing my sanity, but i'm so glad i did it. because i have something incredible to show for it. 
-
-okay so i'm preempting the video with this but and i'll be showing you this but i just wanted to emphasize how life changing this part is and I'm beyond disappointed that no tech channel talks about this but you can quadruple both your ram and storage for free with a simple command, if you have 8 gigs of ram, you can turn it into 32 gigs. and same with storage i'm takling about storing 32gigs worth of data in your ram when you only have 8 gigs of ram. it's straight up magic. and it improves performance particularly on systems with low ram or if you're a mad man with 200 tabs open. and it also works exacly the same for all typs of storage drives. 
-
-It blew my freaking mind when i found out about it. 
