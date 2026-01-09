@@ -389,9 +389,11 @@ run_tui() {
 # MAIN ENTRY POINT
 #===============================================================================
 main() {
-    # Battery check - fail fast for desktops
+
+# Battery check - fail fast for desktops
     if ! check_battery; then
-        die "No battery detected. This tool is for laptops with batteries only."
+        info "No battery detected. Skipping configuration (Desktop detected)."
+        exit 0
     fi
 
     # Verify notify script exists
