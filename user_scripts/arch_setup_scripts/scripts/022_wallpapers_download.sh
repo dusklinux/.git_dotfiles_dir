@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-# Downloads and installs Dusk wallpapers ~ 1.7 GB in size
-# -----------------------------------------------------------------------------
-# Script: get-wallpapers.sh
-# Description: Downloads and installs Dusk wallpapers for Arch/Hyprland.
+# Downloads and installs Dusk wallpapers for Arch/Hyprland.
 # Context: Arch Linux, Hyprland, UWSM.
 # -----------------------------------------------------------------------------
 
@@ -10,8 +7,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# --- 2. Visuals & logging ---
-# Detect TTY to prevent color codes in pipe output
+# --- 2. Visuals & Logging ---
+# Define colors only if running in a terminal (TTY)
 if [[ -t 1 ]]; then
     readonly C_RESET=$'\033[0m'
     readonly C_BOLD=$'\033[1m'
@@ -19,34 +16,36 @@ if [[ -t 1 ]]; then
     readonly C_BLUE=$'\033[34m'
     readonly C_RED=$'\033[31m'
     readonly C_YELLOW=$'\033[33m'
+    readonly IS_TTY=1
 else
     readonly C_RESET='' C_BOLD='' C_GREEN='' C_BLUE='' C_RED='' C_YELLOW=''
+    readonly IS_TTY=0
 fi
 
 log_info()    { printf "${C_BLUE}[INFO]${C_RESET} %s\n" "$*"; }
 log_success() { printf "${C_GREEN}[OK]${C_RESET}   %s\n" "$*"; }
-log_warn()    { printf "${C_YELLOW}[WARN]${C_RESET} %s\n" "$*"; }
+log_warn()    { printf "${C_YELLOW}[WARN]${C_RESET} %s\n" "$*" >&2; }
 log_error()   { printf "${C_RED}[ERR]${C_RESET}  %s\n" "$*" >&2; }
 
 # --- 3. Configuration ---
 readonly REPO_URL="https://github.com/dusklinux/images.git"
-# Ensure HOME is set, otherwise error out immediately
 readonly TARGET_PARENT="${HOME:?HOME not set}/Pictures"
-# Use a unique temporary folder name to avoid collisions
-readonly CLONE_DIR="$TARGET_PARENT/images-tmp-$$"
 readonly SUBDIRS=("dark" "light")
+
+# CLONE_DIR will be set dynamically using mktemp
+CLONE_DIR=""
 
 # --- 4. Cleanup Trap ---
 cleanup() {
     local exit_code=$?
     
-    # Remove the clone directory if it exists
-    if [[ -d "$CLONE_DIR" ]]; then
+    # Securely remove the temporary directory
+    if [[ -n "$CLONE_DIR" && -d "$CLONE_DIR" ]]; then
         rm -rf "$CLONE_DIR"
     fi
     
-    # Restore cursor visibility
-    if [[ -t 1 ]]; then
+    # Restore cursor visibility if in TTY
+    if (( IS_TTY )); then
         tput cnorm 2>/dev/null || true
     fi
 
@@ -54,7 +53,6 @@ cleanup() {
         log_error "Script failed with exit code $exit_code."
     fi
 }
-# Trap EXIT handles normal exits, errors, and interrupts (INT/TERM) automatically
 trap cleanup EXIT
 
 # --- 5. Helper Functions ---
@@ -63,24 +61,21 @@ show_spinner() {
     local pid=$1
     local delay=0.1
     local spinstr='|/-\'
-    local temp
     
-    if [[ -t 1 ]]; then
-        tput civis 2>/dev/null || true # Hide cursor
-    fi
+    # Do not spin if not in TTY (logs/cron)
+    (( IS_TTY )) || return 0
     
+    tput civis 2>/dev/null || true # Hide cursor
     printf "${C_BLUE}Downloading resources... ${C_RESET}"
     
     while kill -0 "$pid" 2>/dev/null; do
-        temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
-        spinstr=$temp${spinstr%"$temp"}
+        printf "[%c]" "${spinstr:0:1}"
+        spinstr=${spinstr:1}${spinstr:0:1}
         sleep "$delay"
-        printf "\b\b\b\b\b\b"
+        printf "\b\b\b"
     done
     
-    printf "    \b\b\b\b"
-    echo ""
+    printf "   \b\b\b\n"
 }
 
 # --- 6. Main Logic ---
@@ -90,7 +85,7 @@ main() {
     printf "${C_BOLD}:: Wallpaper Manager for Arch/Hyprland${C_RESET}\n"
     
     # 6.1 Prompt User
-    printf "   Download the handpicked wallpaper collection? Strongly Recommand! (~1.7GB)?\n"
+    printf "   Download the handpicked wallpaper collection? Strongly Recommended! (~1.7GB)\n"
     local response
     read -r -p "   [y/N] > " response
     
@@ -105,26 +100,32 @@ main() {
         exit 1
     fi
 
-    # Ensure parent directory exists
+    # Ensure parent directory exists so we can create tmp dir inside it (or /tmp)
     if [[ ! -d "$TARGET_PARENT" ]]; then
-        log_info "Creating directory: $TARGET_PARENT"
         mkdir -p "$TARGET_PARENT"
     fi
+
+    # Secure temp directory creation
+    CLONE_DIR=$(mktemp -d "$TARGET_PARENT/.images-tmp.XXXXXX")
 
     # 6.3 Download (Git Clone)
     log_info "Cloning repository from $REPO_URL..."
     
-    # Run git in subshell, silencing output. 
-    # If it fails, we catch the exit code via 'wait'.
-    (git clone --depth 1 "$REPO_URL" "$CLONE_DIR" &>/dev/null) &
-    local git_pid=$!
+    # Optimizations:
+    # --depth 1: History truncation (shallow clone)
+    # --single-branch: Do not fetch other branches (Speed Boost)
+    git clone \
+        --depth 1 \
+        --single-branch \
+        "$REPO_URL" "$CLONE_DIR" &>/dev/null &
     
+    local git_pid=$!
     show_spinner "$git_pid"
     
     if ! wait "$git_pid"; then
         log_error "Download failed."
-        log_error "Check your internet connection or try cloning manually:"
-        log_error "git clone $REPO_URL"
+        log_error "Check your internet connection or try manually:"
+        log_error "git clone --depth 1 $REPO_URL"
         exit 1
     fi
     log_success "Download complete."
@@ -132,35 +133,53 @@ main() {
     # 6.4 Move and Merge
     log_info "Processing files..."
 
-    local dir src dest
+    local dir src dest parent_dir
     for dir in "${SUBDIRS[@]}"; do
         src="$CLONE_DIR/$dir"
-        dest="$TARGET_PARENT/$dir"
+
+        # --- LOGIC START ---
+        # 'dark' folder -> ~/Pictures/wallpapers/dark
+        # 'light' folder -> ~/Pictures/light
+        if [[ "$dir" == "dark" ]]; then
+            parent_dir="$TARGET_PARENT/wallpapers"
+        else
+            parent_dir="$TARGET_PARENT"
+        fi
+        
+        dest="$parent_dir/$dir"
+        # --- LOGIC END ---
 
         if [[ -d "$src" ]]; then
+            # Ensure the parent directory (e.g., wallpapers) exists
+            if [[ ! -d "$parent_dir" ]]; then
+                mkdir -p "$parent_dir"
+            fi
+
             if [[ -d "$dest" ]]; then
-                log_warn "Directory '$dir' already exists. Merging..."
+                log_warn "Directory '$dir' already exists in $(basename "$parent_dir"). Merging..."
                 
-                # Attempt rsync (safest), fallback to cp with dot-trick
                 if command -v rsync &> /dev/null; then
-                    # -a: archive, --ignore-existing: don't overwrite if file exists
+                    # Rsync is safer and handles merges better
                     rsync -a --ignore-existing "$src/" "$dest/"
                 else
-                    # cp -n: no overwrite. "$src/." copies contents, avoids wildcard issues.
+                    # Fallback: cp recursive, no-clobber
                     cp -rn "$src/." "$dest/" 2>/dev/null || true
                 fi
             else
-                mv "$src" "$TARGET_PARENT/"
+                # Move the folder into the correct parent directory
+                mv "$src" "$parent_dir/"
             fi
-            log_success "Installed: $dir wallpapers"
+            
+            log_success "Installed: $dir -> $(basename "$parent_dir")/$dir"
         else
             log_warn "Source directory '$dir' not found in repository."
         fi
     done
 
     # 6.5 Success
+    # Use # anchor to only replace HOME if it's at the start of the string
     log_success "Operation finished."
-    log_info "Wallpapers located in: ${TARGET_PARENT/$HOME/\~}"
+    log_info "Wallpapers located in: ${TARGET_PARENT/#$HOME/\~}"
 }
 
 main "$@"
