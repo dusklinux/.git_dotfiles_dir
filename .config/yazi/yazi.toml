@@ -87,10 +87,6 @@ image_bound      = [ 5000, 5000 ]
 suppress_preload = false
 
 [plugin]
-fetchers = [
-	# Mimetype
-	{ id = "mime", name = "*", run = "mime", prio = "high" },
-]
 spotters = [
 	{ name = "*/", run = "folder" },
 	# Code
