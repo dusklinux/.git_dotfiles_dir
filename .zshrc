@@ -168,6 +168,9 @@ alias lightmode='~/user_scripts/theme_matugen/matugen_config.sh --mode light'
 #submit logs 
 alias sendlogs='~/user_scripts/arch_setup_scripts/send_logs.sh --auto'
 
+# update dusky
+alias update_dusky='~/user_scripts/arch_setup_scripts/update_dusky.sh'
+
 # Check if eza is installed
 if command -v eza >/dev/null; then
     alias ls='eza --icons --group-directories-first'
