@@ -78,8 +78,9 @@ while true; do
         sleep 1
         
         # Launch cfdisk
-        # We explicitly allow cfdisk to take over the terminal
-        cfdisk "$TARGET_DEV"
+        # FIX: Redirect STDIN/STDOUT/STDERR to /dev/tty to bypass orchestrator logging pipe
+        # allowing ncurses to function correctly.
+        cfdisk "$TARGET_DEV" < /dev/tty > /dev/tty 2>&1
         
         echo ""
         echo -e "${C_GREEN}>> Partitioning complete for $TARGET_DEV.${C_RESET}"
