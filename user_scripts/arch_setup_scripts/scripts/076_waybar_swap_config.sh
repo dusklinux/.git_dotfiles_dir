@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
-# -----------------------------------------------------------------------------
-# Script: Waybar Theme Manager (wtm)
+# Waybar Theme Manager (wtm)
 # Description: Live preview, smart configuration, and symlinking for Waybar themes.
 # Environment: Arch Linux / Hyprland / UWSM
 # Author: Elite DevOps Engineer
@@ -15,6 +13,7 @@ declare -ra UWSM_CMD=(uwsm-app --)
 declare -i PREVIEW_PID=0
 declare TOGGLE_MODE=false
 declare TUI_ACTIVE=false
+declare FINALIZED=false
 
 # Original state - populated after CONFIG_ROOT validation
 declare ORIG_CONFIG=""
@@ -81,8 +80,7 @@ fi
 
 # --- Dependency Check ---
 check_deps() {
-    # Added readlink and corrected uwsm-app check
-    local -a deps=(waybar uwsm-app sed grep tput pkill pgrep readlink)
+    local -a deps=(waybar uwsm-app sed grep tput pkill pgrep readlink stty setsid)
     local -a missing=()
 
     for cmd in "${deps[@]}"; do
@@ -97,7 +95,6 @@ check_deps() {
 check_deps
 
 # --- Utility: Kill Waybar with Timeout ---
-# Prevents infinite loops if waybar becomes a zombie or refuses to die
 kill_waybar() {
     pkill -x waybar 2>/dev/null || true
     local -i retries=0
@@ -117,6 +114,12 @@ kill_waybar() {
 cleanup() {
     local -i exit_code=$?
 
+    # Skip cleanup if we've successfully finalized
+    if [[ "$FINALIZED" == "true" ]]; then
+        tput cnorm 2>/dev/null || true
+        exit "$exit_code"
+    fi
+
     # Kill preview wrapper if running
     if (( PREVIEW_PID > 0 )) && kill -0 "$PREVIEW_PID" 2>/dev/null; then
         kill "$PREVIEW_PID" 2>/dev/null || true
@@ -126,8 +129,7 @@ cleanup() {
     # Ensure waybar is definitely gone on exit
     pkill -x waybar 2>/dev/null || true
 
-    # Restore original symlinks only if TUI was active (implies user cancelled preview)
-    # This prevents restoring old configs if an error occurs during a valid toggle
+    # Restore original symlinks only if TUI was active
     if [[ "$TUI_ACTIVE" == "true" && -n "$ORIG_CONFIG" ]]; then
         rm -f "${CONFIG_ROOT}/config.jsonc" "${CONFIG_ROOT}/style.css"
         ln -snf "$ORIG_CONFIG" "${CONFIG_ROOT}/config.jsonc"
@@ -147,7 +149,7 @@ if [[ ! -d "$CONFIG_ROOT" ]]; then
     exit 1
 fi
 
-# Capture original symlinks only after we know the root exists
+# Capture original symlinks
 if [[ -L "${CONFIG_ROOT}/config.jsonc" ]]; then
     ORIG_CONFIG=$(readlink "${CONFIG_ROOT}/config.jsonc")
 fi
@@ -180,7 +182,6 @@ declare -i selected_idx=0
 
 # --- Logic Fork: Toggle vs TUI ---
 if [[ "$TOGGLE_MODE" == "true" ]]; then
-    # 1. Resolve current config directory
     current_real_path=""
     if [[ -L "${CONFIG_ROOT}/config.jsonc" ]]; then
         current_real_path=$(readlink -f "${CONFIG_ROOT}/config.jsonc")
@@ -195,7 +196,6 @@ if [[ "$TOGGLE_MODE" == "true" ]]; then
         current_dir=$(dirname "$current_real_path")
     fi
 
-    # 2. Find index of current theme
     declare -i current_idx=-1
     if [[ -n "$current_dir" ]]; then
         for (( i = 0; i < total; i++ )); do
@@ -208,9 +208,7 @@ if [[ "$TOGGLE_MODE" == "true" ]]; then
         done
     fi
 
-    # 3. Calculate next index
     if (( current_idx == -1 )); then
-        # If current config doesn't match a known theme, start at 0
         selected_idx=0
     else
         selected_idx=$(( (current_idx + 1) % total ))
@@ -222,26 +220,21 @@ else
     # --- TUI Mode ---
     TUI_ACTIVE=true
 
-    # Preview Function
     start_preview() {
         local theme_path="$1"
 
-        # Symlink First Strategy for relative imports
         rm -f "${CONFIG_ROOT}/config.jsonc" "${CONFIG_ROOT}/style.css"
         ln -snf "${theme_path}/config.jsonc" "${CONFIG_ROOT}/config.jsonc"
         [[ -f "${theme_path}/style.css" ]] && \
             ln -snf "${theme_path}/style.css" "${CONFIG_ROOT}/style.css"
 
-        # Kill previous preview wrapper/process
         if (( PREVIEW_PID > 0 )) && kill -0 "$PREVIEW_PID" 2>/dev/null; then
             kill "$PREVIEW_PID" 2>/dev/null || true
             wait "$PREVIEW_PID" 2>/dev/null || true
         fi
 
-        # Kill actual Waybar binary
         kill_waybar
 
-        # Start waybar
         "${UWSM_CMD[@]}" waybar &>/dev/null &
         PREVIEW_PID=$!
         sleep 0.3
@@ -279,7 +272,6 @@ else
                 start_preview "${themes[selected_idx]}"
                 ;;
             '')
-                # Enter pressed - confirm selection
                 TUI_ACTIVE=false
                 break
                 ;;
@@ -294,13 +286,11 @@ fi
 
 # --- Finalization Phase (Common) ---
 
-# Cleanup preview PID if it exists (from TUI mode)
 if (( PREVIEW_PID > 0 )) && kill -0 "$PREVIEW_PID" 2>/dev/null; then
     kill "$PREVIEW_PID" 2>/dev/null || true
     wait "$PREVIEW_PID" 2>/dev/null || true
 fi
 
-# Ensure Waybar is closed before applying final settings
 kill_waybar
 
 readonly FINAL_THEME_DIR="${themes[selected_idx]}"
@@ -312,12 +302,9 @@ if [[ "$TOGGLE_MODE" == "false" ]]; then
 fi
 
 # --- Smart Position Detection & Adjustment ---
-# Only run interactive adjustment if NOT in toggle mode
 if [[ "$TOGGLE_MODE" == "false" ]]; then
     current_pos=""
-    # Optimized grep: -m1 stops after first match
     if current_pos_line=$(grep -m1 -E '"position"[[:space:]]*:[[:space:]]*"(top|bottom|left|right)"' "$CONFIG_FILE" 2>/dev/null); then
-        # Optimized sed: removed redundant head -n1
         current_pos=$(sed -E 's/.*"position"[[:space:]]*:[[:space:]]*"([a-z]+)".*/\1/' <<< "$current_pos_line")
     fi
 
@@ -378,11 +365,15 @@ fi
 # --- Start Final Waybar ---
 [[ "$TOGGLE_MODE" == "false" ]] && log_info "Starting Waybar via UWSM..."
 
-"${UWSM_CMD[@]}" waybar &>/dev/null &
-disown
+FINALIZED=true
+trap - EXIT INT TERM
+
+stty sane 2>/dev/null || true
+
+setsid --fork "${UWSM_CMD[@]}" waybar </dev/null &>/dev/null
+
+sleep 0.5
 
 [[ "$TOGGLE_MODE" == "false" ]] && log_success "Done. Enjoy your new setup!"
 
-# Disable cleanup trap on success
-trap - EXIT
 exit 0

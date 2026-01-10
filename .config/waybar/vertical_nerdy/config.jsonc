@@ -4,7 +4,7 @@
     // GENERAL SETTINGS
     // ===================================================================
     "layer": "top",
-    "position": "right",
+    "position": "left",
     "spacing": 3,
     "width": 10,
     "margin-top": 0,
