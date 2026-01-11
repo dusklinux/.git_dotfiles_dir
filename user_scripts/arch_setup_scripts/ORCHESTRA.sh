@@ -48,7 +48,7 @@ INSTALL_SEQUENCE=(
 #    "S | 034_zram_optimize_swappiness.sh"
 #    "S | 035_powerkey_lid_close_behaviour.sh"
     "S | 036_logrotate_optimization.sh"
-    "S | 037_faillock_timeout.sh"
+#    "S | 037_faillock_timeout.sh"
     "U | 038_non_asus_laptop.sh --auto"
     "U | 039_file_manager_switch.sh"
     "U | 040_swaync_dgpu_fix.sh --disable"
