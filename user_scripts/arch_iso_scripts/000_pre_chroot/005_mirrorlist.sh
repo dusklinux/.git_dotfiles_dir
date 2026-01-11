@@ -8,7 +8,7 @@
 
 # --- CONFIGURATION ---
 TARGET_FILE="/etc/pacman.d/mirrorlist"
-DEFAULT_COUNTRY="India"
+DEFAULT_COUNTRY="list"
 
 # Preselected Indian Mirrors (Fallback)
 FALLBACK_MIRRORS=(
@@ -61,7 +61,7 @@ update_mirrors() {
         read -r -p ":: Enter country: " _input_country
 
         # 1. Check if user wants to list countries
-        if [[ "${_input_country,,}" == "list" ]]; then
+        if [[ "${_input_country,,}" == "list" ]] || [[ -z "$_input_country" ]]; then
             echo -e "${Y}:: Retrieving country list...${NC}"
             reflector --list-countries
             echo ""
